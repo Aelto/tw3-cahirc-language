@@ -6,7 +6,9 @@ This allows the use of new features available to `wss` that get converted to val
 
 ## Main features & goals
  - [ ] Generics
- - [ ] Constant primitive variables in the global scope
- - [ ] Macros, conditional compilation
+ - [ ] Macros, conditional compilation, support for recursive macros (macros that generate calls to macros)
+ - [ ] Constant primitive variables in the global scope (macro constants)
  - [ ] Lambdas
  - [ ] Closures
+ - [ ] Variable declarations anywhere in function bodies
+ - [ ] some forms of static analysis, or at least syntax validation
