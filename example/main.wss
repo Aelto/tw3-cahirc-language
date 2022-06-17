@@ -1,0 +1,10 @@
+
+function main(a: int, b: string): int {
+  var foo: int;
+  var bar: string = "hello";
+
+  foo = thePlayer(a, 5 + 3 * thePlayer.foo(5));
+  thePlayer.foo = foo;
+
+  return bar.lorem(foo);
+}

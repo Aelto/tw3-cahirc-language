@@ -1,0 +1,197 @@
+use std::str::FromStr;
+use crate::ast::{
+    Expression,
+    OperationCode,
+    TypedIdentifier,
+    Statement,
+    FunctionDeclaration,
+    TypeDeclaration,
+    VariableDeclaration,
+    FunctionBodyStatement,
+    FunctionCallParameters,
+    IdentifierTerm,
+    AssignmentType
+};
+
+grammar;
+
+pub Statement: Statement = {
+    Expression => Statement::Expression(<>),
+    FunctionDeclaration => Statement::FunctionDeclaration(<>)
+};
+
+// -----------------------------------------------------------------------------
+
+FunctionDeclaration: FunctionDeclaration = {
+    KeywordFunction <name: Identifier> "(" <parameters:SeparatedTypedIdentifier> ")" <type_declaration:TypeDeclaration?>
+    "{" <body_statements:(<FunctionBodyStatement>)*> "}"
+        => FunctionDeclaration::Function {
+            name,
+            parameters,
+            type_declaration: type_declaration,
+            body_statements
+        }
+};
+
+FunctionBodyStatement: FunctionBodyStatement = {
+    <var:VariableDeclaration> ";" => FunctionBodyStatement::VariableDeclaration(var),
+    <expression:Expression> ";" => FunctionBodyStatement::Expression(expression),
+    
+    KeywordReturn <expression:Expression> ";" => FunctionBodyStatement::Return(expression),
+
+    <variable_name:IdentifierTerm> <assignment_type:AssignmentType> <following_expression:Expression> ";" =>
+        FunctionBodyStatement::Assignement {
+            variable_name,
+            assignment_type,
+            following_expression
+        }
+}
+
+// -----------------------------------------------------------------------------
+
+VariableDeclaration: VariableDeclaration = {
+    KeywordVar <typed_identifier: TypedIdentifier> <expression:("=" <Expression>)?> => VariableDeclaration {
+        declaration: typed_identifier,
+        following_expression: expression
+    }
+}
+
+// -----------------------------------------------------------------------------
+
+TypedIdentifier: TypedIdentifier = {
+    <name:Identifier> <type_declaration:TypeDeclaration> => TypedIdentifier {
+        name: name,
+        type_name: type_declaration.type_name
+    }
+}
+
+TypeDeclaration: TypeDeclaration = {
+    ":" <type_name:Identifier> => TypeDeclaration { type_name: type_name }
+}
+
+// -----------------------------------------------------------------------------
+
+FunctionCallParameters: FunctionCallParameters = {
+    "(" <parameters:SeparatedExpressions> ")" => FunctionCallParameters(parameters)
+}
+
+// -----------------------------------------------------------------------------
+
+Expression: Box<Expression> = {
+    Expression ExprOperation Factor => Box::new(Expression::Operation(<>)),
+    Factor,
+};
+
+ExprOperation: OperationCode = {
+    "+" => OperationCode::Add,
+    "-" => OperationCode::Sub,
+};
+
+Factor: Box<Expression> = {
+    Factor FactorOp Term => Box::new(Expression::Operation(<>)),
+    Term,
+};
+
+FactorOp: OperationCode = {
+    "*" => OperationCode::Mul,
+    "/" => OperationCode::Div,
+};
+
+AssignmentType: AssignmentType = {
+    "=" => AssignmentType::Equal,
+    "+=" => AssignmentType::PlusEqual,
+    "-=" => AssignmentType::MinusEqual,
+    "*=" => AssignmentType::AsteriskEqual,
+    "/=" => AssignmentType::SlashEqual
+}
+
+Term: Box<Expression> = {
+    Num => Box::new(Expression::Number(<>)),
+    "(" <Expression> ")",
+    StringLiteral => Box::new(Expression::String(String::from(<>))),
+
+    IdentifierTerm => Box::new(Expression::Identifier(<>)),
+    <accessor:IdentifierTerm> <parameters:FunctionCallParameters> => Box::new(Expression::FunctionCall{
+        accessor,
+        parameters
+    }),
+};
+
+IdentifierTerm: IdentifierTerm = {
+    <ids:DotSeparatedIdentifiers> => IdentifierTerm::NestedIdentifiers(ids),
+    <id:Identifier> => IdentifierTerm::Identifier(id)
+}
+
+// -----------------------------------------------------------------------------
+
+Num: i32 = {
+    r"[0-9]+" => i32::from_str(<>).unwrap()
+};
+
+Identifier: String = {
+    IdentifierRegex => String::from(<>)
+}
+
+// -----------------------------------------------------------------------------
+
+SeparatedExpressions = TrailingComma<Expression>;
+SeparatedTypedIdentifier = TrailingComma<TypedIdentifier>;
+
+DotSeparatedIdentifiers = DotSeparated<Identifier>;
+
+/// A comma separated list of `T` with the possibility of a trailing comma
+TrailingComma<T>: Vec<T> = {
+    <mut v:(<T> ",")*> <e:T?> => match e {
+        None => v,
+        Some(e) => {
+            v.push(e);
+            v
+        }
+    }
+};
+
+/// A dot separated list of `T` with NO possibility of a trailing dot
+DotSeparated<T>: Vec<T> = {
+    <e:T> "." <ee:T> <mut v:("." <T> )*> => {
+        v.push(e);
+        v.push(ee);
+        v
+    }
+};
+
+/// A Tier,
+/// 
+///
+Tier<Op,NextTier>: Box<Expression> = {
+    Tier<Op,NextTier> Op NextTier => Box::new(Expression::Operation(<>)),
+    NextTier
+};
+
+// `match`: Declares the precedence of regular expressions
+// relative to one another when synthesizing
+// the lexer
+match {
+    // These items have highest precedence.
+    r"[0-9]+",
+
+    "function" => KeywordFunction,
+    "var" => KeywordVar,
+    "return" => KeywordReturn
+} else {
+    // These items have next highest precedence.
+
+    // Given an input like `123`, the number regex above
+    // will match; but otherwise, given something like
+    // `123foo` or `foo123`, this will match.
+    //
+    // Here, we also renamed the regex to the name `ID`, which we can
+    // use in the grammar itself.
+    r"\w+" => IdentifierRegex,
+
+    r#"".*""# => StringLiteral,
+
+    // This `_` means "add in all the other strings and
+    // regular expressions in the grammer here" (e.g.,
+    // `"("`).
+    _
+} // you can have more `else` sections if you like
