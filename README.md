@@ -12,3 +12,4 @@ This allows the use of new features available to `wss` that get converted to val
  - [ ] Closures
  - [ ] Variable declarations anywhere in function bodies
  - [ ] some forms of static analysis, or at least syntax validation
+ - [ ] namespaces and import statements
