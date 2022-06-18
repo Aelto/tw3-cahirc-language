@@ -12,7 +12,10 @@ use crate::ast::{
     IdentifierTerm,
     AssignmentType,
     IfStatement,
-    ComparisonType
+    ComparisonType,
+    ForStatement,
+    VariableDeclarationOrAssignment,
+    VariableAssignment
 };
 
 grammar;
@@ -41,14 +44,20 @@ FunctionBodyStatement: FunctionBodyStatement = {
     
     KeywordReturn <expression:Expression> ";" => FunctionBodyStatement::Return(expression),
 
-    <variable_name:IdentifierTerm> <assignment_type:AssignmentType> <following_expression:Expression> ";" =>
-        FunctionBodyStatement::Assignement {
+    <var:VariableAssignment> ";" => FunctionBodyStatement::Assignement(<>),
+    IfStatement => FunctionBodyStatement::IfStatement(<>),
+    ForStatement => FunctionBodyStatement::ForStatement(<>)
+}
+
+// -----------------------------------------------------------------------------
+
+VariableAssignment: VariableAssignment = {
+    <variable_name:IdentifierTerm> <assignment_type:AssignmentType> <following_expression:Expression>
+        => VariableAssignment {
             variable_name,
             assignment_type,
             following_expression
-        },
-
-    <if_statement:IfStatement> => FunctionBodyStatement::IfStatement(if_statement)
+        }
 }
 
 // -----------------------------------------------------------------------------
@@ -68,6 +77,19 @@ ElseStatement: Box<IfStatement> = {
             condition,
             body_statements
         })
+}
+
+// -----------------------------------------------------------------------------
+
+ForStatement: ForStatement = {
+    KeywordFor "(" <initialization:VariableDeclarationOrAssignment?> ";" <condition:Expression> ";" <iteration:VariableAssignment>  ")"
+    "{" <body_statements:(<FunctionBodyStatement>)*> "}"
+        => ForStatement { initialization, condition, iteration, body_statements }
+}
+
+VariableDeclarationOrAssignment: VariableDeclarationOrAssignment = {
+    VariableDeclaration => VariableDeclarationOrAssignment::Declaration(<>),
+    VariableAssignment => VariableDeclarationOrAssignment::Assignement(<>)
 }
 
 // -----------------------------------------------------------------------------
@@ -216,7 +238,8 @@ match {
     "var" => KeywordVar,
     "return" => KeywordReturn,
     "if" => KeywordIf,
-    "else" => KeywordElse
+    "else" => KeywordElse,
+    "for" => KeywordFor
 } else {
     // These items have next highest precedence.
 

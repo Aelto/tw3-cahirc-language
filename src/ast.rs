@@ -27,13 +27,12 @@ pub enum FunctionBodyStatement {
   VariableDeclaration(VariableDeclaration),
   Expression(Box<Expression>),
   Return(Box<Expression>),
-  Assignement {
-    variable_name: IdentifierTerm,
-    assignment_type: AssignmentType,
-    following_expression: Box<Expression>
-  },
-  IfStatement(IfStatement)
+  Assignement(VariableAssignment),
+  IfStatement(IfStatement),
+  ForStatement(ForStatement)
 }
+
+// -----------------------------------------------------------------------------
 
 #[derive(Debug)]
 pub enum IfStatement {
@@ -47,6 +46,34 @@ pub enum IfStatement {
     body_statements: Vec<FunctionBodyStatement>
   }
 }
+
+// -----------------------------------------------------------------------------
+
+#[derive(Debug)]
+pub struct VariableAssignment {
+  pub variable_name: IdentifierTerm,
+  pub assignment_type: AssignmentType,
+  pub following_expression: Box<Expression>
+}
+
+// -----------------------------------------------------------------------------
+
+#[derive(Debug)]
+pub struct ForStatement {
+  pub initialization: Option<VariableDeclarationOrAssignment>,
+  pub condition: Box<Expression>,
+  pub iteration: VariableAssignment,
+  pub body_statements: Vec<FunctionBodyStatement>
+}
+
+#[derive(Debug)]
+pub enum VariableDeclarationOrAssignment {
+  Declaration(VariableDeclaration),
+  Assignement(VariableAssignment)
+}
+
+// -----------------------------------------------------------------------------
+
 
 #[derive(Debug)]
 pub struct VariableDeclaration {

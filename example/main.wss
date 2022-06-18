@@ -6,10 +6,18 @@ function main(a: int, b: string): int {
   foo = thePlayer(a, 5 + 3 * thePlayer.foo(5));
   thePlayer.foo = foo;
 
+  for (i = 0; i < foo; i += 1) {
+
+  }
+
   if (foo < 5) {
     bar = "hola";
+
+    if (thePlayer.test) {
+      bar = "bonjour";
+    }
   }
-  else if (bar) {
+  else if (bar.test) {
     foo = 5;
   }
   else {
