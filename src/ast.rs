@@ -31,6 +31,20 @@ pub enum FunctionBodyStatement {
     variable_name: IdentifierTerm,
     assignment_type: AssignmentType,
     following_expression: Box<Expression>
+  },
+  IfStatement(IfStatement)
+}
+
+#[derive(Debug)]
+pub enum IfStatement {
+  If {
+    condition: Box<Expression>,
+    body_statements: Vec<FunctionBodyStatement>,
+    else_statements: Vec<Box<IfStatement>>
+  },
+  Else {
+    condition: Option<Box<Expression>>,
+    body_statements: Vec<FunctionBodyStatement>
   }
 }
 
@@ -96,6 +110,7 @@ pub enum OperationCode {
   Div,
   Add,
   Sub,
+  Comparison(ComparisonType)
 }
 
 #[derive(Debug)]
@@ -105,4 +120,14 @@ pub enum AssignmentType {
   MinusEqual,
   AsteriskEqual,
   SlashEqual
+}
+
+#[derive(Copy, Clone, Debug)]
+pub enum ComparisonType {
+  Greater,
+  GreaterEqual,
+  Lower,
+  LowerEqual,
+  Equal,
+  Different
 }

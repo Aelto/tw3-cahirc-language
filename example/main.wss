@@ -6,5 +6,15 @@ function main(a: int, b: string): int {
   foo = thePlayer(a, 5 + 3 * thePlayer.foo(5));
   thePlayer.foo = foo;
 
+  if (foo < 5) {
+    bar = "hola";
+  }
+  else if (bar) {
+    foo = 5;
+  }
+  else {
+    bar += "world";
+  }
+
   return bar.lorem(foo);
 }

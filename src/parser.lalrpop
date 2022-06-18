@@ -10,7 +10,9 @@ use crate::ast::{
     FunctionBodyStatement,
     FunctionCallParameters,
     IdentifierTerm,
-    AssignmentType
+    AssignmentType,
+    IfStatement,
+    ComparisonType
 };
 
 grammar;
@@ -44,7 +46,28 @@ FunctionBodyStatement: FunctionBodyStatement = {
             variable_name,
             assignment_type,
             following_expression
+        },
+
+    <if_statement:IfStatement> => FunctionBodyStatement::IfStatement(if_statement)
+}
+
+// -----------------------------------------------------------------------------
+
+IfStatement: IfStatement = {
+    KeywordIf "(" <condition:Expression> ")" "{" <body_statements:(<FunctionBodyStatement>)*> "}" <else_statements:(<ElseStatement>)*>
+        => IfStatement::If {
+            condition,
+            body_statements,
+            else_statements
         }
+}
+
+ElseStatement: Box<IfStatement> = {
+    KeywordElse <condition:(KeywordIf "(" <Expression> ")")?> "{" <body_statements:(<FunctionBodyStatement>)*> "}"
+        => Box::new(IfStatement::Else {
+            condition,
+            body_statements
+        })
 }
 
 // -----------------------------------------------------------------------------
@@ -85,6 +108,7 @@ Expression: Box<Expression> = {
 ExprOperation: OperationCode = {
     "+" => OperationCode::Add,
     "-" => OperationCode::Sub,
+    ComparisonType => OperationCode::Comparison(<>)
 };
 
 Factor: Box<Expression> = {
@@ -103,6 +127,15 @@ AssignmentType: AssignmentType = {
     "-=" => AssignmentType::MinusEqual,
     "*=" => AssignmentType::AsteriskEqual,
     "/=" => AssignmentType::SlashEqual
+}
+
+ComparisonType: ComparisonType = {
+    "==" => ComparisonType::Equal,
+    "!=" => ComparisonType::Different,
+    ">" => ComparisonType::Greater,
+    ">=" => ComparisonType::GreaterEqual,
+    "<" => ComparisonType::Lower,
+    "<=" => ComparisonType::LowerEqual
 }
 
 Term: Box<Expression> = {
@@ -127,6 +160,11 @@ IdentifierTerm: IdentifierTerm = {
 Num: i32 = {
     r"[0-9]+" => i32::from_str(<>).unwrap()
 };
+
+Boolean: bool = {
+    "true" => true,
+    "false" => false
+}
 
 Identifier: String = {
     IdentifierRegex => String::from(<>)
@@ -176,7 +214,9 @@ match {
 
     "function" => KeywordFunction,
     "var" => KeywordVar,
-    "return" => KeywordReturn
+    "return" => KeywordReturn,
+    "if" => KeywordIf,
+    "else" => KeywordElse
 } else {
     // These items have next highest precedence.
 
