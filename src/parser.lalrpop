@@ -49,14 +49,7 @@ ClassDeclaration: ClassDeclaration = {
             name,
             extended_class_name,
             body_statements
-        },
-
-    KeywordClass => ClassDeclaration {
-        class_type: ClassType::Class,
-        name: String::from("foo"),
-        extended_class_name: None,
-        body_statements: Vec::new()
-    }
+        }
 }
 
 ClassBodyStatement: ClassBodyStatement = {
