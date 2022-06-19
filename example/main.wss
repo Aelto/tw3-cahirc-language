@@ -23,6 +23,10 @@ function main(a: int, b: string): int {
     }
   }
 
+  while (foo > 5) {
+    print("hello");
+  }
+
 
   return bar.lorem(foo);
 }

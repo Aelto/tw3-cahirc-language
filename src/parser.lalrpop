@@ -15,7 +15,8 @@ use crate::ast::{
     ComparisonType,
     ForStatement,
     VariableDeclarationOrAssignment,
-    VariableAssignment
+    VariableAssignment,
+    WhileStatement
 };
 
 grammar;
@@ -46,7 +47,8 @@ FunctionBodyStatement: FunctionBodyStatement = {
 
     <var:VariableAssignment> ";" => FunctionBodyStatement::Assignement(<>),
     IfStatement => FunctionBodyStatement::IfStatement(<>),
-    ForStatement => FunctionBodyStatement::ForStatement(<>)
+    ForStatement => FunctionBodyStatement::ForStatement(<>),
+    WhileStatement => FunctionBodyStatement::WhileStatement(<>)
 }
 
 // -----------------------------------------------------------------------------
@@ -90,6 +92,13 @@ ForStatement: ForStatement = {
 VariableDeclarationOrAssignment: VariableDeclarationOrAssignment = {
     VariableDeclaration => VariableDeclarationOrAssignment::Declaration(<>),
     VariableAssignment => VariableDeclarationOrAssignment::Assignement(<>)
+}
+
+// -----------------------------------------------------------------------------
+
+WhileStatement: WhileStatement = {
+    KeywordWhile "(" <condition:Expression> ")" "{" <body_statements:(<FunctionBodyStatement>)*> "}"
+        => WhileStatement { condition, body_statements }
 }
 
 // -----------------------------------------------------------------------------
@@ -239,7 +248,8 @@ match {
     "return" => KeywordReturn,
     "if" => KeywordIf,
     "else" => KeywordElse,
-    "for" => KeywordFor
+    "for" => KeywordFor,
+    "while" => KeywordWhile
 } else {
     // These items have next highest precedence.
 

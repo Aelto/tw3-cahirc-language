@@ -29,7 +29,8 @@ pub enum FunctionBodyStatement {
   Return(Box<Expression>),
   Assignement(VariableAssignment),
   IfStatement(IfStatement),
-  ForStatement(ForStatement)
+  ForStatement(ForStatement),
+  WhileStatement(WhileStatement)
 }
 
 // -----------------------------------------------------------------------------
@@ -70,6 +71,14 @@ pub struct ForStatement {
 pub enum VariableDeclarationOrAssignment {
   Declaration(VariableDeclaration),
   Assignement(VariableAssignment)
+}
+
+// -----------------------------------------------------------------------------
+
+#[derive(Debug)]
+pub struct WhileStatement {
+  pub condition: Box<Expression>,
+  pub body_statements: Vec<FunctionBodyStatement>
 }
 
 // -----------------------------------------------------------------------------
