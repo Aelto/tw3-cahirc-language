@@ -34,3 +34,7 @@ function main(a: int, b: string): int {
 
   return bar.lorem(foo);
 }
+
+statemachine class Example extends Bar {
+
+}

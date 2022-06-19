@@ -22,7 +22,7 @@ fn compile_source_directory(directory: &Path) -> std::io::Result<()> {
     let file = file?;
     let content = std::fs::read_to_string(file.path())?;
     
-    let expr = parser::StatementParser::new()
+    let expr = parser::ProgramParser::new()
       .parse(&content)
       .unwrap();
 

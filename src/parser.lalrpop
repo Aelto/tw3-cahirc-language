@@ -1,5 +1,6 @@
 use std::str::FromStr;
 use crate::ast::{
+    Program,
     Expression,
     OperationCode,
     TypedIdentifier,
@@ -17,15 +18,50 @@ use crate::ast::{
     VariableDeclarationOrAssignment,
     VariableAssignment,
     WhileStatement,
-    DoWhileStatement
+    DoWhileStatement,
+    ClassDeclaration,
+    ClassBodyStatement,
+    ClassType
 };
 
 grammar;
 
-pub Statement: Statement = {
-    Expression => Statement::Expression(<>),
-    FunctionDeclaration => Statement::FunctionDeclaration(<>)
+pub Program: Program = {
+    <statements:(<Statement>)*> => Program { statements }
+}
+
+Statement: Statement = {
+    // Expression => Statement::Expression(<>),
+    FunctionDeclaration => Statement::FunctionDeclaration(<>),
+    ClassDeclaration => Statement::ClassDeclaration(<>)
 };
+
+// -----------------------------------------------------------------------------
+
+ClassDeclaration: ClassDeclaration = {
+    <statemachine:KeywordStatemachine?> KeywordClass <name: Identifier> <extended_class_name:(KeywordExtends <Identifier>)?>
+    "{" <body_statements:(<ClassBodyStatement>)*> "}"
+        => ClassDeclaration {
+            class_type: match statemachine.is_some() {
+                true => ClassType::StatemachineClass,
+                false => ClassType::Class
+            },
+            name,
+            extended_class_name,
+            body_statements
+        },
+
+    KeywordClass => ClassDeclaration {
+        class_type: ClassType::Class,
+        name: String::from("foo"),
+        extended_class_name: None,
+        body_statements: Vec::new()
+    }
+}
+
+ClassBodyStatement: ClassBodyStatement = {
+
+}
 
 // -----------------------------------------------------------------------------
 
@@ -257,7 +293,10 @@ match {
     "else" => KeywordElse,
     "for" => KeywordFor,
     "while" => KeywordWhile,
-    "do" => KeywordDo
+    "do" => KeywordDo,
+    "class" => KeywordClass,
+    "statemachine" => KeywordStatemachine,
+    "extends" => KeywordExtends
 } else {
     // These items have next highest precedence.
 

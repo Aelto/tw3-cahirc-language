@@ -1,12 +1,45 @@
 use std::fmt::{Debug};
 
+// -----------------------------------------------------------------------------
+
+#[derive(Debug)]
+pub struct Program {
+  pub statements: Vec<Statement>
+}
+
+// -----------------------------------------------------------------------------
+
 #[derive(Debug)]
 pub enum Statement {
   Expression(Box<Expression>),
-  FunctionDeclaration(FunctionDeclaration)
+  FunctionDeclaration(FunctionDeclaration),
+  ClassDeclaration(ClassDeclaration)
+}
+
+// -----------------------------------------------------------------------------
+
+#[derive(Debug)]
+pub struct ClassDeclaration {
+  pub class_type: ClassType,
+  pub name: String,
+  pub extended_class_name: Option<String>,
+  pub body_statements: Vec<ClassBodyStatement>
 }
 
 #[derive(Debug)]
+pub enum ClassType {
+  Class,
+  StatemachineClass
+}
+
+#[derive(Debug)]
+pub enum ClassBodyStatement {}
+
+// -----------------------------------------------------------------------------
+
+#[derive(Debug)]
+/// TODO: replace the use of an enum with a struct and a `type: FunctionType`
+/// property.
 pub enum FunctionDeclaration {
   Function {
     name: String,
