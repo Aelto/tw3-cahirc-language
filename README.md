@@ -5,7 +5,7 @@ The goal of this project is to offer a basic compiler (more of a transpiler) tha
 This allows the use of new features available to `wss` that get converted to valid witcherscript code.
 
 ## Main features & goals
- - [ ] Generics
+ - [ ] Generics, with mangled names to allow use of `wss` libraries
  - [ ] Macros, conditional compilation, support for recursive macros (macros that generate calls to macros)
  - [ ] Constant primitive variables in the global scope (macro constants)
  - [ ] Lambdas
