@@ -33,7 +33,24 @@ pub enum ClassType {
 }
 
 #[derive(Debug)]
-pub enum ClassBodyStatement {}
+pub enum ClassBodyStatement {
+  Method {
+    encapsulation: Option<EncapsulationType>,
+    function_declaration: FunctionDeclaration
+  },
+  Property {
+    encapsulation: Option<EncapsulationType>,
+    property_declaration: VariableDeclaration
+  },
+  DefaultValue(VariableAssignment)
+}
+
+#[derive(Debug)]
+pub enum EncapsulationType {
+  Private,
+  Public,
+  Protected
+}
 
 // -----------------------------------------------------------------------------
 
@@ -45,7 +62,8 @@ pub enum FunctionDeclaration {
     name: String,
     parameters: Vec<TypedIdentifier>,
     type_declaration: Option<TypeDeclaration>,
-    body_statements: Vec<FunctionBodyStatement>
+    body_statements: Vec<FunctionBodyStatement>,
+    is_latent: bool
   },
   Event {
 

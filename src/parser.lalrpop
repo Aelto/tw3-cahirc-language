@@ -21,7 +21,8 @@ use crate::ast::{
     DoWhileStatement,
     ClassDeclaration,
     ClassBodyStatement,
-    ClassType
+    ClassType,
+    EncapsulationType
 };
 
 grammar;
@@ -53,19 +54,36 @@ ClassDeclaration: ClassDeclaration = {
 }
 
 ClassBodyStatement: ClassBodyStatement = {
+    <encapsulation:EncapsulationType?> <property_declaration:VariableDeclaration> ";" => ClassBodyStatement::Property {
+        encapsulation,
+        property_declaration
+    },
 
+    <encapsulation:EncapsulationType?> <function_declaration:FunctionDeclaration> => ClassBodyStatement::Method {
+        encapsulation,
+        function_declaration
+    },
+
+    KeywordDefault <VariableAssignment> ";" => ClassBodyStatement::DefaultValue(<>)
+}
+
+EncapsulationType: EncapsulationType = {
+    KeywordPublic => EncapsulationType::Public,
+    KeywordPrivate => EncapsulationType::Private,
+    KeywordProtected => EncapsulationType::Protected
 }
 
 // -----------------------------------------------------------------------------
 
 FunctionDeclaration: FunctionDeclaration = {
-    KeywordFunction <name: Identifier> "(" <parameters:SeparatedTypedIdentifier> ")" <type_declaration:TypeDeclaration?>
+    <latent:KeywordLatent?> KeywordFunction <name: Identifier> "(" <parameters:SeparatedTypedIdentifier> ")" <type_declaration:TypeDeclaration?>
     "{" <body_statements:(<FunctionBodyStatement>)*> "}"
         => FunctionDeclaration::Function {
             name,
             parameters,
             type_declaration: type_declaration,
-            body_statements
+            body_statements,
+            is_latent: latent.is_some()
         }
 };
 
@@ -289,7 +307,12 @@ match {
     "do" => KeywordDo,
     "class" => KeywordClass,
     "statemachine" => KeywordStatemachine,
-    "extends" => KeywordExtends
+    "extends" => KeywordExtends,
+    "private" => KeywordPrivate,
+    "public" => KeywordPublic,
+    "protected" => KeywordProtected,
+    "default" => KeywordDefault,
+    "latent" => KeywordLatent
 } else {
     // These items have next highest precedence.
 

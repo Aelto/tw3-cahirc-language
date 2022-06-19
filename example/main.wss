@@ -36,5 +36,14 @@ function main(a: int, b: string): int {
 }
 
 statemachine class Example extends Bar {
+  private var foo: int;
+  default foo = 10;
 
+  public function init() {
+    print("hello");
+  }
+
+  latent function justSleep() {
+    Sleep(5);
+  }
 }
