@@ -27,6 +27,10 @@ function main(a: int, b: string): int {
     print("hello");
   }
 
+  do {
+    print("world");
+  } while (foo < 5);
+
 
   return bar.lorem(foo);
 }

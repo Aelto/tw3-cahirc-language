@@ -30,7 +30,8 @@ pub enum FunctionBodyStatement {
   Assignement(VariableAssignment),
   IfStatement(IfStatement),
   ForStatement(ForStatement),
-  WhileStatement(WhileStatement)
+  WhileStatement(WhileStatement),
+  DoWhileStatement(DoWhileStatement)
 }
 
 // -----------------------------------------------------------------------------
@@ -77,6 +78,12 @@ pub enum VariableDeclarationOrAssignment {
 
 #[derive(Debug)]
 pub struct WhileStatement {
+  pub condition: Box<Expression>,
+  pub body_statements: Vec<FunctionBodyStatement>
+}
+
+#[derive(Debug)]
+pub struct DoWhileStatement {
   pub condition: Box<Expression>,
   pub body_statements: Vec<FunctionBodyStatement>
 }

@@ -16,7 +16,8 @@ use crate::ast::{
     ForStatement,
     VariableDeclarationOrAssignment,
     VariableAssignment,
-    WhileStatement
+    WhileStatement,
+    DoWhileStatement
 };
 
 grammar;
@@ -48,7 +49,8 @@ FunctionBodyStatement: FunctionBodyStatement = {
     <var:VariableAssignment> ";" => FunctionBodyStatement::Assignement(<>),
     IfStatement => FunctionBodyStatement::IfStatement(<>),
     ForStatement => FunctionBodyStatement::ForStatement(<>),
-    WhileStatement => FunctionBodyStatement::WhileStatement(<>)
+    WhileStatement => FunctionBodyStatement::WhileStatement(<>),
+    <DoWhileStatement> ";" => FunctionBodyStatement::DoWhileStatement(<>)
 }
 
 // -----------------------------------------------------------------------------
@@ -99,6 +101,11 @@ VariableDeclarationOrAssignment: VariableDeclarationOrAssignment = {
 WhileStatement: WhileStatement = {
     KeywordWhile "(" <condition:Expression> ")" "{" <body_statements:(<FunctionBodyStatement>)*> "}"
         => WhileStatement { condition, body_statements }
+}
+
+DoWhileStatement: DoWhileStatement = {
+    KeywordDo "{" <body_statements:(<FunctionBodyStatement>)*> "}" KeywordWhile "(" <condition:Expression> ")"
+        => DoWhileStatement { condition, body_statements }
 }
 
 // -----------------------------------------------------------------------------
@@ -249,7 +256,8 @@ match {
     "if" => KeywordIf,
     "else" => KeywordElse,
     "for" => KeywordFor,
-    "while" => KeywordWhile
+    "while" => KeywordWhile,
+    "do" => KeywordDo
 } else {
     // These items have next highest precedence.
 
