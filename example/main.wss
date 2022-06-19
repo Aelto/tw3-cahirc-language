@@ -4,25 +4,25 @@ function main(a: int, b: string): int {
   var bar: string = "hello";
 
   foo = thePlayer(a, 5 + 3 * thePlayer.foo(5));
-  thePlayer.foo = foo;
 
   for (i = 0; i < foo; i += 1) {
+    thePlayer.foo = foo;
 
-  }
+    if (foo < 5) {
+      bar = "hola";
 
-  if (foo < 5) {
-    bar = "hola";
-
-    if (thePlayer.test) {
-      bar = "bonjour";
+      if (thePlayer.test) {
+        bar = "bonjour";
+      }
+    }
+    else if (bar.test) {
+      foo = 5;
+    }
+    else {
+      bar += "world";
     }
   }
-  else if (bar.test) {
-    foo = 5;
-  }
-  else {
-    bar += "world";
-  }
+
 
   return bar.lorem(foo);
 }
