@@ -22,7 +22,9 @@ use crate::ast::{
     ClassDeclaration,
     ClassBodyStatement,
     ClassType,
-    EncapsulationType
+    EncapsulationType,
+    StructDeclaration,
+    StructBodyStatement
 };
 
 grammar;
@@ -34,7 +36,8 @@ pub Program: Program = {
 Statement: Statement = {
     // Expression => Statement::Expression(<>),
     FunctionDeclaration => Statement::FunctionDeclaration(<>),
-    ClassDeclaration => Statement::ClassDeclaration(<>)
+    ClassDeclaration => Statement::ClassDeclaration(<>),
+    StructDeclaration => Statement::StructDeclaration(<>)
 };
 
 // -----------------------------------------------------------------------------
@@ -71,6 +74,21 @@ EncapsulationType: EncapsulationType = {
     KeywordPublic => EncapsulationType::Public,
     KeywordPrivate => EncapsulationType::Private,
     KeywordProtected => EncapsulationType::Protected
+}
+
+// -----------------------------------------------------------------------------
+
+StructDeclaration: StructDeclaration = {
+    KeywordStruct <name: Identifier> "{" <body_statements:(<StructBodyStatement>)*> "}"
+        => StructDeclaration {
+            name,
+            body_statements
+        }
+}
+
+StructBodyStatement: StructBodyStatement = {
+    <VariableDeclaration> ";" => StructBodyStatement::Property(<>),
+    KeywordDefault <VariableAssignment> ";" => StructBodyStatement::DefaultValue(<>)
 }
 
 // -----------------------------------------------------------------------------
@@ -312,7 +330,8 @@ match {
     "public" => KeywordPublic,
     "protected" => KeywordProtected,
     "default" => KeywordDefault,
-    "latent" => KeywordLatent
+    "latent" => KeywordLatent,
+    "struct" => KeywordStruct
 } else {
     // These items have next highest precedence.
 

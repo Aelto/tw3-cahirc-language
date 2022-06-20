@@ -47,3 +47,8 @@ statemachine class Example extends Bar {
     Sleep(5);
   }
 }
+
+struct Example {
+  var i: int;
+  default i = 5;
+}

@@ -13,7 +13,8 @@ pub struct Program {
 pub enum Statement {
   Expression(Box<Expression>),
   FunctionDeclaration(FunctionDeclaration),
-  ClassDeclaration(ClassDeclaration)
+  ClassDeclaration(ClassDeclaration),
+  StructDeclaration(StructDeclaration)
 }
 
 // -----------------------------------------------------------------------------
@@ -50,6 +51,20 @@ pub enum EncapsulationType {
   Private,
   Public,
   Protected
+}
+
+// -----------------------------------------------------------------------------
+
+#[derive(Debug)]
+pub struct StructDeclaration {
+  pub name: String,
+  pub body_statements: Vec<StructBodyStatement>
+}
+
+#[derive(Debug)]
+pub enum StructBodyStatement {
+  Property(VariableDeclaration),
+  DefaultValue(VariableAssignment)
 }
 
 // -----------------------------------------------------------------------------
