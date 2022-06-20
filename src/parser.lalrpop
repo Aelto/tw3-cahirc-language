@@ -24,7 +24,8 @@ use crate::ast::{
     ClassType,
     EncapsulationType,
     StructDeclaration,
-    StructBodyStatement
+    StructBodyStatement,
+    FunctionType
 };
 
 grammar;
@@ -35,7 +36,7 @@ pub Program: Program = {
 
 Statement: Statement = {
     // Expression => Statement::Expression(<>),
-    FunctionDeclaration => Statement::FunctionDeclaration(<>),
+    GlobalFunctionDeclaration => Statement::FunctionDeclaration(<>),
     ClassDeclaration => Statement::ClassDeclaration(<>),
     StructDeclaration => Statement::StructDeclaration(<>)
 };
@@ -62,7 +63,7 @@ ClassBodyStatement: ClassBodyStatement = {
         property_declaration
     },
 
-    <encapsulation:EncapsulationType?> <function_declaration:FunctionDeclaration> => ClassBodyStatement::Method {
+    <encapsulation:EncapsulationType?> <function_declaration:MethodDeclaration> => ClassBodyStatement::Method {
         encapsulation,
         function_declaration
     },
@@ -93,10 +94,11 @@ StructBodyStatement: StructBodyStatement = {
 
 // -----------------------------------------------------------------------------
 
-FunctionDeclaration: FunctionDeclaration = {
+GlobalFunctionDeclaration: FunctionDeclaration = {
     <latent:KeywordLatent?> KeywordFunction <name: Identifier> "(" <parameters:SeparatedTypedIdentifier> ")" <type_declaration:TypeDeclaration?>
     "{" <body_statements:(<FunctionBodyStatement>)*> "}"
-        => FunctionDeclaration::Function {
+        => FunctionDeclaration {
+            function_type: FunctionType::Function,
             name,
             parameters,
             type_declaration: type_declaration,
@@ -104,6 +106,25 @@ FunctionDeclaration: FunctionDeclaration = {
             is_latent: latent.is_some()
         }
 };
+
+MethodDeclaration: FunctionDeclaration = {
+    <latent:KeywordLatent?> <function_type:FunctionType> <name: Identifier> "(" <parameters:SeparatedTypedIdentifier> ")" <type_declaration:TypeDeclaration?>
+    "{" <body_statements:(<FunctionBodyStatement>)*> "}"
+        => FunctionDeclaration {
+            function_type,
+            name,
+            parameters,
+            type_declaration: type_declaration,
+            body_statements,
+            is_latent: latent.is_some()
+        }
+};
+
+FunctionType: FunctionType = {
+    KeywordTimer => FunctionType::Timer,
+    KeywordEvent => FunctionType::Event,
+    KeywordFunction => FunctionType::Function
+}
 
 FunctionBodyStatement: FunctionBodyStatement = {
     <var:VariableDeclaration> ";" => FunctionBodyStatement::VariableDeclaration(var),
@@ -331,7 +352,9 @@ match {
     "protected" => KeywordProtected,
     "default" => KeywordDefault,
     "latent" => KeywordLatent,
-    "struct" => KeywordStruct
+    "struct" => KeywordStruct,
+    "timer" => KeywordTimer,
+    "event" => KeywordEvent
 } else {
     // These items have next highest precedence.
 

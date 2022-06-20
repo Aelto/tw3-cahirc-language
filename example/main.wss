@@ -46,6 +46,10 @@ statemachine class Example extends Bar {
   latent function justSleep() {
     Sleep(5);
   }
+
+  timer myTimer() {
+
+  }
 }
 
 struct Example {

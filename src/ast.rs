@@ -70,22 +70,21 @@ pub enum StructBodyStatement {
 // -----------------------------------------------------------------------------
 
 #[derive(Debug)]
-/// TODO: replace the use of an enum with a struct and a `type: FunctionType`
 /// property.
-pub enum FunctionDeclaration {
-  Function {
-    name: String,
-    parameters: Vec<TypedIdentifier>,
-    type_declaration: Option<TypeDeclaration>,
-    body_statements: Vec<FunctionBodyStatement>,
-    is_latent: bool
-  },
-  Event {
+pub struct FunctionDeclaration {
+  pub function_type: FunctionType,
+  pub name: String,
+  pub parameters: Vec<TypedIdentifier>,
+  pub type_declaration: Option<TypeDeclaration>,
+  pub body_statements: Vec<FunctionBodyStatement>,
+  pub is_latent: bool
+}
 
-  },
-  Timer {
-
-  }
+#[derive(Debug)]
+pub enum FunctionType {
+  Function,
+  Timer,
+  Event
 }
 
 #[derive(Debug)]
