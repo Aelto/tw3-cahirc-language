@@ -5,12 +5,16 @@ use std::rc::Rc;
 // -----------------------------------------------------------------------------
 
 pub struct ProgramInformation {
-  pub generic_functions: RefCell<Vec<Rc<FunctionDeclaration>>>
+  pub generic_functions: RefCell<Vec<Rc<FunctionDeclaration>>>,
+  pub generic_function_calls: RefCell<Vec<Rc<Expression>>>
 }
 
 impl ProgramInformation {
   pub fn new() -> Self {
-    Self { generic_functions: RefCell::new(Vec::new()) }
+    Self {
+      generic_functions: RefCell::new(Vec::new()),
+      generic_function_calls: RefCell::new(Vec::new())
+    }
   }
 }
 
@@ -25,7 +29,7 @@ pub struct Program {
 
 #[derive(Debug)]
 pub enum Statement {
-  Expression(Box<Expression>),
+  Expression(Rc<Expression>),
   FunctionDeclaration(Rc<FunctionDeclaration>),
   ClassDeclaration(ClassDeclaration),
   StructDeclaration(StructDeclaration)
@@ -105,8 +109,8 @@ pub enum FunctionType {
 #[derive(Debug)]
 pub enum FunctionBodyStatement {
   VariableDeclaration(VariableDeclaration),
-  Expression(Box<Expression>),
-  Return(Box<Expression>),
+  Expression(Rc<Expression>),
+  Return(Rc<Expression>),
   Assignement(VariableAssignment),
   IfStatement(IfStatement),
   ForStatement(ForStatement),
@@ -119,12 +123,12 @@ pub enum FunctionBodyStatement {
 #[derive(Debug)]
 pub enum IfStatement {
   If {
-    condition: Box<Expression>,
+    condition: Rc<Expression>,
     body_statements: Vec<FunctionBodyStatement>,
     else_statements: Vec<Box<IfStatement>>
   },
   Else {
-    condition: Option<Box<Expression>>,
+    condition: Option<Rc<Expression>>,
     body_statements: Vec<FunctionBodyStatement>
   }
 }
@@ -135,7 +139,7 @@ pub enum IfStatement {
 pub struct VariableAssignment {
   pub variable_name: Box<IdentifierTerm>,
   pub assignment_type: AssignmentType,
-  pub following_expression: Box<Expression>
+  pub following_expression: Rc<Expression>
 }
 
 // -----------------------------------------------------------------------------
@@ -143,7 +147,7 @@ pub struct VariableAssignment {
 #[derive(Debug)]
 pub struct ForStatement {
   pub initialization: Option<VariableDeclarationOrAssignment>,
-  pub condition: Box<Expression>,
+  pub condition: Rc<Expression>,
   pub iteration: VariableAssignment,
   pub body_statements: Vec<FunctionBodyStatement>
 }
@@ -158,13 +162,13 @@ pub enum VariableDeclarationOrAssignment {
 
 #[derive(Debug)]
 pub struct WhileStatement {
-  pub condition: Box<Expression>,
+  pub condition: Rc<Expression>,
   pub body_statements: Vec<FunctionBodyStatement>
 }
 
 #[derive(Debug)]
 pub struct DoWhileStatement {
-  pub condition: Box<Expression>,
+  pub condition: Rc<Expression>,
   pub body_statements: Vec<FunctionBodyStatement>
 }
 
@@ -174,16 +178,16 @@ pub struct DoWhileStatement {
 #[derive(Debug)]
 pub struct VariableDeclaration {
   pub declaration: TypedIdentifier,
-  pub following_expression: Option<Box<Expression>>
+  pub following_expression: Option<Rc<Expression>>
 }
 
 #[derive(Debug)]
-pub struct FunctionCallParameters(pub Vec<Box<Expression>>);
+pub struct FunctionCallParameters(pub Vec<Rc<Expression>>);
 
 #[derive(Debug)]
 pub struct IdentifierTerm {
   pub text: String,
-  pub indexing: Option<Box<Expression>>,
+  pub indexing: Option<Rc<Expression>>,
   pub nesting: Option<Box<IdentifierTerm>>
 }
 
@@ -220,7 +224,7 @@ pub enum Expression {
   },
 
   /// An operation between two expressions
-  Operation(Box<Expression>, OperationCode, Box<Expression>),
+  Operation(Rc<Expression>, OperationCode, Rc<Expression>),
   Error,
 }
 

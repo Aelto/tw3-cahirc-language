@@ -263,8 +263,8 @@ FunctionCallParameters: FunctionCallParameters = {
 
 // -----------------------------------------------------------------------------
 
-Expression: Box<Expression> = {
-    Expression ExprOperation Factor => Box::new(Expression::Operation(<>)),
+Expression: Rc<Expression> = {
+    Expression ExprOperation Factor => Rc::new(Expression::Operation(<>)),
     Factor,
 };
 
@@ -274,8 +274,8 @@ ExprOperation: OperationCode = {
     ComparisonType => OperationCode::Comparison(<>)
 };
 
-Factor: Box<Expression> = {
-    Factor FactorOp Term => Box::new(Expression::Operation(<>)),
+Factor: Rc<Expression> = {
+    Factor FactorOp Term => Rc::new(Expression::Operation(<>)),
     Term,
 };
 
@@ -301,21 +301,32 @@ ComparisonType: ComparisonType = {
     "<=" => ComparisonType::LowerEqual
 }
 
-Term: Box<Expression> = {
-    Num => Box::new(Expression::Number(<>)),
+Term: Rc<Expression> = {
+    Num => Rc::new(Expression::Number(<>)),
     "(" <Expression> ")",
-    StringLiteral => Box::new(Expression::String(String::from(<>))),
+    StringLiteral => Rc::new(Expression::String(String::from(<>))),
 
-    IdentifierTerm => Box::new(Expression::Identifier(<>)),
+    IdentifierTerm => Rc::new(Expression::Identifier(<>)),
     <accessor:IdentifierTerm> <generic_types:("::" <GenericTypesDeclaration>)?> <parameters:FunctionCallParameters>
-        => Box::new(Expression::FunctionCall{
-            accessor,
-            generic_types,
-            parameters
-        }),
+        => {
+            let is_generic_call = generic_types.is_some();
+            let function_call = Rc::new(Expression::FunctionCall{
+                accessor,
+                generic_types,
+                parameters
+            });
+
+            if is_generic_call {
+                let mut generic_function_calls = information.generic_function_calls.borrow_mut();
+
+                generic_function_calls.push(function_call.clone());
+            }
+
+            function_call
+        },
 };
 
-Indexing: Box<Expression> = {
+Indexing: Rc<Expression> = {
     "[" <Expression> "]" => <>
 }
 
@@ -374,8 +385,8 @@ DotSeparated<T>: Vec<T> = {
 /// A Tier,
 /// 
 ///
-Tier<Op,NextTier>: Box<Expression> = {
-    Tier<Op,NextTier> Op NextTier => Box::new(Expression::Operation(<>)),
+Tier<Op,NextTier>: Rc<Expression> = {
+    Tier<Op,NextTier> Op NextTier => Rc::new(Expression::Operation(<>)),
     NextTier
 };
 
