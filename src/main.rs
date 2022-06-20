@@ -30,10 +30,10 @@ fn compile_source_directory(directory: &Path) -> std::io::Result<()> {
 
     dbg!(&expr);
 
-    let functions = program_information.generic_functions.borrow();
-    for function in functions.iter() {
-      dbg!(function);
-    }
+    // let functions = program_information.generic_functions.borrow();
+    // for function in functions.iter() {
+    //   dbg!(function);
+    // }
   }
 
   Ok(())

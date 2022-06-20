@@ -307,10 +307,12 @@ Term: Box<Expression> = {
     StringLiteral => Box::new(Expression::String(String::from(<>))),
 
     IdentifierTerm => Box::new(Expression::Identifier(<>)),
-    <accessor:IdentifierTerm> <parameters:FunctionCallParameters> => Box::new(Expression::FunctionCall{
-        accessor,
-        parameters
-    }),
+    <accessor:IdentifierTerm> <generic_types:("::" <GenericTypesDeclaration>)?> <parameters:FunctionCallParameters>
+        => Box::new(Expression::FunctionCall{
+            accessor,
+            generic_types,
+            parameters
+        }),
 };
 
 Indexing: Box<Expression> = {

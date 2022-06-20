@@ -181,12 +181,6 @@ pub struct VariableDeclaration {
 pub struct FunctionCallParameters(pub Vec<Box<Expression>>);
 
 #[derive(Debug)]
-pub struct FunctionCall {
-  pub accessor: Box<IdentifierTerm>,
-  pub parameters: FunctionCallParameters
-}
-
-#[derive(Debug)]
 pub struct IdentifierTerm {
   pub text: String,
   pub indexing: Option<Box<Expression>>,
@@ -221,6 +215,7 @@ pub enum Expression {
 
   FunctionCall {
     accessor: Box<IdentifierTerm>,
+    generic_types: Option<Vec<String>>,
     parameters: FunctionCallParameters
   },
 

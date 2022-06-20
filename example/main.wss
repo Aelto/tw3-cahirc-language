@@ -68,5 +68,7 @@ function filterOdd<T>(list: array<T>): array<T> {
     }
   }
 
+  output.testGenericFunctionCall::<int>();
+
   return output;
 }
