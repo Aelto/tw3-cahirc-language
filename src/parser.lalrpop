@@ -313,9 +313,17 @@ Term: Box<Expression> = {
     }),
 };
 
-IdentifierTerm: IdentifierTerm = {
-    <ids:DotSeparatedIdentifiers> => IdentifierTerm::NestedIdentifiers(ids),
-    <id:Identifier> => IdentifierTerm::Identifier(id)
+Indexing: Box<Expression> = {
+    "[" <Expression> "]" => <>
+}
+
+IdentifierTerm: Box<IdentifierTerm> = {
+    // <ids:DotSeparatedIdentifiers> => IdentifierTerm::NestedIdentifiers(ids),
+    <text:Identifier> <indexing:Indexing?> <nesting:("." <IdentifierTerm>)?> => Box::new(IdentifierTerm {
+        text,
+        indexing,
+        nesting
+    })
 }
 
 // -----------------------------------------------------------------------------

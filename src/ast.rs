@@ -133,7 +133,7 @@ pub enum IfStatement {
 
 #[derive(Debug)]
 pub struct VariableAssignment {
-  pub variable_name: IdentifierTerm,
+  pub variable_name: Box<IdentifierTerm>,
   pub assignment_type: AssignmentType,
   pub following_expression: Box<Expression>
 }
@@ -182,14 +182,15 @@ pub struct FunctionCallParameters(pub Vec<Box<Expression>>);
 
 #[derive(Debug)]
 pub struct FunctionCall {
-  pub accessor: IdentifierTerm,
+  pub accessor: Box<IdentifierTerm>,
   pub parameters: FunctionCallParameters
 }
 
 #[derive(Debug)]
-pub enum IdentifierTerm {
-  Identifier(String),
-  NestedIdentifiers(Vec<String>),
+pub struct IdentifierTerm {
+  pub text: String,
+  pub indexing: Option<Box<Expression>>,
+  pub nesting: Option<Box<IdentifierTerm>>
 }
 
 #[derive(Debug)]
@@ -216,10 +217,10 @@ pub enum Expression {
 
   String(String),
 
-  Identifier(IdentifierTerm),
+  Identifier(Box<IdentifierTerm>),
 
   FunctionCall {
-    accessor: IdentifierTerm,
+    accessor: Box<IdentifierTerm>,
     parameters: FunctionCallParameters
   },
 
