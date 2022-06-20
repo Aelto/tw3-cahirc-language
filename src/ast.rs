@@ -1,4 +1,18 @@
+use std::cell::RefCell;
 use std::fmt::{Debug};
+use std::rc::Rc;
+
+// -----------------------------------------------------------------------------
+
+pub struct ProgramInformation {
+  pub generic_functions: RefCell<Vec<Rc<FunctionDeclaration>>>
+}
+
+impl ProgramInformation {
+  pub fn new() -> Self {
+    Self { generic_functions: RefCell::new(Vec::new()) }
+  }
+}
 
 // -----------------------------------------------------------------------------
 
@@ -12,7 +26,7 @@ pub struct Program {
 #[derive(Debug)]
 pub enum Statement {
   Expression(Box<Expression>),
-  FunctionDeclaration(FunctionDeclaration),
+  FunctionDeclaration(Rc<FunctionDeclaration>),
   ClassDeclaration(ClassDeclaration),
   StructDeclaration(StructDeclaration)
 }
@@ -37,7 +51,7 @@ pub enum ClassType {
 pub enum ClassBodyStatement {
   Method {
     encapsulation: Option<EncapsulationType>,
-    function_declaration: FunctionDeclaration
+    function_declaration: Rc<FunctionDeclaration>
   },
   Property {
     encapsulation: Option<EncapsulationType>,
@@ -74,6 +88,7 @@ pub enum StructBodyStatement {
 pub struct FunctionDeclaration {
   pub function_type: FunctionType,
   pub name: String,
+  pub generic_types: Option<Vec<String>>,
   pub parameters: Vec<TypedIdentifier>,
   pub type_declaration: Option<TypeDeclaration>,
   pub body_statements: Vec<FunctionBodyStatement>,
@@ -180,7 +195,7 @@ pub enum IdentifierTerm {
 #[derive(Debug)]
 pub struct TypedIdentifier {
   pub name: String,
-  pub type_name: String
+  pub type_declaration: TypeDeclaration
 }
 
 /// Represents a type declaration that could be after anything, for example
@@ -191,7 +206,8 @@ pub struct TypedIdentifier {
 /// `: int` is the typeDeclaration
 #[derive(Debug)]
 pub struct TypeDeclaration {
-  pub type_name: String
+  pub type_name: String,
+  pub generic_type_assignment: Option<Vec<TypeDeclaration>>
 }
 
 #[derive(Debug)]

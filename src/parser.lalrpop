@@ -1,5 +1,9 @@
 use std::str::FromStr;
+use std::rc::Rc;
+
 use crate::ast::{
+    ProgramInformation,
+
     Program,
     Expression,
     OperationCode,
@@ -28,7 +32,7 @@ use crate::ast::{
     FunctionType
 };
 
-grammar;
+grammar(information: &ProgramInformation);
 
 pub Program: Program = {
     <statements:(<Statement>)*> => Program { statements }
@@ -94,29 +98,57 @@ StructBodyStatement: StructBodyStatement = {
 
 // -----------------------------------------------------------------------------
 
-GlobalFunctionDeclaration: FunctionDeclaration = {
-    <latent:KeywordLatent?> KeywordFunction <name: Identifier> "(" <parameters:SeparatedTypedIdentifier> ")" <type_declaration:TypeDeclaration?>
+GenericTypesDeclaration: Vec<String> = {
+    "<" <SeparatedIdentifier> ">" => <>
+}
+
+GlobalFunctionDeclaration: Rc<FunctionDeclaration> = {
+    <latent:KeywordLatent?> KeywordFunction <name: Identifier> <generic_types:GenericTypesDeclaration?>
+    "(" <parameters:SeparatedTypedIdentifier> ")" <type_declaration:TypeDeclaration?>
     "{" <body_statements:(<FunctionBodyStatement>)*> "}"
-        => FunctionDeclaration {
-            function_type: FunctionType::Function,
-            name,
-            parameters,
-            type_declaration: type_declaration,
-            body_statements,
-            is_latent: latent.is_some()
+        => {
+            let declaration = Rc::new(FunctionDeclaration {
+                function_type: FunctionType::Function,
+                name,
+                generic_types,
+                parameters,
+                type_declaration: type_declaration,
+                body_statements,
+                is_latent: latent.is_some()
+            });
+
+            if declaration.generic_types.is_some() {
+                let mut generic_functions = information.generic_functions.borrow_mut();
+
+                generic_functions.push(declaration.clone());
+            }
+            
+            declaration
         }
 };
 
-MethodDeclaration: FunctionDeclaration = {
-    <latent:KeywordLatent?> <function_type:FunctionType> <name: Identifier> "(" <parameters:SeparatedTypedIdentifier> ")" <type_declaration:TypeDeclaration?>
+MethodDeclaration: Rc<FunctionDeclaration> = {
+    <latent:KeywordLatent?> <function_type:FunctionType> <name: Identifier> <generic_types:GenericTypesDeclaration?>
+    "(" <parameters:SeparatedTypedIdentifier> ")" <type_declaration:TypeDeclaration?>
     "{" <body_statements:(<FunctionBodyStatement>)*> "}"
-        => FunctionDeclaration {
-            function_type,
-            name,
-            parameters,
-            type_declaration: type_declaration,
-            body_statements,
-            is_latent: latent.is_some()
+        => {
+            let declaration = Rc::new(FunctionDeclaration {
+                function_type,
+                name,
+                generic_types,
+                parameters,
+                type_declaration: type_declaration,
+                body_statements,
+                is_latent: latent.is_some()
+            });
+
+            if declaration.generic_types.is_some() {
+                let mut generic_functions = information.generic_functions.borrow_mut();
+
+                generic_functions.push(declaration.clone());
+            }
+            
+            declaration
         }
 };
 
@@ -208,12 +240,19 @@ VariableDeclaration: VariableDeclaration = {
 TypedIdentifier: TypedIdentifier = {
     <name:Identifier> <type_declaration:TypeDeclaration> => TypedIdentifier {
         name: name,
-        type_name: type_declaration.type_name
+        type_declaration
     }
 }
 
 TypeDeclaration: TypeDeclaration = {
-    ":" <type_name:Identifier> => TypeDeclaration { type_name: type_name }
+    ":" <Type> => <>
+}
+
+Type: TypeDeclaration = {
+    <type_name:Identifier> <generic_type_assignment:("<" <TrailingComma<Type>> ">")?> => TypeDeclaration {
+        type_name,
+        generic_type_assignment
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -298,6 +337,7 @@ Identifier: String = {
 
 SeparatedExpressions = TrailingComma<Expression>;
 SeparatedTypedIdentifier = TrailingComma<TypedIdentifier>;
+SeparatedIdentifier = TrailingComma<Identifier>;
 
 DotSeparatedIdentifiers = DotSeparated<Identifier>;
 

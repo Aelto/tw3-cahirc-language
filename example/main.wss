@@ -56,3 +56,17 @@ struct Example {
   var i: int;
   default i = 5;
 }
+
+function filterOdd<T>(list: array<T>): array<T> {
+  var nested_generics_test: array<T, Dictionnary<D>>;
+  var output: array<T>;
+  var i: int;
+
+  for (i = 0; i < list.Size(); i += 1) {
+    if (list[i].isEven()) {
+      output.PushBack(list[i]);
+    }
+  }
+
+  return output;
+}
