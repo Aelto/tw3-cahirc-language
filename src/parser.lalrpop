@@ -337,7 +337,7 @@ Indexing: Rc<Expression> = {
 
 IdentifierTerm: Box<IdentifierTerm> = {
     // <ids:DotSeparatedIdentifiers> => IdentifierTerm::NestedIdentifiers(ids),
-    <text:Identifier> <indexing:Indexing?> <nesting:("." <IdentifierTerm>)?> => Box::new(IdentifierTerm {
+    <text:Identifier> <indexing:Indexing*> <nesting:("." <IdentifierTerm>)?> => Box::new(IdentifierTerm {
         text,
         indexing,
         nesting

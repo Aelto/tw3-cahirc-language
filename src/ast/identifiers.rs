@@ -5,7 +5,7 @@ use super::*;
 #[derive(Debug)]
 pub struct IdentifierTerm {
   pub text: String,
-  pub indexing: Option<Rc<Expression>>,
+  pub indexing: Vec<Rc<Expression>>,
   pub nesting: Option<Box<IdentifierTerm>>
 }
 
