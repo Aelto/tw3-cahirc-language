@@ -37,3 +37,11 @@ pub enum FunctionBodyStatement {
 
 #[derive(Debug)]
 pub struct FunctionCallParameters(pub Vec<Rc<Expression>>);
+
+impl visitor::Visited for FunctionDeclaration {
+    fn accept<T: visitor::Visitor>(&mut self, visitor: &mut T) {
+        match visitor.visitor_type() {
+            visitor::VisitorType::FunctionDeclarationVisitor => visitor.visit_function_declaration(self),
+        }
+    }
+}

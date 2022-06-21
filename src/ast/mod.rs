@@ -5,11 +5,13 @@ use std::rc::Rc;
 use self::generic_calls_register::GenericCallsRegister;
 
 pub mod generic_calls_register;
+pub mod codegen;
+pub mod visitor;
 
 // -----------------------------------------------------------------------------
 
 pub struct ProgramInformation {
-  pub generic_functions: RefCell<Vec<Rc<FunctionDeclaration>>>,
+  pub generic_functions: RefCell<Vec<Rc<RefCell<FunctionDeclaration>>>>,
   pub generic_function_calls: RefCell<Vec<Rc<Expression>>>
 }
 
@@ -27,6 +29,14 @@ impl ProgramInformation {
 #[derive(Debug)]
 pub struct Program {
   pub statements: Vec<Statement>
+}
+
+impl visitor::Visited for Program {
+    fn accept<T: visitor::Visitor>(&mut self, visitor: &mut T) {
+        for statement in &mut self.statements {
+          statement.accept(visitor);
+        }
+    }
 }
 
 // -----------------------------------------------------------------------------

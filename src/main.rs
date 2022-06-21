@@ -8,6 +8,8 @@ extern crate lalrpop_util;
 use ast::ProgramInformation;
 use lalrpop_util::lalrpop_mod;
 
+use crate::ast::visitor::FunctionVisitor;
+
 lalrpop_mod!(pub parser);
 
 fn main() {
@@ -24,11 +26,18 @@ fn compile_source_directory(directory: &Path) -> std::io::Result<()> {
     let file = file?;
     let content = std::fs::read_to_string(file.path())?;
     
-    let expr = parser::ProgramParser::new()
+    let mut expr = parser::ProgramParser::new()
       .parse(&program_information, &content)
       .unwrap();
 
     dbg!(&expr);
+
+    let mut visitor = FunctionVisitor {};
+
+    use ast::visitor::Visited;
+    use ast::visitor::Visitor;
+
+    expr.accept(&mut visitor);
 
     // let functions = program_information.generic_functions.borrow();
     // for function in functions.iter() {
