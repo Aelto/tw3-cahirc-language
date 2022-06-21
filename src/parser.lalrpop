@@ -32,6 +32,8 @@ use crate::ast::{
     FunctionType
 };
 
+use crate::ast::generic_calls_register::GenericCallsRegister;
+
 grammar(information: &ProgramInformation);
 
 pub Program: Program = {
@@ -114,7 +116,8 @@ GlobalFunctionDeclaration: Rc<FunctionDeclaration> = {
                 parameters,
                 type_declaration: type_declaration,
                 body_statements,
-                is_latent: latent.is_some()
+                is_latent: latent.is_some(),
+                generic_calls: Rc::new(Vec::new())
             });
 
             if declaration.generic_types.is_some() {
@@ -139,7 +142,8 @@ MethodDeclaration: Rc<FunctionDeclaration> = {
                 parameters,
                 type_declaration: type_declaration,
                 body_statements,
-                is_latent: latent.is_some()
+                is_latent: latent.is_some(),
+                generic_calls: Rc::new(Vec::new())
             });
 
             if declaration.generic_types.is_some() {
