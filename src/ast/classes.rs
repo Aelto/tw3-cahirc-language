@@ -17,10 +17,39 @@ impl Visited for ClassDeclaration {
   }
 }
 
+impl Display for ClassDeclaration {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    write!(f, "{} {}", self.class_type, self.name)?;
+
+    if let Some(extended_class_name) = &self.extended_class_name {
+      write!(f, " extends {extended_class_name}")?;
+    }
+
+    writeln!(f, " {{")?;
+
+    for statement in &self.body_statements {
+      writeln!(f, "{statement}")?;
+    }
+
+    writeln!(f, "}}")?;
+
+    Ok(())
+  }
+}
+
 #[derive(Debug)]
 pub enum ClassType {
   Class,
   StatemachineClass,
+}
+
+impl Display for ClassType {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    match self {
+      ClassType::Class => write!(f, "class"),
+      ClassType::StatemachineClass => write!(f, "statemachine class"),
+    }
+  }
 }
 
 #[derive(Debug)]
@@ -34,6 +63,36 @@ pub enum ClassBodyStatement {
     property_declaration: VariableDeclaration,
   },
   DefaultValue(VariableAssignment),
+}
+
+impl Display for ClassBodyStatement {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    match self {
+      ClassBodyStatement::Method {
+        encapsulation,
+        function_declaration,
+      } => {
+        if let Some(encapsulation) = encapsulation {
+          write!(f, "{encapsulation} ")?;
+        }
+
+        write!(f, "{function_declaration}")?;
+      }
+      ClassBodyStatement::Property {
+        encapsulation,
+        property_declaration,
+      } => {
+        if let Some(encapsulation) = encapsulation {
+          write!(f, "{encapsulation} ")?;
+        }
+
+        write!(f, "{property_declaration};")?;
+      }
+      ClassBodyStatement::DefaultValue(x) => writeln!(f, "default {x};")?,
+    };
+
+    Ok(())
+  }
 }
 
 #[derive(Debug)]
@@ -55,6 +114,16 @@ impl visitor::Visited for ClassBodyStatement {
         property_declaration,
       } => property_declaration.accept(visitor),
       ClassBodyStatement::DefaultValue(_) => {}
+    }
+  }
+}
+
+impl Display for EncapsulationType {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    match self {
+      EncapsulationType::Private => write!(f, "private"),
+      EncapsulationType::Public => write!(f, "public"),
+      EncapsulationType::Protected => write!(f, "protected"),
     }
   }
 }

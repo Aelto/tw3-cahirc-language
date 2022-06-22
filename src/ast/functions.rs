@@ -23,11 +23,51 @@ impl visitor::Visited for FunctionDeclaration {
   }
 }
 
+impl Display for FunctionDeclaration {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    if self.is_latent {
+      write!(f, "latent")?;
+    }
+
+    write!(f, "{} {}(", self.function_type, self.name)?;
+
+    for param in &self.parameters {
+      write!(f, "{param}, ")?;
+    }
+
+    write!(f, ")")?;
+
+    if let Some(t) = &self.type_declaration {
+      write!(f, ": {t}")?;
+    }
+
+    writeln!(f, " {{")?;
+
+    for statement in &self.body_statements {
+      writeln!(f, "{statement}")?;
+    }
+
+    writeln!(f, "}}")?;
+
+    Ok(())
+  }
+}
+
 #[derive(Debug)]
 pub enum FunctionType {
   Function,
   Timer,
   Event,
+}
+
+impl Display for FunctionType {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    match self {
+      FunctionType::Function => write!(f, "function"),
+      FunctionType::Timer => write!(f, "timer"),
+      FunctionType::Event => write!(f, "event"),
+    }
+  }
 }
 
 #[derive(Debug)]
@@ -57,11 +97,36 @@ impl visitor::Visited for FunctionBodyStatement {
   }
 }
 
+impl Display for FunctionBodyStatement {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    match self {
+      FunctionBodyStatement::VariableDeclaration(x) => write!(f, "{x};"),
+      FunctionBodyStatement::Expression(x) => write!(f, "{x};"),
+      FunctionBodyStatement::Return(x) => writeln!(f, "return {x};"),
+      FunctionBodyStatement::Assignement(x) => write!(f, "{x};"),
+      FunctionBodyStatement::IfStatement(x) => write!(f, "{x}"),
+      FunctionBodyStatement::ForStatement(x) => write!(f, "{x}"),
+      FunctionBodyStatement::WhileStatement(x) => write!(f, "{x}"),
+      FunctionBodyStatement::DoWhileStatement(x) => write!(f, "{x}"),
+    }
+  }
+}
+
 #[derive(Debug)]
 pub struct FunctionCallParameters(pub Vec<Rc<Expression>>);
 
 impl Visited for FunctionCallParameters {
   fn accept<T: visitor::Visitor>(&self, visitor: &mut T) {
     self.0.accept(visitor);
+  }
+}
+
+impl Display for FunctionCallParameters {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    for param in &self.0 {
+      write!(f, "{}, ", param)?;
+    }
+
+    Ok(())
   }
 }

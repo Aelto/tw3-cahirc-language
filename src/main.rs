@@ -24,6 +24,11 @@ fn compile_source_directory(directory: &Path) -> std::io::Result<()> {
 
   for file in children {
     let file = file?;
+
+    if file.path().extension().unwrap() != "wss" {
+      continue;
+    }
+
     let content = std::fs::read_to_string(file.path())?;
 
     let expr = parser::ProgramParser::new()
@@ -39,6 +44,11 @@ fn compile_source_directory(directory: &Path) -> std::io::Result<()> {
     use ast::visitor::Visited;
 
     expr.accept(&mut visitor);
+
+    let mut new_path = file.path();
+    new_path.set_extension("ws");
+
+    fs::write(new_path, format!("{}", expr)).expect("failed to write output file");
 
     // let functions = program_information.generic_functions.borrow();
     // for function in functions.iter() {

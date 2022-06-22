@@ -15,6 +15,16 @@ impl Visited for VariableAssignment {
   }
 }
 
+impl Display for VariableAssignment {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    write!(
+      f,
+      "{} {} {}",
+      self.variable_name, self.assignment_type, self.following_expression
+    )
+  }
+}
+
 #[derive(Debug)]
 pub enum VariableDeclarationOrAssignment {
   Declaration(VariableDeclaration),
@@ -30,6 +40,15 @@ impl Visited for VariableDeclarationOrAssignment {
   }
 }
 
+impl Display for VariableDeclarationOrAssignment {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    match self {
+      VariableDeclarationOrAssignment::Declaration(x) => write!(f, "{x}"),
+      VariableDeclarationOrAssignment::Assignement(x) => write!(f, "{x}"),
+    }
+  }
+}
+
 #[derive(Debug)]
 pub struct VariableDeclaration {
   pub declaration: TypedIdentifier,
@@ -39,5 +58,17 @@ pub struct VariableDeclaration {
 impl visitor::Visited for VariableDeclaration {
   fn accept<T: visitor::Visitor>(&self, visitor: &mut T) {
     self.following_expression.accept(visitor);
+  }
+}
+
+impl Display for VariableDeclaration {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    write!(f, "var {}", self.declaration)?;
+
+    if let Some(expr) = &self.following_expression {
+      write!(f, " = {expr}")?;
+    }
+
+    Ok(())
   }
 }

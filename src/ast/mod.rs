@@ -1,7 +1,9 @@
 use std::cell::RefCell;
 use std::fmt::Debug;
+use std::fmt::Display;
 use std::rc::Rc;
 
+use self::codegen::Codegen;
 use self::generic_calls_register::GenericFunctionsRegister;
 
 pub mod codegen;
@@ -32,6 +34,16 @@ pub struct Program {
 impl visitor::Visited for Program {
   fn accept<T: visitor::Visitor>(&self, visitor: &mut T) {
     self.statements.accept(visitor);
+  }
+}
+
+impl Display for Program {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    for statement in &self.statements {
+      write!(f, "{}", statement)?;
+    }
+
+    Ok(())
   }
 }
 

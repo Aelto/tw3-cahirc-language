@@ -17,6 +17,22 @@ impl Visited for IdentifierTerm {
   }
 }
 
+impl Display for IdentifierTerm {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    write!(f, "{}", self.text)?;
+
+    for indexing in &self.indexing {
+      write!(f, "[{}]", indexing)?;
+    }
+
+    if let Some(nesting) = &self.nesting {
+      write!(f, ".{}", nesting)?;
+    }
+
+    Ok(())
+  }
+}
+
 impl IdentifierTerm {
   pub fn get_last_text(&self) -> String {
     if let Some(nesting) = &self.nesting {
@@ -33,6 +49,12 @@ pub struct TypedIdentifier {
   pub type_declaration: TypeDeclaration,
 }
 
+impl Display for TypedIdentifier {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    write!(f, "{}: {}", self.name, self.type_declaration)
+  }
+}
+
 /// Represents a type declaration that could be after anything, for example
 /// ```
 /// a: int
@@ -43,4 +65,22 @@ pub struct TypedIdentifier {
 pub struct TypeDeclaration {
   pub type_name: String,
   pub generic_type_assignment: Option<Vec<TypeDeclaration>>,
+}
+
+impl Display for TypeDeclaration {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    write!(f, "{}", self.type_name)?;
+
+    if let Some(comma_separated_types) = &self.generic_type_assignment {
+      write!(f, "<")?;
+
+      for t in comma_separated_types {
+        write!(f, "{t}")?;
+      }
+
+      write!(f, ">")?;
+    }
+
+    Ok(())
+  }
 }

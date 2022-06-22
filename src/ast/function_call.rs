@@ -22,3 +22,26 @@ impl Visited for FunctionCall {
     self.parameters.accept(visitor);
   }
 }
+
+impl Display for FunctionCall {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    write!(f, "{}", self.accessor)?;
+
+    if let Some(generic_types) = &self.generic_types {
+      // TODO: transform the function name into something unique for each
+      // generic variant.
+
+      write!(f, "/*");
+
+      for gtype in generic_types {
+        write!(f, "{gtype}");
+      }
+
+      write!(f, "*/");
+    }
+
+    write!(f, "({})", self.parameters)?;
+
+    Ok(())
+  }
+}

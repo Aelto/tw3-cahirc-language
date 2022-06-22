@@ -19,3 +19,23 @@ impl Visited for ForStatement {
     self.body_statements.accept(visitor);
   }
 }
+
+impl Display for ForStatement {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    write!(f, "for (")?;
+
+    if let Some(initialization) = &self.initialization {
+      write!(f, "{initialization}")?;
+    }
+
+    writeln!(f, "; {}; {}) {{", self.condition, self.iteration)?;
+
+    for statement in &self.body_statements {
+      writeln!(f, "{statement}")?;
+    }
+
+    writeln!(f, "}}");
+
+    Ok(())
+  }
+}

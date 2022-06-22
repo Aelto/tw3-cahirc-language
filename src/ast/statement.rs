@@ -18,3 +18,14 @@ impl visitor::Visited for Statement {
     }
   }
 }
+
+impl Display for Statement {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    match self {
+      Statement::Expression(x) => write!(f, "{x}"),
+      Statement::FunctionDeclaration(x) => write!(f, "{x}"),
+      Statement::ClassDeclaration(x) => write!(f, "{x}"),
+      Statement::StructDeclaration(x) => write!(f, "{x}"),
+    }
+  }
+}
