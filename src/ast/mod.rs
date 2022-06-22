@@ -2,7 +2,7 @@ use std::cell::RefCell;
 use std::fmt::{Debug};
 use std::rc::Rc;
 
-use self::generic_calls_register::GenericCallsRegister;
+use self::generic_calls_register::GenericFunctionsRegister;
 
 pub mod generic_calls_register;
 pub mod codegen;
@@ -11,15 +11,13 @@ pub mod visitor;
 // -----------------------------------------------------------------------------
 
 pub struct ProgramInformation {
-  pub generic_functions: RefCell<Vec<Rc<RefCell<FunctionDeclaration>>>>,
-  pub generic_function_calls: RefCell<Vec<Rc<Expression>>>
+  pub generic_functions_register: RefCell<GenericFunctionsRegister>
 }
 
 impl ProgramInformation {
   pub fn new() -> Self {
     Self {
-      generic_functions: RefCell::new(Vec::new()),
-      generic_function_calls: RefCell::new(Vec::new())
+      generic_functions_register: RefCell::new(GenericFunctionsRegister::new())
     }
   }
 }

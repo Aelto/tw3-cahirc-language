@@ -110,21 +110,21 @@ GlobalFunctionDeclaration: Rc<RefCell<FunctionDeclaration>> = {
     "(" <parameters:SeparatedTypedIdentifier> ")" <type_declaration:TypeDeclaration?>
     "{" <body_statements:(<FunctionBodyStatement>)*> "}"
         => {
+            let has_generic_types = generic_types.is_some();
             let declaration = Rc::new(RefCell::new(FunctionDeclaration {
                 function_type: FunctionType::Function,
-                name,
+                name: name.clone(),
                 generic_types,
                 parameters,
                 type_declaration: type_declaration,
                 body_statements,
-                is_latent: latent.is_some(),
-                generic_calls: Rc::new(Vec::new())
+                is_latent: latent.is_some()
             }));
 
-            if declaration.borrow().generic_types.is_some() {
-                let mut generic_functions = information.generic_functions.borrow_mut();
+            if has_generic_types {
+                let mut generic_functions_register = information.generic_functions_register.borrow_mut();
 
-                generic_functions.push(declaration.clone());
+                generic_functions_register.register_new_generic_function(&name, declaration.clone());
             }
             
             declaration
@@ -136,21 +136,21 @@ MethodDeclaration: Rc<RefCell<FunctionDeclaration>> = {
     "(" <parameters:SeparatedTypedIdentifier> ")" <type_declaration:TypeDeclaration?>
     "{" <body_statements:(<FunctionBodyStatement>)*> "}"
         => {
+            let has_generic_types = generic_types.is_some();
             let declaration = Rc::new(RefCell::new(FunctionDeclaration {
                 function_type,
-                name,
+                name: name.clone(),
                 generic_types,
                 parameters,
                 type_declaration: type_declaration,
                 body_statements,
-                is_latent: latent.is_some(),
-                generic_calls: Rc::new(Vec::new())
+                is_latent: latent.is_some()
             }));
 
-            if declaration.borrow().generic_types.is_some() {
-                let mut generic_functions = information.generic_functions.borrow_mut();
+            if has_generic_types {
+                let mut generic_functions_register = information.generic_functions_register.borrow_mut();
 
-                generic_functions.push(declaration.clone());
+                generic_functions_register.register_new_generic_function(&name, declaration.clone());
             }
             
             declaration
@@ -314,18 +314,11 @@ Term: Rc<Expression> = {
     IdentifierTerm => Rc::new(Expression::Identifier(<>)),
     <accessor:IdentifierTerm> <generic_types:("::" <GenericTypesDeclaration>)?> <parameters:FunctionCallParameters>
         => {
-            let is_generic_call = generic_types.is_some();
             let function_call = Rc::new(Expression::FunctionCall{
                 accessor,
                 generic_types,
                 parameters
             });
-
-            if is_generic_call {
-                let mut generic_function_calls = information.generic_function_calls.borrow_mut();
-
-                generic_function_calls.push(function_call.clone());
-            }
 
             function_call
         },
