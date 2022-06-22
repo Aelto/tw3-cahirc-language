@@ -4,6 +4,7 @@ use std::cell::RefMut;
 use std::rc::Rc;
 
 use super::*;
+use super::visitor::Visited;
 
 #[derive(Debug)]
 pub struct ClassDeclaration {
@@ -11,6 +12,14 @@ pub struct ClassDeclaration {
   pub name: String,
   pub extended_class_name: Option<String>,
   pub body_statements: Vec<ClassBodyStatement>
+}
+
+impl Visited for ClassDeclaration {
+  fn accept<T: visitor::Visitor>(&self, visitor: &mut T) {
+    for statement in &self.body_statements {
+      statement.accept(visitor);
+    }
+  }
 }
 
 #[derive(Debug)]
@@ -23,7 +32,7 @@ pub enum ClassType {
 pub enum ClassBodyStatement {
   Method {
     encapsulation: Option<EncapsulationType>,
-    function_declaration: Rc<RefCell<FunctionDeclaration>>
+    function_declaration: Rc<FunctionDeclaration>
   },
   Property {
     encapsulation: Option<EncapsulationType>,
@@ -40,15 +49,10 @@ pub enum EncapsulationType {
 }
 
 impl visitor::Visited for ClassBodyStatement {
-    fn accept<T: visitor::Visitor>(&mut self, visitor: &mut T) {
+    fn accept<T: visitor::Visitor>(&self, visitor: &mut T) {
         match self {
-            ClassBodyStatement::Method { encapsulation, function_declaration } => match visitor.visitor_type() {
-                visitor::VisitorType::FunctionDeclarationVisitor => {
-                  (**function_declaration).borrow_mut().accept(visitor);
-                },
-                _ => {}
-            },
-            ClassBodyStatement::Property { encapsulation, property_declaration } => {},
+            ClassBodyStatement::Method { encapsulation: _, function_declaration } => function_declaration.accept(visitor),
+            ClassBodyStatement::Property { encapsulation: _, property_declaration } => property_declaration.accept(visitor),
             ClassBodyStatement::DefaultValue(_) => {},
         }
     }

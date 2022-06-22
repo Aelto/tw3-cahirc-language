@@ -30,8 +30,8 @@ pub struct Program {
 }
 
 impl visitor::Visited for Program {
-    fn accept<T: visitor::Visitor>(&mut self, visitor: &mut T) {
-        for statement in &mut self.statements {
+    fn accept<T: visitor::Visitor>(&self, visitor: &mut T) {
+        for statement in &self.statements {
           statement.accept(visitor);
         }
     }

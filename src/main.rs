@@ -1,3 +1,4 @@
+use std::borrow::BorrowMut;
 use std::path::Path;
 use std::fs;
 
@@ -32,10 +33,9 @@ fn compile_source_directory(directory: &Path) -> std::io::Result<()> {
 
     dbg!(&expr);
 
-    let mut visitor = FunctionVisitor {};
+    let mut visitor = FunctionVisitor { program_information: &program_information };
 
     use ast::visitor::Visited;
-    use ast::visitor::Visitor;
 
     expr.accept(&mut visitor);
 

@@ -1,16 +1,14 @@
-use std::borrow::Borrow;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
 
-use super::Expression;
 use super::FunctionDeclaration;
 
 type GenericFunctionName = String;
 
 #[derive(Debug)]
 pub struct GenericFunctionsRegister {
-  pub functions: HashMap<GenericFunctionName, Rc<RefCell<FunctionDeclaration>>>,
+  pub functions: HashMap<GenericFunctionName, Rc<FunctionDeclaration>>,
   pub calls: HashMap<GenericFunctionName, GenericCallsRegister>
 }
 
@@ -22,7 +20,7 @@ impl GenericFunctionsRegister {
     }
   }
 
-  pub fn register_new_generic_function(&mut self, function_name: &str, function: Rc<RefCell<FunctionDeclaration>>) {
+  pub fn register_new_generic_function(&mut self, function_name: &str, function: Rc<FunctionDeclaration>) {
     if !self.calls.contains_key(function_name) {
       self.calls.insert(function_name.to_string(), GenericCallsRegister::new());
     }

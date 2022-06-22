@@ -105,13 +105,13 @@ GenericTypesDeclaration: Vec<String> = {
     "<" <SeparatedIdentifier> ">" => <>
 }
 
-GlobalFunctionDeclaration: Rc<RefCell<FunctionDeclaration>> = {
+GlobalFunctionDeclaration: Rc<FunctionDeclaration> = {
     <latent:KeywordLatent?> KeywordFunction <name: Identifier> <generic_types:GenericTypesDeclaration?>
     "(" <parameters:SeparatedTypedIdentifier> ")" <type_declaration:TypeDeclaration?>
     "{" <body_statements:(<FunctionBodyStatement>)*> "}"
         => {
             let has_generic_types = generic_types.is_some();
-            let declaration = Rc::new(RefCell::new(FunctionDeclaration {
+            let declaration = Rc::new(FunctionDeclaration {
                 function_type: FunctionType::Function,
                 name: name.clone(),
                 generic_types,
@@ -119,7 +119,7 @@ GlobalFunctionDeclaration: Rc<RefCell<FunctionDeclaration>> = {
                 type_declaration: type_declaration,
                 body_statements,
                 is_latent: latent.is_some()
-            }));
+            });
 
             if has_generic_types {
                 let mut generic_functions_register = information.generic_functions_register.borrow_mut();
@@ -131,13 +131,13 @@ GlobalFunctionDeclaration: Rc<RefCell<FunctionDeclaration>> = {
         }
 };
 
-MethodDeclaration: Rc<RefCell<FunctionDeclaration>> = {
+MethodDeclaration: Rc<FunctionDeclaration> = {
     <latent:KeywordLatent?> <function_type:FunctionType> <name: Identifier> <generic_types:GenericTypesDeclaration?>
     "(" <parameters:SeparatedTypedIdentifier> ")" <type_declaration:TypeDeclaration?>
     "{" <body_statements:(<FunctionBodyStatement>)*> "}"
         => {
             let has_generic_types = generic_types.is_some();
-            let declaration = Rc::new(RefCell::new(FunctionDeclaration {
+            let declaration = Rc::new(FunctionDeclaration {
                 function_type,
                 name: name.clone(),
                 generic_types,
@@ -145,7 +145,7 @@ MethodDeclaration: Rc<RefCell<FunctionDeclaration>> = {
                 type_declaration: type_declaration,
                 body_statements,
                 is_latent: latent.is_some()
-            }));
+            });
 
             if has_generic_types {
                 let mut generic_functions_register = information.generic_functions_register.borrow_mut();

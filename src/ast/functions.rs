@@ -1,6 +1,7 @@
 use std::rc::Rc;
 
 use super::*;
+use super::visitor::Visited;
 
 #[derive(Debug)]
 /// property.
@@ -11,9 +12,17 @@ pub struct FunctionDeclaration {
   pub parameters: Vec<TypedIdentifier>,
   pub type_declaration: Option<TypeDeclaration>,
   pub body_statements: Vec<FunctionBodyStatement>,
-  pub is_latent: bool,
+  pub is_latent: bool
+}
 
-  pub generic_calls: Rc<Vec<GenericCallsRegister>>
+impl visitor::Visited for FunctionDeclaration {
+  fn accept<T: visitor::Visitor>(&self, visitor: &mut T) {
+    visitor.visit_function_declaration(&self);
+
+    for child in &self.body_statements {
+      child.accept(visitor);
+    }
+  }
 }
 
 #[derive(Debug)]
@@ -35,13 +44,28 @@ pub enum FunctionBodyStatement {
   DoWhileStatement(DoWhileStatement)
 }
 
+impl visitor::Visited for FunctionBodyStatement {
+  fn accept<T: visitor::Visitor>(&self, visitor: &mut T) {
+    match &self {
+      FunctionBodyStatement::VariableDeclaration(x) => x.accept(visitor),
+      FunctionBodyStatement::Expression(x) => x.accept(visitor),
+      FunctionBodyStatement::Return(x) => x.accept(visitor),
+      FunctionBodyStatement::Assignement(x) => x.accept(visitor),
+      FunctionBodyStatement::IfStatement(x) => x.accept(visitor),
+      FunctionBodyStatement::ForStatement(x) => x.accept(visitor),
+      FunctionBodyStatement::WhileStatement(x) => x.accept(visitor),
+      FunctionBodyStatement::DoWhileStatement(x) => x.accept(visitor),
+    };
+  }
+}
+
 #[derive(Debug)]
 pub struct FunctionCallParameters(pub Vec<Rc<Expression>>);
 
-impl visitor::Visited for FunctionDeclaration {
-    fn accept<T: visitor::Visitor>(&mut self, visitor: &mut T) {
-        match visitor.visitor_type() {
-            visitor::VisitorType::FunctionDeclarationVisitor => visitor.visit_function_declaration(self),
-        }
+impl Visited for FunctionCallParameters {
+  fn accept<T: visitor::Visitor>(&self, visitor: &mut T) {
+    for expression in &self.0 {
+      expression.accept(visitor);
     }
+  }
 }

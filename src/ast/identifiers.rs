@@ -1,12 +1,25 @@
 use std::rc::Rc;
 
 use super::*;
+use super::visitor::Visited;
 
 #[derive(Debug)]
 pub struct IdentifierTerm {
   pub text: String,
   pub indexing: Vec<Rc<Expression>>,
   pub nesting: Option<Box<IdentifierTerm>>
+}
+
+impl Visited for IdentifierTerm {
+  fn accept<T: visitor::Visitor>(&self, visitor: &mut T) {
+    for index in &self.indexing {
+      index.accept(visitor);
+    }
+
+    if let Some(nesting) = &self.nesting {
+      nesting.accept(visitor);
+    }
+  }
 }
 
 impl IdentifierTerm {
