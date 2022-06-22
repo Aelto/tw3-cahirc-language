@@ -9,6 +9,14 @@ pub struct IdentifierTerm {
   pub nesting: Option<Box<IdentifierTerm>>
 }
 
+impl IdentifierTerm {
+  pub fn get_last_text(self) -> String {
+    self.nesting
+        .and_then(|terms| Some(terms.get_last_text()))
+        .unwrap_or_else(|| self.text)
+  }
+}
+
 #[derive(Debug)]
 pub struct TypedIdentifier {
   pub name: String,
