@@ -1,6 +1,6 @@
 use std::borrow::BorrowMut;
-use std::path::Path;
 use std::fs;
+use std::path::Path;
 
 mod ast;
 
@@ -26,14 +26,16 @@ fn compile_source_directory(directory: &Path) -> std::io::Result<()> {
   for file in children {
     let file = file?;
     let content = std::fs::read_to_string(file.path())?;
-    
+
     let mut expr = parser::ProgramParser::new()
       .parse(&program_information, &content)
       .unwrap();
 
     dbg!(&expr);
 
-    let mut visitor = FunctionVisitor { program_information: &program_information };
+    let mut visitor = FunctionVisitor {
+      program_information: &program_information,
+    };
 
     use ast::visitor::Visited;
 

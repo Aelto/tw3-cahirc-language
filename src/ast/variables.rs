@@ -1,13 +1,13 @@
 use std::borrow::BorrowMut;
 
-use super::*;
 use super::visitor::Visited;
+use super::*;
 
 #[derive(Debug)]
 pub struct VariableAssignment {
   pub variable_name: Box<IdentifierTerm>,
   pub assignment_type: AssignmentType,
-  pub following_expression: Rc<Expression>
+  pub following_expression: Rc<Expression>,
 }
 
 impl Visited for VariableAssignment {
@@ -20,14 +20,14 @@ impl Visited for VariableAssignment {
 #[derive(Debug)]
 pub enum VariableDeclarationOrAssignment {
   Declaration(VariableDeclaration),
-  Assignement(VariableAssignment)
+  Assignement(VariableAssignment),
 }
 
 impl Visited for VariableDeclarationOrAssignment {
   fn accept<T: visitor::Visitor>(&self, visitor: &mut T) {
     match self {
-        VariableDeclarationOrAssignment::Declaration(x) => x.accept(visitor),
-        VariableDeclarationOrAssignment::Assignement(x) => x.accept(visitor),
+      VariableDeclarationOrAssignment::Declaration(x) => x.accept(visitor),
+      VariableDeclarationOrAssignment::Assignement(x) => x.accept(visitor),
     }
   }
 }
@@ -35,13 +35,11 @@ impl Visited for VariableDeclarationOrAssignment {
 #[derive(Debug)]
 pub struct VariableDeclaration {
   pub declaration: TypedIdentifier,
-  pub following_expression: Option<Rc<Expression>>
+  pub following_expression: Option<Rc<Expression>>,
 }
 
 impl visitor::Visited for VariableDeclaration {
   fn accept<T: visitor::Visitor>(&self, visitor: &mut T) {
-    if let Some(expression) = &self.following_expression {
-      expression.accept(visitor);
-    }
+    self.following_expression.accept(visitor);
   }
 }

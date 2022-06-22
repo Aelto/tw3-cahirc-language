@@ -30,7 +30,8 @@ use crate::ast::{
     EncapsulationType,
     StructDeclaration,
     StructBodyStatement,
-    FunctionType
+    FunctionType,
+    FunctionCall
 };
 
 use crate::ast::generic_calls_register::GenericCallsRegister;
@@ -314,11 +315,11 @@ Term: Rc<Expression> = {
     IdentifierTerm => Rc::new(Expression::Identifier(<>)),
     <accessor:IdentifierTerm> <generic_types:("::" <GenericTypesDeclaration>)?> <parameters:FunctionCallParameters>
         => {
-            let function_call = Rc::new(Expression::FunctionCall{
+            let function_call = Rc::new(Expression::FunctionCall(FunctionCall {
                 accessor,
                 generic_types,
                 parameters
-            });
+            }));
 
             function_call
         },

@@ -5,7 +5,7 @@ pub enum Statement {
   Expression(Rc<Expression>),
   FunctionDeclaration(Rc<FunctionDeclaration>),
   ClassDeclaration(ClassDeclaration),
-  StructDeclaration(StructDeclaration)
+  StructDeclaration(StructDeclaration),
 }
 
 impl visitor::Visited for Statement {

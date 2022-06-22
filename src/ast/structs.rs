@@ -1,10 +1,10 @@
-use super::*;
 use super::visitor::Visited;
+use super::*;
 
 #[derive(Debug)]
 pub struct StructDeclaration {
   pub name: String,
-  pub body_statements: Vec<StructBodyStatement>
+  pub body_statements: Vec<StructBodyStatement>,
 }
 
 impl Visited for StructDeclaration {
@@ -18,7 +18,7 @@ impl Visited for StructDeclaration {
 #[derive(Debug)]
 pub enum StructBodyStatement {
   Property(VariableDeclaration),
-  DefaultValue(VariableAssignment)
+  DefaultValue(VariableAssignment),
 }
 
 impl Visited for StructBodyStatement {

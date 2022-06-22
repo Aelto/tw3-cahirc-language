@@ -1,5 +1,8 @@
-use crate::ast::ProgramInformation;
+use generic_call_visitor::GenericCallsVisitor;
 
+use crate::ast::visitor::generic_call_visitor;
+use crate::ast::visitor::Visited;
+use crate::ast::ProgramInformation;
 
 pub struct FunctionVisitor<'a> {
   pub program_information: &'a ProgramInformation,
@@ -8,6 +11,12 @@ pub struct FunctionVisitor<'a> {
 impl super::Visitor for FunctionVisitor<'_> {
   fn visit_function_declaration(&mut self, node: &crate::ast::FunctionDeclaration) {
     println!("FunctionVisitor: {:?}", node.name);
+
+    let mut generic_call_visitor = GenericCallsVisitor {
+      program_information: self.program_information,
+    };
+
+    node.accept(&mut generic_call_visitor);
   }
 
   fn visitor_type(&self) -> super::VisitorType {

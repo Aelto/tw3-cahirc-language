@@ -1,7 +1,7 @@
 use std::rc::Rc;
 
-use super::*;
 use super::visitor::Visited;
+use super::*;
 
 #[derive(Debug)]
 /// property.
@@ -12,16 +12,14 @@ pub struct FunctionDeclaration {
   pub parameters: Vec<TypedIdentifier>,
   pub type_declaration: Option<TypeDeclaration>,
   pub body_statements: Vec<FunctionBodyStatement>,
-  pub is_latent: bool
+  pub is_latent: bool,
 }
 
 impl visitor::Visited for FunctionDeclaration {
   fn accept<T: visitor::Visitor>(&self, visitor: &mut T) {
     visitor.visit_function_declaration(&self);
 
-    for child in &self.body_statements {
-      child.accept(visitor);
-    }
+    self.body_statements.accept(visitor);
   }
 }
 
@@ -29,7 +27,7 @@ impl visitor::Visited for FunctionDeclaration {
 pub enum FunctionType {
   Function,
   Timer,
-  Event
+  Event,
 }
 
 #[derive(Debug)]
@@ -41,7 +39,7 @@ pub enum FunctionBodyStatement {
   IfStatement(IfStatement),
   ForStatement(ForStatement),
   WhileStatement(WhileStatement),
-  DoWhileStatement(DoWhileStatement)
+  DoWhileStatement(DoWhileStatement),
 }
 
 impl visitor::Visited for FunctionBodyStatement {
@@ -64,8 +62,6 @@ pub struct FunctionCallParameters(pub Vec<Rc<Expression>>);
 
 impl Visited for FunctionCallParameters {
   fn accept<T: visitor::Visitor>(&self, visitor: &mut T) {
-    for expression in &self.0 {
-      expression.accept(visitor);
-    }
+    &self.0.accept(visitor);
   }
 }
