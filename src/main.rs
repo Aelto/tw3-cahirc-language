@@ -1,4 +1,3 @@
-use std::borrow::BorrowMut;
 use std::fs;
 use std::path::Path;
 
@@ -27,7 +26,7 @@ fn compile_source_directory(directory: &Path) -> std::io::Result<()> {
     let file = file?;
     let content = std::fs::read_to_string(file.path())?;
 
-    let mut expr = parser::ProgramParser::new()
+    let expr = parser::ProgramParser::new()
       .parse(&program_information, &content)
       .unwrap();
 

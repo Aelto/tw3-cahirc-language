@@ -62,6 +62,6 @@ pub struct FunctionCallParameters(pub Vec<Rc<Expression>>);
 
 impl Visited for FunctionCallParameters {
   fn accept<T: visitor::Visitor>(&self, visitor: &mut T) {
-    &self.0.accept(visitor);
+    self.0.accept(visitor);
   }
 }
