@@ -48,7 +48,7 @@ fn compile_source_directory(directory: &Path) -> std::io::Result<()> {
     let mut new_path = file.path();
     new_path.set_extension("ws");
 
-    fs::write(new_path, format!("{}", expr)).expect("failed to write output file");
+    fs::write(new_path, format_code(format!("{}", expr))).expect("failed to write output file");
 
     // let functions = program_information.generic_functions.borrow();
     // for function in functions.iter() {
@@ -57,4 +57,25 @@ fn compile_source_directory(directory: &Path) -> std::io::Result<()> {
   }
 
   Ok(())
+}
+
+fn format_code(origin: String) -> String {
+  let mut lines: Vec<String> = origin.lines().map(|s| s.to_string()).collect();
+  let mut depth = 0;
+
+  for i in 0..lines.len() {
+    if lines[i].starts_with("}") && depth > 0 {
+      depth -= 1;
+    }
+
+    let formated_line = format!("{}{}", "  ".repeat(depth), lines[i]);
+
+    if lines[i].ends_with("{") {
+      depth += 1;
+    }
+
+    lines[i] = formated_line;
+  }
+
+  lines.join("\r\n")
 }

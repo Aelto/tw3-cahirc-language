@@ -16,10 +16,10 @@ impl Visited for WhileStatement {
 
 impl Display for WhileStatement {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-    write!(f, "while ({}) {{", self.condition)?;
+    writeln!(f, "while ({}) {{", self.condition)?;
 
     for statement in &self.body_statements {
-      writeln!(f, "{statement}");
+      writeln!(f, "{statement}")?;
     }
 
     writeln!(f, "}}")?;
@@ -43,7 +43,7 @@ impl Visited for DoWhileStatement {
 
 impl Display for DoWhileStatement {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-    write!(f, "do {{")?;
+    writeln!(f, "do {{")?;
 
     for statement in &self.body_statements {
       writeln!(f, "{statement}")?;

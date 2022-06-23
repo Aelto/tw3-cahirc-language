@@ -47,7 +47,7 @@ impl Visited for StructBodyStatement {
 impl Display for StructBodyStatement {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
     match self {
-      StructBodyStatement::Property(x) => write!(f, "{x}"),
+      StructBodyStatement::Property(x) => write!(f, "{x};"),
       StructBodyStatement::DefaultValue(x) => write!(f, "default {x};"),
     }
   }
