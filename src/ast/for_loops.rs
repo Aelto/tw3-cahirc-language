@@ -34,7 +34,7 @@ impl Display for ForStatement {
       writeln!(f, "{statement}")?;
     }
 
-    writeln!(f, "}}");
+    writeln!(f, "}}")?;
 
     Ok(())
   }

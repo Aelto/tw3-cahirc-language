@@ -31,13 +31,13 @@ impl Display for FunctionCall {
       // TODO: transform the function name into something unique for each
       // generic variant.
 
-      write!(f, "/*");
+      write!(f, "/*")?;
 
       for gtype in generic_types {
-        write!(f, "{gtype}");
+        write!(f, "{gtype}")?;
       }
 
-      write!(f, "*/");
+      write!(f, "*/")?;
     }
 
     write!(f, "({})", self.parameters)?;

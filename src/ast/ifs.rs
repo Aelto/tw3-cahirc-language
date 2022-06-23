@@ -51,7 +51,7 @@ impl Display for IfStatement {
           writeln!(f, "{statement}")?;
         }
 
-        writeln!(f, "}}");
+        writeln!(f, "}}")?;
 
         for else_statement in else_statements {
           write!(f, "{else_statement}")?;
@@ -61,7 +61,7 @@ impl Display for IfStatement {
         condition,
         body_statements,
       } => {
-        write!(f, "else ");
+        write!(f, "else ")?;
 
         if let Some(condition) = condition {
           write!(f, " if ({condition})")?;
@@ -73,7 +73,7 @@ impl Display for IfStatement {
           writeln!(f, "{statement}")?;
         }
 
-        writeln!(f, "}}");
+        writeln!(f, "}}")?;
       }
     }
 
