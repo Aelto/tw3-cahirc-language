@@ -1,5 +1,6 @@
 use std::rc::Rc;
 
+use super::codegen::context::Context;
 use super::visitor::Visited;
 use super::*;
 
@@ -13,11 +14,20 @@ pub struct FunctionDeclaration {
   pub type_declaration: Option<TypeDeclaration>,
   pub body_statements: Vec<FunctionBodyStatement>,
   pub is_latent: bool,
+
+  pub context: Rc<RefCell<Context>>,
 }
 
 impl visitor::Visited for FunctionDeclaration {
   fn accept<T: visitor::Visitor>(&self, visitor: &mut T) {
     visitor.visit_function_declaration(&self);
+
+    // don't go further, the context building visitor will create a new one
+    // and continue traversing using the new one.
+    match visitor.visitor_type() {
+      visitor::VisitorType::ContextBuildingVisitor => return,
+      _ => {}
+    };
 
     self.body_statements.accept(visitor);
   }

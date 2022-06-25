@@ -1,5 +1,6 @@
 use std::rc::Rc;
 
+use super::codegen::context::Context;
 use super::visitor::Visited;
 use super::*;
 
@@ -9,10 +10,21 @@ pub struct ClassDeclaration {
   pub name: String,
   pub extended_class_name: Option<String>,
   pub body_statements: Vec<ClassBodyStatement>,
+
+  pub context: Rc<RefCell<Context>>,
 }
 
 impl Visited for ClassDeclaration {
   fn accept<T: visitor::Visitor>(&self, visitor: &mut T) {
+    visitor.visit_class_declaration(&self);
+
+    // don't go further, the context building visitor will create a new one
+    // and continue traversing using the new one.
+    match visitor.visitor_type() {
+      visitor::VisitorType::ContextBuildingVisitor => return,
+      _ => {}
+    };
+
     self.body_statements.accept(visitor);
   }
 }

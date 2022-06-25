@@ -35,6 +35,7 @@ use crate::ast::{
 };
 
 use crate::ast::generic_calls_register::GenericCallsRegister;
+use crate::ast::codegen::context::Context;
 
 grammar(information: &ProgramInformation);
 
@@ -55,13 +56,14 @@ ClassDeclaration: ClassDeclaration = {
     <statemachine:KeywordStatemachine?> KeywordClass <name: Identifier> <extended_class_name:(KeywordExtends <Identifier>)?>
     "{" <body_statements:(<ClassBodyStatement>)*> "}"
         => ClassDeclaration {
+            context: Rc::new(RefCell::new(Context::new(&format!("class: {}", &name)))),
             class_type: match statemachine.is_some() {
                 true => ClassType::StatemachineClass,
                 false => ClassType::Class
             },
             name,
             extended_class_name,
-            body_statements
+            body_statements,
         }
 }
 
@@ -119,7 +121,8 @@ GlobalFunctionDeclaration: Rc<FunctionDeclaration> = {
                 parameters,
                 type_declaration: type_declaration,
                 body_statements,
-                is_latent: latent.is_some()
+                is_latent: latent.is_some(),
+                context: Rc::new(RefCell::new(Context::new(&format!("function: {}", &name))))
             });
 
             if has_generic_types {
@@ -145,7 +148,8 @@ MethodDeclaration: Rc<FunctionDeclaration> = {
                 parameters,
                 type_declaration: type_declaration,
                 body_statements,
-                is_latent: latent.is_some()
+                is_latent: latent.is_some(),
+                context: Rc::new(RefCell::new(Context::new(&format!("method: {}", &name))))
             });
 
             if has_generic_types {

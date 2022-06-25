@@ -1,5 +1,7 @@
+use std::cell::RefCell;
 use std::fs;
 use std::path::Path;
+use std::rc::Rc;
 
 mod ast;
 
@@ -8,6 +10,8 @@ extern crate lalrpop_util;
 use ast::ProgramInformation;
 use lalrpop_util::lalrpop_mod;
 
+use crate::ast::codegen::context::Context;
+use crate::ast::visitor::ContextBuildingVisitor;
 use crate::ast::visitor::FunctionVisitor;
 
 lalrpop_mod!(pub parser);
@@ -41,14 +45,22 @@ fn compile_source_directory(directory: &Path) -> std::io::Result<()> {
       program_information: &program_information,
     };
 
+    let global_context = Rc::new(RefCell::new(Context::new("Program")));
+    let mut context_builder = ContextBuildingVisitor {
+      current_context: global_context.clone(),
+    };
+
     use ast::visitor::Visited;
 
     expr.accept(&mut visitor);
+    expr.accept(&mut context_builder);
 
     let mut new_path = file.path();
     new_path.set_extension("ws");
 
     fs::write(new_path, format_code(format!("{}", expr))).expect("failed to write output file");
+
+    (*global_context).borrow().print(0);
 
     // let functions = program_information.generic_functions.borrow();
     // for function in functions.iter() {

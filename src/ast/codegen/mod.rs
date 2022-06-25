@@ -1,5 +1,7 @@
 use std::ops::Deref;
 
+pub mod context;
+
 pub trait Codegen {
   fn emit(&self, output: &mut Vec<u8>) {
     use std::io::Write as IoWrite;
