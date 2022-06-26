@@ -12,9 +12,7 @@ impl super::Visitor for FunctionVisitor<'_> {
   fn visit_function_declaration(&mut self, node: &crate::ast::FunctionDeclaration) {
     println!("FunctionVisitor: {:?}", node.name);
 
-    let mut generic_call_visitor = GenericCallsVisitor {
-      program_information: self.program_information,
-    };
+    let mut generic_call_visitor = GenericCallsVisitor::new(self.program_information);
 
     node.accept(&mut generic_call_visitor);
   }
