@@ -3,6 +3,8 @@ use std::collections::HashMap;
 use std::collections::HashSet;
 use std::rc::Rc;
 
+use crate::ast::FunctionDeclaration;
+
 #[derive(Debug)]
 pub struct Context {
   /// Mostly for debugging purposes
@@ -19,13 +21,13 @@ pub struct Context {
 }
 
 impl Context {
-  pub fn new(name: &str) -> Self {
+  pub fn new(name: &str, generic_types: Option<Vec<GenericType>>) -> Self {
     Self {
       name: name.to_string(),
       identifiers: HashMap::new(),
       children_contexts: Vec::new(),
       parent_context: None,
-      generic_context: None,
+      generic_context: generic_types.and_then(|t| Some(GenericContext::new(t))),
     }
   }
 
@@ -47,6 +49,46 @@ impl Context {
 
     if let Some(index) = index {
       (*this).borrow_mut().children_contexts.swap_remove(index);
+    }
+  }
+
+  /// Return the top most context, the higher context in the tree with no
+  /// parents.
+  pub fn get_top_most_context(this: &Rc<RefCell<Context>>) -> Rc<RefCell<Context>> {
+    if let Some(context) = &this.borrow().parent_context {
+      return Self::get_top_most_context(&context);
+    }
+
+    this.clone()
+  }
+
+  pub fn find_global_function_declaration(this: &Rc<RefCell<Context>>, name: &str) -> Option<Rc<RefCell<Context>>> {
+    let program = Self::get_top_most_context(this);
+    let context_name = format!("function: {}", name);
+
+    let result = program.borrow().children_contexts.iter()
+      .find(|context| context.borrow().name == context_name)
+      .and_then(|c| Some(c.clone()));
+
+    result
+  }
+
+  pub fn register_generic_call(&mut self, types: &Vec<String>) {
+    if let Some(context) = &mut self.generic_context {
+      if context.types.len() != types.len() {
+        panic!("supplied types and expected types do not match in length");
+      }
+
+      let mut variant = HashMap::new();
+
+      for i in 0..types.len() {
+        let given_type = &types[i];
+        let generic_type = &context.types[i];
+
+        variant.insert(generic_type.to_string(), given_type.to_string());
+      }
+
+      context.add_generic_variant(variant);
     }
   }
 
@@ -91,7 +133,7 @@ type GenericVariantIdentifier = String;
 #[derive(Debug)]
 pub struct GenericContext {
   /// The list of generic types the node accepts
-  pub types: HashSet<GenericType>,
+  pub types: Vec<GenericType>,
 
   /// Contains the list of variant the node accepts
   pub translation_variants:
@@ -101,9 +143,19 @@ pub struct GenericContext {
 }
 
 impl GenericContext {
+  pub fn new(types: Vec<GenericType>) -> Self {
+    Self {
+      types,
+      translation_variants: HashMap::new(),
+      currently_used_variant: None
+    }
+  }
+
   pub fn add_generic_variant(&mut self, types: HashMap<GenericType, ResolvedGenericType>) {
     // the identifier is just the concatenation of all types used in the variant
     let identifier = types.values().map(|s| s.to_string()).collect::<String>();
+
+    println!("adding generic call variant {identifier}");
 
     // we already have the variant in the map
     if self.translation_variants.contains_key(&identifier) {

@@ -31,6 +31,8 @@ function main(a: int, b: string): int {
     print("world");
   } while (foo < 5);
 
+  filterOdd::<int>();
+
 
   return bar.lorem(foo);
 }

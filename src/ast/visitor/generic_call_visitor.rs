@@ -14,7 +14,7 @@ impl<'a> GenericCallsVisitor<'a> {
   pub fn new(program_information: &'a ProgramInformation) -> Self {
     Self {
       program_information,
-      current_context: Rc::new(RefCell::new(Context::new("empty"))),
+      current_context: Rc::new(RefCell::new(Context::new("empty", None))),
     }
   }
 }
@@ -35,12 +35,14 @@ impl super::Visitor for GenericCallsVisitor<'_> {
   }
 
   fn visit_generic_function_call(&mut self, node: &crate::ast::FunctionCall) {
+    let function_name = node.accessor.get_last_text();
+    let function_context = Context::find_global_function_declaration(&self.current_context, &function_name);
+
+
     if let Some(generic_types) = &node.generic_types {
-      self
-        .program_information
-        .generic_functions_register
-        .borrow_mut()
-        .register_call(node.get_function_name(), generic_types.clone());
+      if let Some(function_context) = function_context {
+        function_context.borrow_mut().register_generic_call(&generic_types);
+      }
     }
   }
 }

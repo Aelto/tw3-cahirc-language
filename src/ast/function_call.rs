@@ -16,7 +16,9 @@ impl FunctionCall {
 
 impl Visited for FunctionCall {
   fn accept<T: visitor::Visitor>(&self, visitor: &mut T) {
-    visitor.visit_generic_function_call(self);
+    if self.generic_types.is_some() {
+      visitor.visit_generic_function_call(self);
+    }
 
     self.accessor.accept(visitor);
     self.parameters.accept(visitor);

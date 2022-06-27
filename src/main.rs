@@ -41,19 +41,19 @@ fn compile_source_directory(directory: &Path) -> std::io::Result<()> {
 
     dbg!(&expr);
 
-    let mut visitor = FunctionVisitor {
+    let mut function_visitor = FunctionVisitor {
       program_information: &program_information,
     };
 
-    let global_context = Rc::new(RefCell::new(Context::new("Program")));
+    let global_context = Rc::new(RefCell::new(Context::new("Program", None)));
     let mut context_builder = ContextBuildingVisitor {
       current_context: global_context.clone(),
     };
 
     use ast::visitor::Visited;
 
-    expr.accept(&mut visitor);
     expr.accept(&mut context_builder);
+    expr.accept(&mut function_visitor);
 
     let mut new_path = file.path();
     new_path.set_extension("ws");

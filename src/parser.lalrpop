@@ -56,7 +56,8 @@ ClassDeclaration: ClassDeclaration = {
     <statemachine:KeywordStatemachine?> KeywordClass <name: Identifier> <extended_class_name:(KeywordExtends <Identifier>)?>
     "{" <body_statements:(<ClassBodyStatement>)*> "}"
         => ClassDeclaration {
-            context: Rc::new(RefCell::new(Context::new(&format!("class: {}", &name)))),
+            // TODO: accept generic types on classes too
+            context: Rc::new(RefCell::new(Context::new(&format!("class: {}", &name), None))),
             class_type: match statemachine.is_some() {
                 true => ClassType::StatemachineClass,
                 false => ClassType::Class
@@ -115,6 +116,7 @@ GlobalFunctionDeclaration: Rc<FunctionDeclaration> = {
         => {
             let has_generic_types = generic_types.is_some();
             let declaration = Rc::new(FunctionDeclaration {
+                context: Rc::new(RefCell::new(Context::new(&format!("function: {}", &name), generic_types.clone()))),
                 function_type: FunctionType::Function,
                 name: name.clone(),
                 generic_types,
@@ -122,7 +124,6 @@ GlobalFunctionDeclaration: Rc<FunctionDeclaration> = {
                 type_declaration: type_declaration,
                 body_statements,
                 is_latent: latent.is_some(),
-                context: Rc::new(RefCell::new(Context::new(&format!("function: {}", &name))))
             });
 
             if has_generic_types {
@@ -142,6 +143,7 @@ MethodDeclaration: Rc<FunctionDeclaration> = {
         => {
             let has_generic_types = generic_types.is_some();
             let declaration = Rc::new(FunctionDeclaration {
+                context: Rc::new(RefCell::new(Context::new(&format!("method: {}", &name), generic_types.clone()))),
                 function_type,
                 name: name.clone(),
                 generic_types,
@@ -149,7 +151,6 @@ MethodDeclaration: Rc<FunctionDeclaration> = {
                 type_declaration: type_declaration,
                 body_statements,
                 is_latent: latent.is_some(),
-                context: Rc::new(RefCell::new(Context::new(&format!("method: {}", &name))))
             });
 
             if has_generic_types {
