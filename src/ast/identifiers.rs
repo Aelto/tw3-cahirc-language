@@ -69,6 +69,7 @@ pub struct TypeDeclaration {
 
 impl Display for TypeDeclaration {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    // TODO: find a way to access the context and use Context::transform_if_generic_type
     write!(f, "{}", self.type_name)?;
 
     if let Some(comma_separated_types) = &self.generic_type_assignment {

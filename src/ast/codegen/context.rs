@@ -151,6 +151,10 @@ impl GenericContext {
     }
   }
 
+  pub fn generic_variant_suffix_from_types(types: &Vec<GenericType>) -> String {
+    types.iter().map(|s| s.to_string()).collect::<String>()
+  }
+
   pub fn add_generic_variant(&mut self, types: HashMap<GenericType, ResolvedGenericType>) {
     // the identifier is just the concatenation of all types used in the variant
     let identifier = types.values().map(|s| s.to_string()).collect::<String>();
@@ -162,7 +166,9 @@ impl GenericContext {
       return;
     }
 
-    if self.is_variant_valid(&types) {
+    dbg!(&self.types);
+    dbg!(&types);
+    if !self.is_variant_valid(&types) {
       return;
     }
 

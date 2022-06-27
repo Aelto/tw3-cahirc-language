@@ -35,32 +35,47 @@ impl visitor::Visited for FunctionDeclaration {
 
 impl Display for FunctionDeclaration {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-    if self.is_latent {
-      write!(f, "latent")?;
+    if let Some(generic_context) = &mut self.context.borrow_mut().generic_context {
+      for variant in generic_context.translation_variants.keys() {
+        generic_context.currently_used_variant = Some(variant.clone());
+
+        emit_function(self, f, variant)?;
+      }
     }
-
-    write!(f, "{} {}(", self.function_type, self.name)?;
-
-    for param in &self.parameters {
-      write!(f, "{param}, ")?;
+    else {
+      emit_function(self, f, "")?;
     }
-
-    write!(f, ")")?;
-
-    if let Some(t) = &self.type_declaration {
-      write!(f, ": {t}")?;
-    }
-
-    writeln!(f, " {{")?;
-
-    for statement in &self.body_statements {
-      writeln!(f, "{statement}")?;
-    }
-
-    writeln!(f, "}}")?;
 
     Ok(())
   }
+}
+
+fn emit_function(this: &FunctionDeclaration, f: &mut std::fmt::Formatter<'_>, generic_variant_suffix: &str) -> std::fmt::Result {
+  if this.is_latent {
+    write!(f, "latent")?;
+  }
+
+  write!(f, "{} {}{}(", this.function_type, this.name, generic_variant_suffix)?;
+
+  for param in &this.parameters {
+    write!(f, "{param}, ")?;
+  }
+
+  write!(f, ")")?;
+
+  if let Some(t) = &this.type_declaration {
+    write!(f, ": {t}")?;
+  }
+
+  writeln!(f, " {{")?;
+
+  for statement in &this.body_statements {
+    writeln!(f, "{statement}")?;
+  }
+
+  writeln!(f, "}}")?;
+
+  Ok(())
 }
 
 #[derive(Debug)]

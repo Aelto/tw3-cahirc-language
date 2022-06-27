@@ -1,6 +1,8 @@
 use super::visitor::Visited;
 use super::*;
 
+use super::codegen::context::GenericContext;
+
 #[derive(Debug)]
 pub struct FunctionCall {
   pub accessor: Box<IdentifierTerm>,
@@ -32,6 +34,9 @@ impl Display for FunctionCall {
     if let Some(generic_types) = &self.generic_types {
       // TODO: transform the function name into something unique for each
       // generic variant.
+
+      let generic_variant_suffix = GenericContext::generic_variant_suffix_from_types(&generic_types);
+      write!(f, "{generic_variant_suffix}")?;
 
       write!(f, "/*")?;
 

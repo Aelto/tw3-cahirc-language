@@ -126,11 +126,11 @@ GlobalFunctionDeclaration: Rc<FunctionDeclaration> = {
                 is_latent: latent.is_some(),
             });
 
-            if has_generic_types {
+            /*if has_generic_types {
                 let mut generic_functions_register = information.generic_functions_register.borrow_mut();
 
                 generic_functions_register.register_new_generic_function(&name, declaration.clone());
-            }
+            }*/
             
             declaration
         }
@@ -153,11 +153,11 @@ MethodDeclaration: Rc<FunctionDeclaration> = {
                 is_latent: latent.is_some(),
             });
 
-            if has_generic_types {
+            /*if has_generic_types {
                 let mut generic_functions_register = information.generic_functions_register.borrow_mut();
 
                 generic_functions_register.register_new_generic_function(&name, declaration.clone());
-            }
+            }*/
             
             declaration
         }
