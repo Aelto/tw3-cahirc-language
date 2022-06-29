@@ -35,15 +35,29 @@ impl visitor::Visited for FunctionDeclaration {
 
 impl Codegen for FunctionDeclaration {
   fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
-    if let Some(generic_context) = &mut self.context.borrow_mut().generic_context {
-      for variant in generic_context.translation_variants.keys() {
-        generic_context.currently_used_variant = Some(variant.clone());
+    let has_generic_context = self.context.borrow().generic_context.is_some();
+    if has_generic_context {
+      let mut variants = Vec::new();
 
-        emit_function(self, context, f, variant)?;
+      if let Some(generic_context) = &self.context.borrow().generic_context {
+        for variant in generic_context.translation_variants.keys() {
+          variants.push(String::from(variant));
+        }
+      }
+
+
+      for variant in variants {
+        {
+          if let Some(generic_context) = &mut self.context.borrow_mut().generic_context {
+            generic_context.currently_used_variant = Some(variant.clone());
+          }
+        }
+
+        emit_function(self, &self.context.borrow(), f, &variant)?;
       }
     }
     else {
-      emit_function(self, context, f, "")?;
+      emit_function(self, &context, f, "")?;
     }
 
     Ok(())

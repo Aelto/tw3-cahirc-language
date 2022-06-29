@@ -86,8 +86,13 @@ impl Codegen for TypeDeclaration {
     if let Some(comma_separated_types) = &self.generic_type_assignment {
       write!(f, "<")?;
 
-      for t in comma_separated_types {
+      let mut types = comma_separated_types.iter().peekable();
+      while let Some(t) = types.next() {
         t.emit(context, f)?;
+
+        if types.peek().is_some() {
+          write!(f, ", ")?;
+        }
       }
 
       write!(f, ">")?;

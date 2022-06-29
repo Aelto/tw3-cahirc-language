@@ -41,7 +41,7 @@ impl Codegen for FunctionCall {
       write!(f, "/*")?;
 
       for gtype in generic_types {
-        write!(f, "{gtype}")?;
+        write!(f, "{gtype}, ")?;
       }
 
       write!(f, "*/")?;
