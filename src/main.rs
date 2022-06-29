@@ -32,6 +32,8 @@ fn compile_source_directory(directory: &Path) -> std::io::Result<()> {
     if file.path().extension().unwrap() != "wss" {
       continue;
     }
+    println!("");
+    println!("");
 
     let content = std::fs::read_to_string(file.path())?;
 

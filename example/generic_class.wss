@@ -1,0 +1,14 @@
+
+class Counter<T> {
+    public var counter: T;
+
+    public function increase() {
+        this.counter += 1;
+    }
+}
+
+function main() {
+    var counter: Counter<int>;
+
+    counter.increase();
+}

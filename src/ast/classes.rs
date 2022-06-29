@@ -9,6 +9,7 @@ pub struct ClassDeclaration {
   pub class_type: ClassType,
   pub name: String,
   pub extended_class_name: Option<String>,
+  pub generic_types: Option<Vec<String>>,
   pub body_statements: Vec<ClassBodyStatement>,
 
   pub context: Rc<RefCell<Context>>,
@@ -31,25 +32,51 @@ impl Visited for ClassDeclaration {
 
 impl Codegen for ClassDeclaration {
   fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
-    use std::io::Write as IoWrite;
+    let has_generic_context = self.context.borrow().generic_context.is_some();
+    if has_generic_context {
+      let mut variants = Vec::new();
 
-    write!(f, "{} {}", self.class_type, self.name)?;
+      if let Some(generic_context) = &self.context.borrow().generic_context {
+        for variant in generic_context.translation_variants.keys() {
+          variants.push(String::from(variant));
+        }
+      }
 
-    if let Some(extended_class_name) = &self.extended_class_name {
-      write!(f, " extends {extended_class_name}")?;
+      for variant in variants {
+        {
+          if let Some(generic_context) = &mut self.context.borrow_mut().generic_context {
+            generic_context.currently_used_variant = Some(variant.clone());
+          }
+        }
+
+        emit_class(self, &self.context.borrow(), f, &variant)?;
+      }
     }
-
-    writeln!(f, " {{")?;
-
-    for statement in &self.body_statements {
-      statement.emit(context, f)?;
-      writeln!(f, "")?;
+    else {
+      emit_class(self, &context, f, "")?;
     }
-
-    writeln!(f, "}}")?;
 
     Ok(())
   }
+}
+
+fn emit_class(this: &ClassDeclaration, context: &Context, f: &mut Vec<u8>, generic_variant_suffix: &str) -> Result<(), std::io::Error> {
+  use std::io::Write as IoWrite;
+
+  write!(f, "{} {}", this.class_type, this.name)?;
+
+  if let Some(extended_class_name) = &this.extended_class_name {
+    write!(f, " extends {extended_class_name}")?;
+  }
+
+  writeln!(f, " {{")?;
+
+  for statement in &this.body_statements {
+    statement.emit(context, f)?;
+    writeln!(f, "")?;
+  }
+
+  writeln!(f, "}}")
 }
 
 #[derive(Debug)]

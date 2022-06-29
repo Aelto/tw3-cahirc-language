@@ -1,5 +1,6 @@
 
 function main(a: int, b: string): int {
+  var example: Example<int>;
   var foo: int;
   var bar: string = "hello";
 
@@ -37,8 +38,8 @@ function main(a: int, b: string): int {
   return bar.lorem(foo);
 }
 
-statemachine class Example extends Bar {
-  private var foo: int;
+statemachine class Example<T> extends Bar {
+  private var foo: T;
   default foo = 10;
 
   public function init() {

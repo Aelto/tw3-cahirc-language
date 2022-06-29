@@ -38,10 +38,20 @@ impl super::Visitor for GenericCallsVisitor<'_> {
     let function_name = node.accessor.get_last_text();
     let function_context = Context::find_global_function_declaration(&self.current_context, &function_name);
 
-
     if let Some(generic_types) = &node.generic_types {
       if let Some(function_context) = function_context {
         function_context.borrow_mut().register_generic_call(&generic_types);
+      }
+    }
+  }
+
+  fn visit_generic_variable_declaration(&mut self, node: &crate::ast::TypeDeclaration) {
+    let class_name = &node.type_name;
+    let class_context = Context::find_global_class_declaration(&self.current_context, class_name);
+
+    if let Some(generic_types) = &node.generic_type_assignment {
+      if let Some(class_context) = class_context {
+        class_context.borrow_mut().register_generic_call(&node.stringified_generic_types());
       }
     }
   }

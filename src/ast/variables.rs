@@ -61,6 +61,7 @@ pub struct VariableDeclaration {
 
 impl visitor::Visited for VariableDeclaration {
   fn accept<T: visitor::Visitor>(&self, visitor: &mut T) {
+    self.declaration.accept(visitor);
     self.following_expression.accept(visitor);
   }
 }

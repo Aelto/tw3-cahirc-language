@@ -73,6 +73,17 @@ impl Context {
     result
   }
 
+  pub fn find_global_class_declaration(this: &Rc<RefCell<Context>>, name: &str) -> Option<Rc<RefCell<Context>>> {
+    let program = Self::get_top_most_context(this);
+    let context_name = format!("class: {}", name);
+
+    let result = program.borrow().children_contexts.iter()
+      .find(|context| context.borrow().name == context_name)
+      .and_then(|c| Some(c.clone()));
+
+    result
+  }
+
   pub fn register_generic_call(&mut self, types: &Vec<String>) {
     if let Some(context) = &mut self.generic_context {
       if context.types.len() != types.len() {
@@ -172,8 +183,6 @@ impl GenericContext {
       return;
     }
 
-    dbg!(&self.types);
-    dbg!(&types);
     if !self.is_variant_valid(&types) {
       return;
     }
@@ -197,9 +206,6 @@ impl<'a> GenericContext {
     identifier: &str,
   ) -> Option<Result<(), std::io::Error>> {
     use std::io::Write as IoWrite;
-
-    dbg!(&identifier);
-    dbg!(&self.translation_variants);
 
     let some_translation = self
       .currently_used_variant

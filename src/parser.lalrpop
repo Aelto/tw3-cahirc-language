@@ -53,11 +53,12 @@ Statement: Statement = {
 // -----------------------------------------------------------------------------
 
 ClassDeclaration: ClassDeclaration = {
-    <statemachine:KeywordStatemachine?> KeywordClass <name: Identifier> <extended_class_name:(KeywordExtends <Identifier>)?>
+    <statemachine:KeywordStatemachine?> KeywordClass <name: Identifier> <generic_types:GenericTypesDeclaration?>
+    <extended_class_name:(KeywordExtends <Identifier>)?>
     "{" <body_statements:(<ClassBodyStatement>)*> "}"
         => ClassDeclaration {
             // TODO: accept generic types on classes too
-            context: Rc::new(RefCell::new(Context::new(&format!("class: {}", &name), None))),
+            context: Rc::new(RefCell::new(Context::new(&format!("class: {}", &name), generic_types.clone()))),
             class_type: match statemachine.is_some() {
                 true => ClassType::StatemachineClass,
                 false => ClassType::Class
@@ -65,6 +66,7 @@ ClassDeclaration: ClassDeclaration = {
             name,
             extended_class_name,
             body_statements,
+            generic_types
         }
 }
 
