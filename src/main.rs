@@ -60,7 +60,7 @@ fn compile_source_directory(directory: &Path) -> std::io::Result<()> {
 
     use ast::codegen::Codegen;
     let mut output_code = Vec::new();
-    expr.emit(&global_context.borrow_mut(), &mut output_code)
+    expr.emit(&mut global_context.borrow_mut(), &mut output_code)
       .expect("failed to emit code");
 
     match std::str::from_utf8(&output_code) {

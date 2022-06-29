@@ -29,7 +29,7 @@ impl Visited for FunctionCall {
 }
 
 impl Codegen for FunctionCall {
-  fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
+  fn emit(&self, context: &mut Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
     use std::io::Write as IoWrite;
 
     self.accessor.emit(context, f)?;

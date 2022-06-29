@@ -30,7 +30,7 @@ impl Visited for ClassDeclaration {
 }
 
 impl Codegen for ClassDeclaration {
-  fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
+  fn emit(&self, context: &mut Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
     use std::io::Write as IoWrite;
 
     write!(f, "{} {}", self.class_type, self.name)?;
@@ -81,7 +81,7 @@ pub enum ClassBodyStatement {
 }
 
 impl Codegen for ClassBodyStatement {
-  fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
+  fn emit(&self, context: &mut Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
     use std::io::Write as IoWrite;
 
     match self {
@@ -144,7 +144,7 @@ impl visitor::Visited for ClassBodyStatement {
 }
 
 impl Codegen for EncapsulationType {
-  fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
+  fn emit(&self, context: &mut Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
     use std::io::Write as IoWrite;
 
     match self {
