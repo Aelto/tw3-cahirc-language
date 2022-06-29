@@ -37,25 +37,22 @@ impl Visited for IfStatement {
   }
 }
 
-impl Display for IfStatement {
-  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl Codegen for IfStatement {
+  fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
+    use std::io::Write as IoWrite;
+
     match self {
       IfStatement::If {
         condition,
         body_statements,
         else_statements,
       } => {
-        writeln!(f, "if ({condition}) {{")?;
-
-        for statement in body_statements {
-          writeln!(f, "{statement}")?;
-        }
-
+        write!(f, "if (")?;
+        condition.emit(context, f)?;
+        writeln!(f, ") {{")?;
+        body_statements.emit(context, f)?;
         writeln!(f, "}}")?;
-
-        for else_statement in else_statements {
-          write!(f, "{else_statement}")?;
-        }
+        else_statements.emit(context, f)?;
       }
       IfStatement::Else {
         condition,
@@ -64,13 +61,16 @@ impl Display for IfStatement {
         write!(f, "else ")?;
 
         if let Some(condition) = condition {
-          write!(f, " if ({condition})")?;
+          write!(f, "if (")?;
+          condition.emit(context, f)?;
+          write!(f, ")")?;
         }
 
         writeln!(f, " {{")?;
 
         for statement in body_statements {
-          writeln!(f, "{statement}")?;
+          statement.emit(context, f)?;
+          writeln!(f, "")?;
         }
 
         writeln!(f, "}}")?;

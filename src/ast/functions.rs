@@ -33,44 +33,45 @@ impl visitor::Visited for FunctionDeclaration {
   }
 }
 
-impl Display for FunctionDeclaration {
-  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl Codegen for FunctionDeclaration {
+  fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
     if let Some(generic_context) = &mut self.context.borrow_mut().generic_context {
       for variant in generic_context.translation_variants.keys() {
         generic_context.currently_used_variant = Some(variant.clone());
 
-        emit_function(self, f, variant)?;
+        emit_function(self, context, f, variant)?;
       }
     }
     else {
-      emit_function(self, f, "")?;
+      emit_function(self, context, f, "")?;
     }
 
     Ok(())
   }
 }
 
-fn emit_function(this: &FunctionDeclaration, f: &mut std::fmt::Formatter<'_>, generic_variant_suffix: &str) -> std::fmt::Result {
+fn emit_function(this: &FunctionDeclaration, context: &Context, f: &mut Vec<u8>, generic_variant_suffix: &str) -> Result<(), std::io::Error> {
+  use std::io::Write as IoWrite;
+
   if this.is_latent {
-    write!(f, "latent")?;
+    write!(f, "latent ")?;
   }
 
-  write!(f, "{} {}{}(", this.function_type, this.name, generic_variant_suffix)?;
-
-  for param in &this.parameters {
-    write!(f, "{param}, ")?;
-  }
-
+  this.function_type.emit(context, f)?;
+  write!(f, " {}{}(", this.name, generic_variant_suffix)?;
+  this.parameters.emit(context, f)?;
   write!(f, ")")?;
 
   if let Some(t) = &this.type_declaration {
-    write!(f, ": {t}")?;
+    write!(f, ": ")?;
+    t.emit(context, f)?;
   }
 
   writeln!(f, " {{")?;
 
   for statement in &this.body_statements {
-    writeln!(f, "{statement}")?;
+    statement.emit(context, f)?;
+    // writeln!(f, ""); 
   }
 
   writeln!(f, "}}")?;
@@ -85,8 +86,10 @@ pub enum FunctionType {
   Event,
 }
 
-impl Display for FunctionType {
-  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl Codegen for FunctionType {
+  fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
+    use std::io::Write as IoWrite;
+
     match self {
       FunctionType::Function => write!(f, "function"),
       FunctionType::Timer => write!(f, "timer"),
@@ -122,18 +125,47 @@ impl visitor::Visited for FunctionBodyStatement {
   }
 }
 
-impl Display for FunctionBodyStatement {
-  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl Codegen for FunctionBodyStatement {
+  fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
+    use std::io::Write as IoWrite;
+
     match self {
-      FunctionBodyStatement::VariableDeclaration(x) => write!(f, "{x};"),
-      FunctionBodyStatement::Expression(x) => write!(f, "{x};"),
-      FunctionBodyStatement::Return(x) => writeln!(f, "return {x};"),
-      FunctionBodyStatement::Assignement(x) => write!(f, "{x};"),
-      FunctionBodyStatement::IfStatement(x) => write!(f, "{x}"),
-      FunctionBodyStatement::ForStatement(x) => write!(f, "{x}"),
-      FunctionBodyStatement::WhileStatement(x) => write!(f, "{x}"),
-      FunctionBodyStatement::DoWhileStatement(x) => write!(f, "{x}"),
-    }
+      FunctionBodyStatement::VariableDeclaration(x) => {
+        x.emit(context, f)?;
+        writeln!(f, ";")?;
+      },
+      FunctionBodyStatement::Expression(x) => {
+        x.emit(context, f)?;
+        writeln!(f, ";")?;
+      },
+      FunctionBodyStatement::Return(x) => {
+        write!(f, "return ")?;
+        x.emit(context, f)?;
+        writeln!(f, ";")?;
+      },
+      FunctionBodyStatement::Assignement(x) => {
+        x.emit(context, f)?;
+        writeln!(f, ";")?;
+      },
+      FunctionBodyStatement::IfStatement(x) => {
+        x.emit(context, f)?;
+        writeln!(f, "")?;
+      },
+      FunctionBodyStatement::ForStatement(x) => {
+        x.emit(context, f)?;
+        writeln!(f, "")?;
+      },
+      FunctionBodyStatement::WhileStatement(x) => {
+        x.emit(context, f)?;
+        writeln!(f, "")?;
+      },
+      FunctionBodyStatement::DoWhileStatement(x) => {
+        x.emit(context, f)?;
+        writeln!(f, "")?;
+      },
+    };
+
+    Ok(())
   }
 }
 
@@ -146,10 +178,13 @@ impl Visited for FunctionCallParameters {
   }
 }
 
-impl Display for FunctionCallParameters {
-  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl Codegen for FunctionCallParameters {
+  fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
+    use std::io::Write as IoWrite;
+
     for param in &self.0 {
-      write!(f, "{}, ", param)?;
+      param.emit(context, f)?;
+      write!(f, ", ")?;
     }
 
     Ok(())

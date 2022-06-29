@@ -15,12 +15,15 @@ impl Visited for StructDeclaration {
   }
 }
 
-impl Display for StructDeclaration {
-  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-    write!(f, "struct {} {{", self.name)?;
+impl Codegen for StructDeclaration {
+  fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
+    use std::io::Write as IoWrite;
+
+    writeln!(f, "struct {} {{", self.name)?;
 
     for statement in &self.body_statements {
-      write!(f, "{statement}")?;
+      statement.emit(context, f)?;
+      writeln!(f, "")?;
     }
 
     writeln!(f, "}}")?;
@@ -44,11 +47,22 @@ impl Visited for StructBodyStatement {
   }
 }
 
-impl Display for StructBodyStatement {
-  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl Codegen for StructBodyStatement {
+  fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
+    use std::io::Write as IoWrite;
+
     match self {
-      StructBodyStatement::Property(x) => write!(f, "{x};"),
-      StructBodyStatement::DefaultValue(x) => write!(f, "default {x};"),
-    }
+      StructBodyStatement::Property(x) => {
+        x.emit(context, f)?;
+        write!(f, ";")?;
+      },
+      StructBodyStatement::DefaultValue(x) => {
+        write!(f, "default ")?;
+        x.emit(context, f)?;
+        writeln!(f, ";")?;
+      },
+    };
+
+    Ok(())
   }
 }

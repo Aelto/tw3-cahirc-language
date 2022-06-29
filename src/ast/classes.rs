@@ -29,8 +29,10 @@ impl Visited for ClassDeclaration {
   }
 }
 
-impl Display for ClassDeclaration {
-  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl Codegen for ClassDeclaration {
+  fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
+    use std::io::Write as IoWrite;
+
     write!(f, "{} {}", self.class_type, self.name)?;
 
     if let Some(extended_class_name) = &self.extended_class_name {
@@ -40,7 +42,8 @@ impl Display for ClassDeclaration {
     writeln!(f, " {{")?;
 
     for statement in &self.body_statements {
-      writeln!(f, "{statement}")?;
+      statement.emit(context, f)?;
+      writeln!(f, "")?;
     }
 
     writeln!(f, "}}")?;
@@ -77,30 +80,40 @@ pub enum ClassBodyStatement {
   DefaultValue(VariableAssignment),
 }
 
-impl Display for ClassBodyStatement {
-  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl Codegen for ClassBodyStatement {
+  fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
+    use std::io::Write as IoWrite;
+
     match self {
       ClassBodyStatement::Method {
         encapsulation,
         function_declaration,
       } => {
         if let Some(encapsulation) = encapsulation {
-          write!(f, "{encapsulation} ")?;
+          encapsulation.emit(context, f)?;
+          write!(f, " ")?;
         }
 
-        write!(f, "{function_declaration}")?;
+        function_declaration.emit(context, f)?;
       }
       ClassBodyStatement::Property {
         encapsulation,
         property_declaration,
       } => {
         if let Some(encapsulation) = encapsulation {
-          write!(f, "{encapsulation} ")?;
+          encapsulation.emit(context, f)?;
+          write!(f, " ")?;
         }
 
-        write!(f, "{property_declaration};")?;
+        property_declaration.emit(context, f)?;
+        writeln!(f, ";");
       }
-      ClassBodyStatement::DefaultValue(x) => writeln!(f, "default {x};")?,
+      ClassBodyStatement::DefaultValue(x) => {
+
+        write!(f, "default ")?;
+        x.emit(context, f)?;
+        writeln!(f, ";")?
+      },
     };
 
     Ok(())
@@ -130,8 +143,10 @@ impl visitor::Visited for ClassBodyStatement {
   }
 }
 
-impl Display for EncapsulationType {
-  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl Codegen for EncapsulationType {
+  fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
+    use std::io::Write as IoWrite;
+
     match self {
       EncapsulationType::Private => write!(f, "private"),
       EncapsulationType::Public => write!(f, "public"),

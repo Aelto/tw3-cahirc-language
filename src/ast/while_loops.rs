@@ -14,14 +14,14 @@ impl Visited for WhileStatement {
   }
 }
 
-impl Display for WhileStatement {
-  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-    writeln!(f, "while ({}) {{", self.condition)?;
+impl Codegen for WhileStatement {
+  fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
+    use std::io::Write as IoWrite;
 
-    for statement in &self.body_statements {
-      writeln!(f, "{statement}")?;
-    }
-
+    write!(f, "while (")?;
+    self.condition.emit(context, f)?;
+    writeln!(f, ") {{")?;
+    self.body_statements.emit(context, f)?;
     writeln!(f, "}}")?;
 
     Ok(())
@@ -41,15 +41,19 @@ impl Visited for DoWhileStatement {
   }
 }
 
-impl Display for DoWhileStatement {
-  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl Codegen for DoWhileStatement {
+  fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
+    use std::io::Write as IoWrite;
+
     writeln!(f, "do {{")?;
 
     for statement in &self.body_statements {
-      writeln!(f, "{statement}")?;
+      statement.emit(context, f)?;
     }
 
-    writeln!(f, "}} while ({});", self.condition)?;
+    write!(f, "}} while (")?;
+    self.condition.emit(context, f)?;
+    writeln!(f, ");");
 
     Ok(())
   }

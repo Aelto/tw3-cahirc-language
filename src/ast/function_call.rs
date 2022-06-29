@@ -2,6 +2,7 @@ use super::visitor::Visited;
 use super::*;
 
 use super::codegen::context::GenericContext;
+use super::codegen::context::Context;
 
 #[derive(Debug)]
 pub struct FunctionCall {
@@ -27,14 +28,13 @@ impl Visited for FunctionCall {
   }
 }
 
-impl Display for FunctionCall {
-  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-    write!(f, "{}", self.accessor)?;
+impl Codegen for FunctionCall {
+  fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
+    use std::io::Write as IoWrite;
+
+    self.accessor.emit(context, f)?;
 
     if let Some(generic_types) = &self.generic_types {
-      // TODO: transform the function name into something unique for each
-      // generic variant.
-
       let generic_variant_suffix = GenericContext::generic_variant_suffix_from_types(&generic_types);
       write!(f, "{generic_variant_suffix}")?;
 
@@ -47,7 +47,9 @@ impl Display for FunctionCall {
       write!(f, "*/")?;
     }
 
-    write!(f, "({})", self.parameters)?;
+    write!(f, "(")?;
+    self.parameters.emit(context, f)?;
+    write!(f, ")")?;
 
     Ok(())
   }

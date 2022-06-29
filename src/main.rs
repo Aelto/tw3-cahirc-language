@@ -39,7 +39,7 @@ fn compile_source_directory(directory: &Path) -> std::io::Result<()> {
       .parse(&program_information, &content)
       .unwrap();
 
-    dbg!(&expr);
+    // dbg!(&expr);
 
     let mut function_visitor = FunctionVisitor {
       program_information: &program_information,
@@ -58,7 +58,15 @@ fn compile_source_directory(directory: &Path) -> std::io::Result<()> {
     let mut new_path = file.path();
     new_path.set_extension("ws");
 
-    fs::write(new_path, format_code(format!("{}", expr))).expect("failed to write output file");
+    use ast::codegen::Codegen;
+    let mut output_code = Vec::new();
+    expr.emit(&global_context.borrow_mut(), &mut output_code)
+      .expect("failed to emit code");
+
+    match std::str::from_utf8(&output_code) {
+      Ok(s) => fs::write(new_path, format_code(s)).expect("failed to write output file"),
+      Err(e) => println!("{}", e)
+    };
 
     (*global_context).borrow().print(0);
 
@@ -71,7 +79,7 @@ fn compile_source_directory(directory: &Path) -> std::io::Result<()> {
   Ok(())
 }
 
-fn format_code(origin: String) -> String {
+fn format_code(origin: &str) -> String {
   let mut lines: Vec<String> = origin.lines().map(|s| s.to_string()).collect();
   let mut depth = 0;
 

@@ -20,18 +20,22 @@ impl Visited for ForStatement {
   }
 }
 
-impl Display for ForStatement {
-  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl Codegen for ForStatement {
+  fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
+    use std::io::Write as IoWrite;
+
     write!(f, "for (")?;
+    self.initialization.emit(context, f)?;
+    write!(f, "; ")?;
+    self.condition.emit(context, f)?;
+    write!(f, "; ")?;
+    self.iteration.emit(context, f)?;
+    writeln!(f, ") {{")?;
 
-    if let Some(initialization) = &self.initialization {
-      write!(f, "{initialization}")?;
-    }
-
-    writeln!(f, "; {}; {}) {{", self.condition, self.iteration)?;
-
+    
     for statement in &self.body_statements {
-      writeln!(f, "{statement}")?;
+      statement.emit(context, f)?;
+      writeln!(f, "")?;
     }
 
     writeln!(f, "}}")?;

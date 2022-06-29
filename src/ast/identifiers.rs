@@ -17,16 +17,21 @@ impl Visited for IdentifierTerm {
   }
 }
 
-impl Display for IdentifierTerm {
-  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl Codegen for IdentifierTerm {
+  fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
+    use std::io::Write as IoWrite;
+
     write!(f, "{}", self.text)?;
 
     for indexing in &self.indexing {
-      write!(f, "[{}]", indexing)?;
+      write!(f, "[")?;
+      indexing.emit(context, f)?;
+      write!(f, "]")?;
     }
 
     if let Some(nesting) = &self.nesting {
-      write!(f, ".{}", nesting)?;
+      write!(f, ".")?;
+      nesting.emit(context, f)?;
     }
 
     Ok(())
@@ -49,9 +54,12 @@ pub struct TypedIdentifier {
   pub type_declaration: TypeDeclaration,
 }
 
-impl Display for TypedIdentifier {
-  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-    write!(f, "{}: {}", self.name, self.type_declaration)
+impl Codegen for TypedIdentifier {
+  fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
+    use std::io::Write as IoWrite;
+
+    write!(f, "{}: ", self.name, )?;
+    self.type_declaration.emit(context, f)
   }
 }
 
@@ -67,16 +75,19 @@ pub struct TypeDeclaration {
   pub generic_type_assignment: Option<Vec<TypeDeclaration>>,
 }
 
-impl Display for TypeDeclaration {
-  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl Codegen for TypeDeclaration {
+  fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
+    use std::io::Write as IoWrite;
+
     // TODO: find a way to access the context and use Context::transform_if_generic_type
-    write!(f, "{}", self.type_name)?;
+    context.transform_if_generic_type(f, &self.type_name)?;
+    // write!(f, "{}", self.type_name)?;
 
     if let Some(comma_separated_types) = &self.generic_type_assignment {
       write!(f, "<")?;
 
       for t in comma_separated_types {
-        write!(f, "{t}")?;
+        t.emit(context, f)?;
       }
 
       write!(f, ">")?;

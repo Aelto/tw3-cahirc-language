@@ -97,9 +97,11 @@ impl Context {
   /// the unchanged identifier that was passed as a parameter.
   pub fn transform_if_generic_type(
     &self,
-    f: &mut std::fmt::Formatter<'_>,
+    f: &mut Vec<u8>,
     identifier: &str,
-  ) -> std::fmt::Result {
+  ) -> Result<(), std::io::Error> {
+    use std::io::Write as IoWrite;
+
     let res = self
       .generic_context
       .as_ref()
@@ -112,9 +114,13 @@ impl Context {
     }
 
     match &self.parent_context {
-      Some(parent) => (*parent).borrow().transform_if_generic_type(f, identifier),
-      None => write!(f, "{identifier}"),
-    }
+      Some(parent) => (*parent).borrow().transform_if_generic_type(f, identifier)?,
+      None => {
+        write!(f, "{identifier}");
+      },
+    };
+
+    Ok(())
   }
 
   pub fn print(&self, depth: usize) {
@@ -187,9 +193,14 @@ impl GenericContext {
 impl<'a> GenericContext {
   pub fn transform_if_generic_type(
     &'a self,
-    f: &mut std::fmt::Formatter<'_>,
+    f: &mut Vec<u8>,
     identifier: &str,
-  ) -> Option<std::fmt::Result> {
+  ) -> Option<Result<(), std::io::Error>> {
+    use std::io::Write as IoWrite;
+
+    dbg!(&identifier);
+    dbg!(&self.translation_variants);
+
     let some_translation = self
       .currently_used_variant
       .as_ref()

@@ -2,6 +2,7 @@ use std::rc::Rc;
 
 use super::*;
 
+
 #[derive(Debug)]
 pub enum Expression {
   Number(i32),
@@ -33,16 +34,30 @@ impl visitor::Visited for Expression {
   }
 }
 
-impl Display for Expression {
-  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl Codegen for Expression {
+  fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
+    use std::io::Write as IoWrite;
+
     match self {
       Expression::Number(x) => write!(f, "{}", x),
       Expression::String(x) => write!(f, "{}", x),
-      Expression::Identifier(x) => write!(f, "{}", x),
-      Expression::FunctionCall(x) => write!(f, "{}", x),
-      Expression::Operation(left, op, right) => write!(f, "{left} {op} {right}"),
+      Expression::Identifier(x) => {
+        x.emit(context, f)
+      },
+      Expression::FunctionCall(x) => {
+        x.emit(context, f)
+      },
+      Expression::Operation(left, op, right) => {
+        left.emit(context, f)?;
+        write!(f, " ")?;
+        op.emit(context, f)?;
+        write!(f, " ")?;
+        right.emit(context, f)
+      },
       Expression::Error => todo!(),
-    }
+    };
+
+    Ok(())
   }
 }
 
@@ -55,14 +70,16 @@ pub enum OperationCode {
   Comparison(ComparisonType),
 }
 
-impl Display for OperationCode {
-  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl Codegen for OperationCode {
+  fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
+    use std::io::Write as IoWrite;
+
     match self {
       OperationCode::Mul => write!(f, "*"),
       OperationCode::Div => write!(f, "/"),
       OperationCode::Add => write!(f, "+"),
       OperationCode::Sub => write!(f, "-"),
-      OperationCode::Comparison(x) => write!(f, "{x}"),
+      OperationCode::Comparison(x) => x.emit(context, f),
     }
   }
 }
@@ -76,8 +93,10 @@ pub enum AssignmentType {
   SlashEqual,
 }
 
-impl Display for AssignmentType {
-  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl Codegen for AssignmentType {
+  fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
+    use std::io::Write as IoWrite;
+
     match self {
       AssignmentType::Equal => write!(f, "="),
       AssignmentType::PlusEqual => write!(f, "+="),
@@ -98,8 +117,10 @@ pub enum ComparisonType {
   Different,
 }
 
-impl Display for ComparisonType {
-  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl Codegen for ComparisonType {
+  fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
+    use std::io::Write as IoWrite;
+
     match self {
       ComparisonType::Greater => write!(f, ">"),
       ComparisonType::GreaterEqual => write!(f, ">="),

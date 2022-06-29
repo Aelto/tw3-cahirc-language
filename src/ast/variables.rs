@@ -15,13 +15,15 @@ impl Visited for VariableAssignment {
   }
 }
 
-impl Display for VariableAssignment {
-  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-    write!(
-      f,
-      "{} {} {}",
-      self.variable_name, self.assignment_type, self.following_expression
-    )
+impl Codegen for VariableAssignment {
+  fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
+    use std::io::Write as IoWrite;
+
+    self.variable_name.emit(context, f)?;
+    write!(f, " ")?;
+    self.assignment_type.emit(context, f)?;
+    write!(f, " ")?;
+    self.following_expression.emit(context, f)
   }
 }
 
@@ -40,11 +42,13 @@ impl Visited for VariableDeclarationOrAssignment {
   }
 }
 
-impl Display for VariableDeclarationOrAssignment {
-  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl Codegen for VariableDeclarationOrAssignment {
+  fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
+    use std::io::Write as IoWrite;
+
     match self {
-      VariableDeclarationOrAssignment::Declaration(x) => write!(f, "{x}"),
-      VariableDeclarationOrAssignment::Assignement(x) => write!(f, "{x}"),
+      VariableDeclarationOrAssignment::Declaration(x) => x.emit(context, f),
+      VariableDeclarationOrAssignment::Assignement(x) => x.emit(context, f),
     }
   }
 }
@@ -61,12 +65,16 @@ impl visitor::Visited for VariableDeclaration {
   }
 }
 
-impl Display for VariableDeclaration {
-  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-    write!(f, "var {}", self.declaration)?;
+impl Codegen for VariableDeclaration {
+  fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
+    use std::io::Write as IoWrite;
 
+    write!(f, "var ")?;
+    self.declaration.emit(context, f)?;
+    
     if let Some(expr) = &self.following_expression {
-      write!(f, " = {expr}")?;
+      write!(f, " = ")?;
+      expr.emit(context, f)?;
     }
 
     Ok(())

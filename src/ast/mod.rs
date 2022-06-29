@@ -10,6 +10,8 @@ pub mod codegen;
 pub mod generic_calls_register;
 pub mod visitor;
 
+pub use codegen::context::Context;
+
 // -----------------------------------------------------------------------------
 
 pub struct ProgramInformation {
@@ -37,13 +39,11 @@ impl visitor::Visited for Program {
   }
 }
 
-impl Display for Program {
-  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-    for statement in &self.statements {
-      write!(f, "{}", statement)?;
-    }
+impl Codegen for Program {
+  fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
+    use std::io::Write as IoWrite;
 
-    Ok(())
+    self.statements.emit(context, f)
   }
 }
 
