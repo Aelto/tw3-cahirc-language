@@ -16,7 +16,7 @@ impl Visited for VariableAssignment {
 }
 
 impl Codegen for VariableAssignment {
-  fn emit(&self, context: &mut Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
+  fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
     use std::io::Write as IoWrite;
 
     self.variable_name.emit(context, f)?;
@@ -43,7 +43,7 @@ impl Visited for VariableDeclarationOrAssignment {
 }
 
 impl Codegen for VariableDeclarationOrAssignment {
-  fn emit(&self, context: &mut Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
+  fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
     use std::io::Write as IoWrite;
 
     match self {
@@ -66,7 +66,7 @@ impl visitor::Visited for VariableDeclaration {
 }
 
 impl Codegen for VariableDeclaration {
-  fn emit(&self, context: &mut Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
+  fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
     use std::io::Write as IoWrite;
 
     write!(f, "var ")?;

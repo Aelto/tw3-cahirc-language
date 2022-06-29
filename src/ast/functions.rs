@@ -34,26 +34,12 @@ impl visitor::Visited for FunctionDeclaration {
 }
 
 impl Codegen for FunctionDeclaration {
-  fn emit(&self, context: &mut Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
-    let has_generic_context = self.context.borrow().generic_context.is_some();
-    if has_generic_context {
-      let mut variants = Vec::new();
+  fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
+    if let Some(generic_context) = &mut self.context.borrow_mut().generic_context {
+      for variant in generic_context.translation_variants.keys() {
+        generic_context.currently_used_variant = Some(variant.clone());
 
-      if let Some(generic_context) = &self.context.borrow().generic_context {
-        for variant in generic_context.translation_variants.keys() {
-          variants.push(String::from(variant));
-        }
-      }
-
-
-      for variant in variants {
-        let mut context = self.context.borrow_mut();
-
-        if let Some(generic_context) = &mut context.generic_context {
-          generic_context.currently_used_variant = Some(variant.clone());
-        }
-
-        emit_function(self, &mut context, f, &variant)?;
+        emit_function(self, context, f, variant)?;
       }
     }
     else {
@@ -64,7 +50,7 @@ impl Codegen for FunctionDeclaration {
   }
 }
 
-fn emit_function(this: &FunctionDeclaration, context: &mut Context, f: &mut Vec<u8>, generic_variant_suffix: &str) -> Result<(), std::io::Error> {
+fn emit_function(this: &FunctionDeclaration, context: &Context, f: &mut Vec<u8>, generic_variant_suffix: &str) -> Result<(), std::io::Error> {
   use std::io::Write as IoWrite;
 
   if this.is_latent {
@@ -101,7 +87,7 @@ pub enum FunctionType {
 }
 
 impl Codegen for FunctionType {
-  fn emit(&self, context: &mut Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
+  fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
     use std::io::Write as IoWrite;
 
     match self {
@@ -140,7 +126,7 @@ impl visitor::Visited for FunctionBodyStatement {
 }
 
 impl Codegen for FunctionBodyStatement {
-  fn emit(&self, context: &mut Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
+  fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
     use std::io::Write as IoWrite;
 
     match self {
@@ -193,7 +179,7 @@ impl Visited for FunctionCallParameters {
 }
 
 impl Codegen for FunctionCallParameters {
-  fn emit(&self, context: &mut Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
+  fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
     use std::io::Write as IoWrite;
 
     for param in &self.0 {

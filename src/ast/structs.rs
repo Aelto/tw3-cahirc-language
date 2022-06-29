@@ -16,7 +16,7 @@ impl Visited for StructDeclaration {
 }
 
 impl Codegen for StructDeclaration {
-  fn emit(&self, context: &mut Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
+  fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
     use std::io::Write as IoWrite;
 
     writeln!(f, "struct {} {{", self.name)?;
@@ -48,7 +48,7 @@ impl Visited for StructBodyStatement {
 }
 
 impl Codegen for StructBodyStatement {
-  fn emit(&self, context: &mut Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
+  fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
     use std::io::Write as IoWrite;
 
     match self {

@@ -21,7 +21,7 @@ impl Visited for ForStatement {
 }
 
 impl Codegen for ForStatement {
-  fn emit(&self, context: &mut Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
+  fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
     use std::io::Write as IoWrite;
 
     write!(f, "for (")?;

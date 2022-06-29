@@ -18,7 +18,7 @@ impl Visited for IdentifierTerm {
 }
 
 impl Codegen for IdentifierTerm {
-  fn emit(&self, context: &mut Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
+  fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
     use std::io::Write as IoWrite;
 
     write!(f, "{}", self.text)?;
@@ -55,7 +55,7 @@ pub struct TypedIdentifier {
 }
 
 impl Codegen for TypedIdentifier {
-  fn emit(&self, context: &mut Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
+  fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
     use std::io::Write as IoWrite;
 
     write!(f, "{}: ", self.name, )?;
@@ -76,7 +76,7 @@ pub struct TypeDeclaration {
 }
 
 impl Codegen for TypeDeclaration {
-  fn emit(&self, context: &mut Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
+  fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
     use std::io::Write as IoWrite;
 
     // TODO: find a way to access the context and use Context::transform_if_generic_type
