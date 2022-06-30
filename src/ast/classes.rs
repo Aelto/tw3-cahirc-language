@@ -63,7 +63,7 @@ impl Codegen for ClassDeclaration {
 fn emit_class(this: &ClassDeclaration, context: &Context, f: &mut Vec<u8>, generic_variant_suffix: &str) -> Result<(), std::io::Error> {
   use std::io::Write as IoWrite;
 
-  write!(f, "{} {}", this.class_type, this.name)?;
+  write!(f, "{} {}{}", this.class_type, this.name, generic_variant_suffix)?;
 
   if let Some(extended_class_name) = &this.extended_class_name {
     write!(f, " extends {extended_class_name}")?;

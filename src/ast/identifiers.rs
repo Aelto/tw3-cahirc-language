@@ -102,6 +102,15 @@ impl Codegen for TypeDeclaration {
     // write!(f, "{}", self.type_name)?;
 
     if let Some(comma_separated_types) = &self.generic_type_assignment {
+      let generic_variant_suffix = GenericContext::generic_variant_suffix_from_types(&self.stringified_generic_types());
+
+      write!(f, "{generic_variant_suffix}")?;
+
+      // special case: array is the only generic type support by vanilla WS
+      if self.type_name == "array" {
+        return Ok(());
+      }
+
       write!(f, "<")?;
 
       let mut types = comma_separated_types.iter().peekable();
