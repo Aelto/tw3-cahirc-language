@@ -1,5 +1,7 @@
 use std::rc::Rc;
 
+use crate::ast::codegen::context::GenericContext;
+
 use super::visitor::Visited;
 use super::*;
 
@@ -58,7 +60,7 @@ impl Codegen for TypedIdentifier {
   fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
     use std::io::Write as IoWrite;
 
-    write!(f, "{}: ", self.name, )?;
+    write!(f, "{}: ", self.name,)?;
     self.type_declaration.emit(context, f)
   }
 }
@@ -97,32 +99,29 @@ impl Codegen for TypeDeclaration {
   fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
     use std::io::Write as IoWrite;
 
-    // TODO: find a way to access the context and use Context::transform_if_generic_type
     context.transform_if_generic_type(f, &self.type_name)?;
-    // write!(f, "{}", self.type_name)?;
 
     if let Some(comma_separated_types) = &self.generic_type_assignment {
-      let generic_variant_suffix = GenericContext::generic_variant_suffix_from_types(&self.stringified_generic_types());
+      let generic_variant_suffix =
+        GenericContext::generic_variant_suffix_from_types(&self.stringified_generic_types());
 
       write!(f, "{generic_variant_suffix}")?;
 
       // special case: array is the only generic type support by vanilla WS
       if self.type_name == "array" {
-        return Ok(());
-      }
+        write!(f, "<")?;
 
-      write!(f, "<")?;
+        let mut types = comma_separated_types.iter().peekable();
+        while let Some(t) = types.next() {
+          t.emit(context, f)?;
 
-      let mut types = comma_separated_types.iter().peekable();
-      while let Some(t) = types.next() {
-        t.emit(context, f)?;
-
-        if types.peek().is_some() {
-          write!(f, ", ")?;
+          if types.peek().is_some() {
+            write!(f, ", ")?;
+          }
         }
-      }
 
-      write!(f, ">")?;
+        write!(f, ">")?;
+      }
     }
 
     Ok(())
@@ -139,8 +138,7 @@ impl TypeDeclaration {
       }
 
       output
-    }
-    else {
+    } else {
       self.type_name.clone()
     }
   }
@@ -148,7 +146,10 @@ impl TypeDeclaration {
   pub fn stringified_generic_types(&self) -> Vec<String> {
     match &self.generic_type_assignment {
       None => Vec::new(),
-      Some(generic_types) => generic_types.iter().map(|t| t.to_string()).collect::<Vec<String>>()
+      Some(generic_types) => generic_types
+        .iter()
+        .map(|t| t.to_string())
+        .collect::<Vec<String>>(),
     }
   }
 }

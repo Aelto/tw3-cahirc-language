@@ -1,14 +1,14 @@
 
 class Counter<T> {
-    public var counter: T;
+  public var counter: T;
 
-    public function increase() {
-        this.counter += 1;
-    }
+  public function add(value: T) {
+    this.counter += value;
+  }
 }
 
 function main() {
-    var counter: Counter<int>;
+  var counter: Counter<int>;
 
-    counter.increase();
+  counter.increase();
 }
