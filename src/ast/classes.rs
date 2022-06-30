@@ -51,8 +51,7 @@ impl Codegen for ClassDeclaration {
 
         emit_class(self, &self.context.borrow(), f, &variant)?;
       }
-    }
-    else {
+    } else {
       emit_class(self, &context, f, "")?;
     }
 
@@ -60,10 +59,19 @@ impl Codegen for ClassDeclaration {
   }
 }
 
-fn emit_class(this: &ClassDeclaration, context: &Context, f: &mut Vec<u8>, generic_variant_suffix: &str) -> Result<(), std::io::Error> {
+fn emit_class(
+  this: &ClassDeclaration,
+  context: &Context,
+  f: &mut Vec<u8>,
+  generic_variant_suffix: &str,
+) -> Result<(), std::io::Error> {
   use std::io::Write as IoWrite;
 
-  write!(f, "{} {}{}", this.class_type, this.name, generic_variant_suffix)?;
+  write!(
+    f,
+    "{} {}{}",
+    this.class_type, this.name, generic_variant_suffix
+  )?;
 
   if let Some(extended_class_name) = &this.extended_class_name {
     write!(f, " extends {extended_class_name}")?;
@@ -133,14 +141,13 @@ impl Codegen for ClassBodyStatement {
         }
 
         property_declaration.emit(context, f)?;
-        writeln!(f, ";");
+        writeln!(f, ";")?;
       }
       ClassBodyStatement::DefaultValue(x) => {
-
         write!(f, "default ")?;
         x.emit(context, f)?;
         writeln!(f, ";")?
-      },
+      }
     };
 
     Ok(())
@@ -171,7 +178,7 @@ impl visitor::Visited for ClassBodyStatement {
 }
 
 impl Codegen for EncapsulationType {
-  fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
+  fn emit(&self, _: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
     use std::io::Write as IoWrite;
 
     match self {

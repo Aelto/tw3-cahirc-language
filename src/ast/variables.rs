@@ -44,8 +44,6 @@ impl Visited for VariableDeclarationOrAssignment {
 
 impl Codegen for VariableDeclarationOrAssignment {
   fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
-    use std::io::Write as IoWrite;
-
     match self {
       VariableDeclarationOrAssignment::Declaration(x) => x.emit(context, f),
       VariableDeclarationOrAssignment::Assignement(x) => x.emit(context, f),
@@ -72,7 +70,7 @@ impl Codegen for VariableDeclaration {
 
     write!(f, "var ")?;
     self.declaration.emit(context, f)?;
-    
+
     if let Some(expr) = &self.following_expression {
       write!(f, " = ")?;
       expr.emit(context, f)?;

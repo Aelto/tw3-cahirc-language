@@ -3,7 +3,7 @@ use std::ops::Deref;
 pub mod context;
 
 pub trait Codegen {
-  fn emit(&self, context: &context::Context, output: &mut Vec<u8>) -> Result<(), std::io::Error> {
+  fn emit(&self, _: &context::Context, output: &mut Vec<u8>) -> Result<(), std::io::Error> {
     use std::io::Write as IoWrite;
 
     write!(output, "##default Codegen::emit impl##")?;

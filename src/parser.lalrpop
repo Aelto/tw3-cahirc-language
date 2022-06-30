@@ -34,7 +34,6 @@ use crate::ast::{
     FunctionCall
 };
 
-use crate::ast::generic_calls_register::GenericCallsRegister;
 use crate::ast::codegen::context::Context;
 
 grammar(information: &ProgramInformation);

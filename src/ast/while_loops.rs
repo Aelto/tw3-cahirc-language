@@ -53,7 +53,7 @@ impl Codegen for DoWhileStatement {
 
     write!(f, "}} while (")?;
     self.condition.emit(context, f)?;
-    writeln!(f, ");");
+    writeln!(f, ");")?;
 
     Ok(())
   }

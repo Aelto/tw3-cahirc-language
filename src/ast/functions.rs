@@ -45,7 +45,6 @@ impl Codegen for FunctionDeclaration {
         }
       }
 
-
       for variant in variants {
         {
           if let Some(generic_context) = &mut self.context.borrow_mut().generic_context {
@@ -55,8 +54,7 @@ impl Codegen for FunctionDeclaration {
 
         emit_function(self, &self.context.borrow(), f, &variant)?;
       }
-    }
-    else {
+    } else {
       emit_function(self, &context, f, "")?;
     }
 
@@ -64,7 +62,12 @@ impl Codegen for FunctionDeclaration {
   }
 }
 
-fn emit_function(this: &FunctionDeclaration, context: &Context, f: &mut Vec<u8>, generic_variant_suffix: &str) -> Result<(), std::io::Error> {
+fn emit_function(
+  this: &FunctionDeclaration,
+  context: &Context,
+  f: &mut Vec<u8>,
+  generic_variant_suffix: &str,
+) -> Result<(), std::io::Error> {
   use std::io::Write as IoWrite;
 
   if this.is_latent {
@@ -85,7 +88,7 @@ fn emit_function(this: &FunctionDeclaration, context: &Context, f: &mut Vec<u8>,
 
   for statement in &this.body_statements {
     statement.emit(context, f)?;
-    // writeln!(f, ""); 
+    // writeln!(f, "");
   }
 
   writeln!(f, "}}")?;
@@ -101,7 +104,7 @@ pub enum FunctionType {
 }
 
 impl Codegen for FunctionType {
-  fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
+  fn emit(&self, _: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
     use std::io::Write as IoWrite;
 
     match self {
@@ -147,36 +150,36 @@ impl Codegen for FunctionBodyStatement {
       FunctionBodyStatement::VariableDeclaration(x) => {
         x.emit(context, f)?;
         writeln!(f, ";")?;
-      },
+      }
       FunctionBodyStatement::Expression(x) => {
         x.emit(context, f)?;
         writeln!(f, ";")?;
-      },
+      }
       FunctionBodyStatement::Return(x) => {
         write!(f, "return ")?;
         x.emit(context, f)?;
         writeln!(f, ";")?;
-      },
+      }
       FunctionBodyStatement::Assignement(x) => {
         x.emit(context, f)?;
         writeln!(f, ";")?;
-      },
+      }
       FunctionBodyStatement::IfStatement(x) => {
         x.emit(context, f)?;
         writeln!(f, "")?;
-      },
+      }
       FunctionBodyStatement::ForStatement(x) => {
         x.emit(context, f)?;
         writeln!(f, "")?;
-      },
+      }
       FunctionBodyStatement::WhileStatement(x) => {
         x.emit(context, f)?;
         writeln!(f, "")?;
-      },
+      }
       FunctionBodyStatement::DoWhileStatement(x) => {
         x.emit(context, f)?;
         writeln!(f, "")?;
-      },
+      }
     };
 
     Ok(())

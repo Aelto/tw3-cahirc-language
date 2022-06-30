@@ -2,7 +2,6 @@ use std::rc::Rc;
 
 use super::*;
 
-
 #[derive(Debug)]
 pub enum Expression {
   Number(i32),
@@ -41,23 +40,17 @@ impl Codegen for Expression {
     match self {
       Expression::Number(x) => write!(f, "{}", x),
       Expression::String(x) => write!(f, "{}", x),
-      Expression::Identifier(x) => {
-        x.emit(context, f)
-      },
-      Expression::FunctionCall(x) => {
-        x.emit(context, f)
-      },
+      Expression::Identifier(x) => x.emit(context, f),
+      Expression::FunctionCall(x) => x.emit(context, f),
       Expression::Operation(left, op, right) => {
         left.emit(context, f)?;
         write!(f, " ")?;
         op.emit(context, f)?;
         write!(f, " ")?;
         right.emit(context, f)
-      },
+      }
       Expression::Error => todo!(),
-    };
-
-    Ok(())
+    }
   }
 }
 
@@ -94,7 +87,7 @@ pub enum AssignmentType {
 }
 
 impl Codegen for AssignmentType {
-  fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
+  fn emit(&self, _: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
     use std::io::Write as IoWrite;
 
     match self {
@@ -118,7 +111,7 @@ pub enum ComparisonType {
 }
 
 impl Codegen for ComparisonType {
-  fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
+  fn emit(&self, _: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
     use std::io::Write as IoWrite;
 
     match self {

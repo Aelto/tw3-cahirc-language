@@ -1,9 +1,6 @@
 use std::cell::RefCell;
 use std::collections::HashMap;
-use std::collections::HashSet;
 use std::rc::Rc;
-
-use crate::ast::FunctionDeclaration;
 
 #[derive(Debug)]
 pub struct Context {
@@ -153,7 +150,7 @@ impl Context {
         .borrow()
         .transform_if_generic_type(f, identifier)?,
       None => {
-        write!(f, "{identifier}");
+        write!(f, "{identifier}")?;
       }
     };
 

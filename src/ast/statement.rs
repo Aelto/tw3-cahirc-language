@@ -21,8 +21,6 @@ impl visitor::Visited for Statement {
 
 impl Codegen for Statement {
   fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
-    use std::io::Write as IoWrite;
-
     match self {
       Statement::Expression(x) => x.emit(context, f),
       Statement::FunctionDeclaration(x) => x.emit(context, f),

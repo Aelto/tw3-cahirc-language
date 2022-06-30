@@ -36,11 +36,14 @@ impl super::Visitor for GenericCallsVisitor<'_> {
 
   fn visit_generic_function_call(&mut self, node: &crate::ast::FunctionCall) {
     let function_name = node.accessor.get_last_text();
-    let function_context = Context::find_global_function_declaration(&self.current_context, &function_name);
+    let function_context =
+      Context::find_global_function_declaration(&self.current_context, &function_name);
 
     if let Some(generic_types) = &node.generic_types {
       if let Some(function_context) = function_context {
-        function_context.borrow_mut().register_generic_call(&generic_types);
+        function_context
+          .borrow_mut()
+          .register_generic_call(&generic_types);
       }
     }
   }
@@ -49,9 +52,11 @@ impl super::Visitor for GenericCallsVisitor<'_> {
     let class_name = &node.type_name;
     let class_context = Context::find_global_class_declaration(&self.current_context, class_name);
 
-    if let Some(generic_types) = &node.generic_type_assignment {
+    if let Some(_) = &node.generic_type_assignment {
       if let Some(class_context) = class_context {
-        class_context.borrow_mut().register_generic_call(&node.stringified_generic_types());
+        class_context
+          .borrow_mut()
+          .register_generic_call(&node.stringified_generic_types());
       }
     }
   }
