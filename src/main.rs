@@ -1,12 +1,14 @@
 use std::cell::RefCell;
 use std::fs;
 use std::path::Path;
+use std::path::PathBuf;
 use std::rc::Rc;
 
 mod ast;
 
 extern crate lalrpop_util;
 
+use ast::Program;
 use ast::ProgramInformation;
 use lalrpop_util::lalrpop_mod;
 
@@ -25,57 +27,77 @@ fn main() {
 fn compile_source_directory(directory: &Path) -> std::io::Result<()> {
   let children = fs::read_dir(directory)?;
   let program_information = ProgramInformation::new();
+  let global_context = Rc::new(RefCell::new(Context::new("Program", None)));
+  let wss_files = children
+    .filter(Result::is_ok)
+    .map(Result::unwrap)
+    .filter(|file| {
+      file
+        .path()
+        .extension()
+        .and_then(|ext| Some(ext == "wss"))
+        .unwrap_or(false)
+    });
 
-  for file in children {
-    let file = file?;
-
-    if file.path().extension().unwrap() != "wss" {
-      continue;
-    }
-    println!("");
-    println!("");
-
+  // 1.
+  // Build the list of AST from the files
+  let mut ast_list = Vec::new();
+  for file in wss_files {
     let content = std::fs::read_to_string(file.path())?;
 
     let expr = parser::ProgramParser::new()
       .parse(&program_information, &content)
       .unwrap();
 
-    // dbg!(&expr);
+    ast_list.push(ParsedFile {
+      ast: expr,
+      file_path: file.path(),
+    });
+  }
 
+  // 2.
+  // Traverse the AST to collect information about it
+  for parsed_file in &ast_list {
     let mut function_visitor = FunctionVisitor {
       program_information: &program_information,
     };
 
-    let global_context = Rc::new(RefCell::new(Context::new("Program", None)));
+    // create a context for this file, and register it into the global context
+    let file_context = Rc::new(RefCell::new(Context::new(
+      &format!("file: {:#?}", parsed_file.file_path.file_name()),
+      None,
+    )));
+    Context::set_parent_context(&file_context, &global_context);
+
     let mut context_builder = ContextBuildingVisitor {
-      current_context: global_context.clone(),
+      current_context: file_context.clone(),
     };
 
     use ast::visitor::Visited;
 
-    expr.accept(&mut context_builder);
-    expr.accept(&mut function_visitor);
+    parsed_file.ast.accept(&mut context_builder);
+    parsed_file.ast.accept(&mut function_visitor);
+  }
 
-    let mut new_path = file.path();
+  // 3.
+  // Emit code using the information we collected in the previous step
+  for parsed_file in &ast_list {
+    let mut new_path = parsed_file.file_path.clone();
     new_path.set_extension("ws");
 
     use ast::codegen::Codegen;
     let mut output_code = Vec::new();
-    expr.emit(&global_context.borrow(), &mut output_code)
+    parsed_file
+      .ast
+      .emit(&global_context.borrow(), &mut output_code)
       .expect("failed to emit code");
 
     match std::str::from_utf8(&output_code) {
       Ok(s) => fs::write(new_path, format_code(s)).expect("failed to write output file"),
-      Err(e) => println!("{}", e)
+      Err(e) => println!("{}", e),
     };
 
     (*global_context).borrow().print(0);
-
-    // let functions = program_information.generic_functions.borrow();
-    // for function in functions.iter() {
-    //   dbg!(function);
-    // }
   }
 
   Ok(())
@@ -100,4 +122,9 @@ fn format_code(origin: &str) -> String {
   }
 
   lines.join("\r\n")
+}
+
+struct ParsedFile {
+  file_path: PathBuf,
+  ast: Program,
 }

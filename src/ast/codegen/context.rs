@@ -62,26 +62,50 @@ impl Context {
     this.clone()
   }
 
-  pub fn find_global_function_declaration(this: &Rc<RefCell<Context>>, name: &str) -> Option<Rc<RefCell<Context>>> {
+  pub fn find_global_function_declaration(
+    this: &Rc<RefCell<Context>>,
+    name: &str,
+  ) -> Option<Rc<RefCell<Context>>> {
     let program = Self::get_top_most_context(this);
     let context_name = format!("function: {}", name);
 
-    let result = program.borrow().children_contexts.iter()
-      .find(|context| context.borrow().name == context_name)
-      .and_then(|c| Some(c.clone()));
+    for file_context in &program.borrow().children_contexts {
+      let result = file_context
+        .borrow()
+        .children_contexts
+        .iter()
+        .find(|context| context.borrow().name == context_name)
+        .and_then(|c| Some(c.clone()));
 
-    result
+      if result.is_some() {
+        return result;
+      }
+    }
+
+    None
   }
 
-  pub fn find_global_class_declaration(this: &Rc<RefCell<Context>>, name: &str) -> Option<Rc<RefCell<Context>>> {
+  pub fn find_global_class_declaration(
+    this: &Rc<RefCell<Context>>,
+    name: &str,
+  ) -> Option<Rc<RefCell<Context>>> {
     let program = Self::get_top_most_context(this);
     let context_name = format!("class: {}", name);
 
-    let result = program.borrow().children_contexts.iter()
-      .find(|context| context.borrow().name == context_name)
-      .and_then(|c| Some(c.clone()));
+    for file_context in &program.borrow().children_contexts {
+      let result = file_context
+        .borrow()
+        .children_contexts
+        .iter()
+        .find(|context| context.borrow().name == context_name)
+        .and_then(|c| Some(c.clone()));
 
-    result
+      if result.is_some() {
+        return result;
+      }
+    }
+
+    None
   }
 
   pub fn register_generic_call(&mut self, types: &Vec<String>) {
@@ -125,10 +149,12 @@ impl Context {
     }
 
     match &self.parent_context {
-      Some(parent) => (*parent).borrow().transform_if_generic_type(f, identifier)?,
+      Some(parent) => (*parent)
+        .borrow()
+        .transform_if_generic_type(f, identifier)?,
       None => {
         write!(f, "{identifier}");
-      },
+      }
     };
 
     Ok(())
@@ -164,7 +190,7 @@ impl GenericContext {
     Self {
       types,
       translation_variants: HashMap::new(),
-      currently_used_variant: None
+      currently_used_variant: None,
     }
   }
 

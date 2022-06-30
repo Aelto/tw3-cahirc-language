@@ -3,6 +3,7 @@ function main(a: int, b: string): int {
   var example: Example<int>;
   var foo: int;
   var bar: string = "hello";
+  var counter: Counter<int>;
 
   foo = thePlayer(a, 5 + 3 * thePlayer.foo(5));
 

@@ -8,10 +8,8 @@ class Counter<T> {
 }
 
 function main() {
-  var counter: Counter<int>;
   var counter_str: Counter<string>;
 
-  counter.add(1);
   counter_str.add("hello");
   counter_str.add("world");
 }
