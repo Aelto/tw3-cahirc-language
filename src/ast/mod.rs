@@ -43,7 +43,13 @@ impl Codegen for Program {
   fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
     use std::io::Write as IoWrite;
 
-    self.statements.emit(context, f)
+    for statement in &self.statements {
+      statement.emit(context, f)?;
+      writeln!(f, "")?;
+      writeln!(f, "")?;
+    }
+
+    Ok(())
   }
 }
 
