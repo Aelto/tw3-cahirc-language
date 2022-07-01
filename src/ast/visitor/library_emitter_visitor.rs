@@ -29,13 +29,9 @@ impl super::Visitor for LibraryEmitterVisitor {
   fn visit_class_declaration(&mut self, node: &crate::ast::ClassDeclaration) {
     let has_generic_context = node.context.borrow().generic_context.is_some();
 
-    println!("\n\n\n\n\n######");
-
     if !has_generic_context {
       return;
     }
-
-    println!("\n\n\n\n\n######");
 
     if let Err(err) = node.emit(&self.current_context.borrow(), &mut self.emitted_code) {
       println!(
