@@ -15,6 +15,9 @@ pub struct Context {
   /// Stores the generic variables in the context and what they should translate
   /// to.
   pub generic_context: Option<GenericContext>,
+
+  pub is_library: bool,
+  pub mangled_accessor: Option<String>,
 }
 
 impl Context {
@@ -25,7 +28,17 @@ impl Context {
       children_contexts: Vec::new(),
       parent_context: None,
       generic_context: generic_types.and_then(|t| Some(GenericContext::new(t))),
+      is_library: false,
+      mangled_accessor: None,
     }
+  }
+
+  pub fn set_as_library(&mut self) {
+    self.is_library = true;
+    self.mangled_accessor = Some(format!(
+      "wss{}",
+      uuid::Uuid::new_v4().to_string().replace("-", "")
+    ));
   }
 
   pub fn set_parent_context(this: &Rc<RefCell<Context>>, parent: &Rc<RefCell<Context>>) {
@@ -35,6 +48,10 @@ impl Context {
 
     (*parent).borrow_mut().children_contexts.push(this.clone());
     (*this).borrow_mut().parent_context = Some(parent.clone());
+
+    if (*parent).borrow().is_library {
+      (*this).borrow_mut().set_as_library();
+    }
   }
 
   pub fn remove_child(this: &Rc<RefCell<Context>>, child: &Rc<RefCell<Context>>) {
@@ -105,7 +122,9 @@ impl Context {
     None
   }
 
-  pub fn register_generic_call(&mut self, types: &Vec<String>) {
+  /// Returns an optional mangled name the identifier should use to use the
+  /// the generic type instead of the regular one.
+  pub fn register_generic_call(&mut self, types: &Vec<String>) -> Option<String> {
     if let Some(context) = &mut self.generic_context {
       if context.types.len() != types.len() {
         panic!("supplied types and expected types do not match in length");
@@ -122,6 +141,12 @@ impl Context {
 
       context.add_generic_variant(variant);
     }
+
+    if self.is_library {
+      return self.mangled_accessor.clone();
+    }
+
+    None
   }
 
   /// If the passed identifier is a generic type with a resolved value, get

@@ -67,11 +67,19 @@ fn emit_class(
 ) -> Result<(), std::io::Error> {
   use std::io::Write as IoWrite;
 
-  write!(
-    f,
-    "{} {}{}",
-    this.class_type, this.name, generic_variant_suffix
-  )?;
+  if let Some(mangled_accessor) = &context.mangled_accessor {
+    write!(
+      f,
+      "{} {}{}",
+      this.class_type, mangled_accessor, generic_variant_suffix
+    )?;
+  } else {
+    write!(
+      f,
+      "{} {}{}",
+      this.class_type, this.name, generic_variant_suffix
+    )?;
+  }
 
   if let Some(extended_class_name) = &this.extended_class_name {
     write!(f, " extends {extended_class_name}")?;

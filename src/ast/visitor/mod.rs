@@ -9,6 +9,9 @@ pub use generic_call_visitor::GenericCallsVisitor;
 mod context_building_visitor;
 pub use context_building_visitor::ContextBuildingVisitor;
 
+mod library_emitter_visitor;
+pub use library_emitter_visitor::LibraryEmitterVisitor;
+
 pub mod implementations;
 
 pub trait Visitor {
@@ -27,4 +30,5 @@ pub enum VisitorType {
   FunctionDeclarationVisitor,
   GenericCallsVisitor,
   ContextBuildingVisitor,
+  LibraryEmitterVisitor,
 }

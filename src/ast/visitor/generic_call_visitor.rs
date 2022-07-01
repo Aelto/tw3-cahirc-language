@@ -41,9 +41,13 @@ impl super::Visitor for GenericCallsVisitor<'_> {
 
     if let Some(generic_types) = &node.generic_types {
       if let Some(function_context) = function_context {
-        function_context
+        let response = function_context
           .borrow_mut()
           .register_generic_call(&generic_types);
+
+        if response.is_some() {
+          node.mangled_accessor.replace(response);
+        }
       }
     }
   }
@@ -54,9 +58,13 @@ impl super::Visitor for GenericCallsVisitor<'_> {
 
     if let Some(_) = &node.generic_type_assignment {
       if let Some(class_context) = class_context {
-        class_context
+        let response = class_context
           .borrow_mut()
           .register_generic_call(&node.stringified_generic_types());
+
+        if response.is_some() {
+          node.mangled_accessor.replace(response);
+        }
       }
     }
   }

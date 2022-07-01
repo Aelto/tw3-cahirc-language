@@ -10,6 +10,10 @@ build = "build.rs" # LALRPOP preprocessing
 [dependencies]
 lalrpop-util = { version = "0.19.7", features = ["lexer"] }
 regex = "1"
+toml = "0.5.9"
+serde = { version = "1.0", features = ["derive"] }
+walkdir = "2"
+uuid = { version = "1.1.2", features = ["v4"] }
 
 [build-dependencies]
 lalrpop = "0.19.7"

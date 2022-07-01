@@ -263,7 +263,8 @@ TypeDeclaration: TypeDeclaration = {
 Type: TypeDeclaration = {
     <type_name:Identifier> <generic_type_assignment:("<" <TrailingComma<Type>> ">")?> => TypeDeclaration {
         type_name,
-        generic_type_assignment
+        generic_type_assignment,
+        mangled_accessor: RefCell::new(None)
     }
 }
 
@@ -324,7 +325,8 @@ Term: Rc<Expression> = {
             let function_call = Rc::new(Expression::FunctionCall(FunctionCall {
                 accessor,
                 generic_types,
-                parameters
+                parameters,
+                mangled_accessor: RefCell::new(None)
             }));
 
             function_call

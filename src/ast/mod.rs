@@ -14,15 +14,11 @@ pub use codegen::context::Context;
 
 // -----------------------------------------------------------------------------
 
-pub struct ProgramInformation {
-  pub generic_functions_register: RefCell<GenericFunctionsRegister>,
-}
+pub struct ProgramInformation {}
 
 impl ProgramInformation {
   pub fn new() -> Self {
-    Self {
-      generic_functions_register: RefCell::new(GenericFunctionsRegister::new()),
-    }
+    Self {}
   }
 }
 

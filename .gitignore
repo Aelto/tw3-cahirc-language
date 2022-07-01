@@ -2,3 +2,4 @@
 **/*.ws
 *.ws
 specs/
+dist

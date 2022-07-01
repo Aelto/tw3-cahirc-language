@@ -1,0 +1,7 @@
+[package]
+name = "cahir"
+src = "example"
+dist = "dist"
+
+[dependencies]
+example = "./example-lib"

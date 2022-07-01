@@ -75,7 +75,13 @@ fn emit_function(
   }
 
   this.function_type.emit(context, f)?;
-  write!(f, " {}{}(", this.name, generic_variant_suffix)?;
+
+  if let Some(mangled_accessor) = &context.mangled_accessor {
+    write!(f, " {}{}(", mangled_accessor, generic_variant_suffix)?;
+  } else {
+    write!(f, " {}{}(", this.name, generic_variant_suffix)?;
+  }
+
   this.parameters.emit(context, f)?;
   write!(f, ")")?;
 

@@ -1,0 +1,12 @@
+
+class Counter<T> {
+  var value: T;
+
+  public function push(segment: T) {
+    this.value += segment;
+  }
+}
+
+function testGeneric<T>() {
+  
+}

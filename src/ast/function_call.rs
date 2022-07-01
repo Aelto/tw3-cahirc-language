@@ -1,14 +1,16 @@
 use super::visitor::Visited;
 use super::*;
 
-use super::codegen::context::GenericContext;
 use super::codegen::context::Context;
+use super::codegen::context::GenericContext;
 
 #[derive(Debug)]
 pub struct FunctionCall {
   pub accessor: Box<IdentifierTerm>,
   pub generic_types: Option<Vec<String>>,
   pub parameters: FunctionCallParameters,
+
+  pub mangled_accessor: RefCell<Option<String>>,
 }
 
 impl FunctionCall {
@@ -32,10 +34,24 @@ impl Codegen for FunctionCall {
   fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
     use std::io::Write as IoWrite;
 
-    self.accessor.emit(context, f)?;
+    if let Some(mangled_accessor) = &self.mangled_accessor.borrow().as_deref() {
+      let mut accessor = Vec::new();
+      self.accessor.emit(context, &mut accessor)?;
+
+      if let Ok(accessor) = &std::str::from_utf8(&accessor) {
+        write!(
+          f,
+          "{}",
+          accessor.replace(&self.get_function_name(), &mangled_accessor)
+        )?;
+      }
+    } else {
+      self.accessor.emit(context, f)?;
+    }
 
     if let Some(generic_types) = &self.generic_types {
-      let generic_variant_suffix = GenericContext::generic_variant_suffix_from_types(&generic_types);
+      let generic_variant_suffix =
+        GenericContext::generic_variant_suffix_from_types(&generic_types);
       write!(f, "{generic_variant_suffix}")?;
 
       write!(f, "/*")?;

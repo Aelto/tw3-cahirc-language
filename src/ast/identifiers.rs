@@ -81,6 +81,8 @@ impl Visited for TypedIdentifier {
 pub struct TypeDeclaration {
   pub type_name: String,
   pub generic_type_assignment: Option<Vec<TypeDeclaration>>,
+
+  pub mangled_accessor: RefCell<Option<String>>,
 }
 
 impl Visited for TypeDeclaration {
@@ -99,7 +101,11 @@ impl Codegen for TypeDeclaration {
   fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
     use std::io::Write as IoWrite;
 
-    context.transform_if_generic_type(f, &self.type_name)?;
+    if let Some(mangled_accessor) = self.mangled_accessor.borrow().as_deref() {
+      write!(f, "{}", mangled_accessor)?;
+    } else {
+      context.transform_if_generic_type(f, &self.type_name)?;
+    }
 
     if let Some(comma_separated_types) = &self.generic_type_assignment {
       let generic_variant_suffix =
