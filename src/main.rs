@@ -6,6 +6,7 @@ use std::rc::Rc;
 
 mod ast;
 mod config;
+mod utils;
 
 extern crate lalrpop_util;
 
@@ -68,7 +69,7 @@ fn compile_source_directory(config: &Config) -> std::io::Result<()> {
         });
 
       for file in wss_files {
-        let content = std::fs::read_to_string(file.path())?;
+        let content = utils::strip_comments(std::fs::read_to_string(file.path())?);
 
         let expr = parser::ProgramParser::new()
           .parse(&program_information, &content)
@@ -83,7 +84,7 @@ fn compile_source_directory(config: &Config) -> std::io::Result<()> {
   }
 
   for file in wss_files {
-    let content = std::fs::read_to_string(file.path())?;
+    let content = utils::strip_comments(std::fs::read_to_string(file.path())?);
 
     let expr = parser::ProgramParser::new()
       .parse(&program_information, &content)
@@ -199,22 +200,7 @@ fn compile_source_directory(config: &Config) -> std::io::Result<()> {
       Ok(s) => fs::write(new_path, format_code(s)).expect("failed to write output file"),
       Err(e) => println!("{}", e),
     };
-
-    // (*global_context).borrow().print(0);
   }
-
-  // for file_context in &global_context.borrow().children_contexts {
-  //   if !file_context.borrow().is_library {
-  //     continue;
-  //   }
-
-  //   let filename = uuid::Uuid::new_v4().to_string();
-  //   let mut content = String::new();
-
-  //   for context in file_context.borrow().children_contexts {
-  //     if let Some(context.borrow().generic_context
-  //   }
-  // }
 
   Ok(())
 }
