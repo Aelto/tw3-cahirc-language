@@ -83,7 +83,6 @@ separated by commas for multiple types like so: `<Type1, Type2>`
 #define A_CONSTANT = "Hello world!";
 
 function main() {
-
   print(A_CONSTANT!);
 }
 ```
@@ -133,7 +132,7 @@ function main() {
   print(sum);
 }
 ```
-will expand too:
+will expand into:
 ```js
 function main() {
   var my_list: array<string> = { "foo", "bar", "foobar" };
@@ -144,11 +143,9 @@ function main() {
   for (i = 0; i < my_list.Size(); i += 1) {
     var child: string = list[i];
 
-    {
-      print(child);
+    print(child);
 
-      sum += child;
-    }
+    sum += child;
   }
 
   print(sum);
