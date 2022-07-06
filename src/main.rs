@@ -24,7 +24,7 @@ use crate::ast::visitor::LibraryEmitterVisitor;
 lalrpop_mod!(pub parser);
 
 fn main() {
-  let config = read_config().expect("Could not read the config cahir.toml file");
+  let config = read_config().expect("Could not read the config cahirc.toml file");
 
   compile_source_directory(&config).expect("main error");
 }

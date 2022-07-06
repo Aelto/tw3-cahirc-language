@@ -16,7 +16,7 @@ pub struct ConfigPackage {
 }
 
 pub fn read_config() -> std::io::Result<Config> {
-  let config_path = std::path::Path::new("cahir.toml");
+  let config_path = std::path::Path::new("cahirc.toml");
   let content = std::fs::read_to_string(config_path)?;
 
   Ok(toml::from_str(&content)?)
