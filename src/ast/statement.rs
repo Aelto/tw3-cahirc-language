@@ -6,6 +6,7 @@ pub enum Statement {
   FunctionDeclaration(Rc<FunctionDeclaration>),
   ClassDeclaration(ClassDeclaration),
   StructDeclaration(StructDeclaration),
+  EnumDeclaration(EnumDeclaration),
 }
 
 impl visitor::Visited for Statement {
@@ -15,6 +16,7 @@ impl visitor::Visited for Statement {
       Statement::FunctionDeclaration(x) => x.accept(visitor),
       Statement::ClassDeclaration(x) => x.accept(visitor),
       Statement::StructDeclaration(x) => x.accept(visitor),
+      Statement::EnumDeclaration(x) => x.accept(visitor),
     }
   }
 }
@@ -26,6 +28,7 @@ impl Codegen for Statement {
       Statement::FunctionDeclaration(x) => x.emit(context, f),
       Statement::ClassDeclaration(x) => x.emit(context, f),
       Statement::StructDeclaration(x) => x.emit(context, f),
+      Statement::EnumDeclaration(x) => x.emit(context, f),
     }
   }
 }

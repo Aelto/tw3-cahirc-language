@@ -31,7 +31,9 @@ use crate::ast::{
     StructDeclaration,
     StructBodyStatement,
     FunctionType,
-    FunctionCall
+    FunctionCall,
+    EnumDeclaration,
+    EnumBodyStatement,
 };
 
 use crate::ast::codegen::context::Context;
@@ -46,7 +48,8 @@ Statement: Statement = {
     // Expression => Statement::Expression(<>),
     GlobalFunctionDeclaration => Statement::FunctionDeclaration(<>),
     ClassDeclaration => Statement::ClassDeclaration(<>),
-    StructDeclaration => Statement::StructDeclaration(<>)
+    StructDeclaration => Statement::StructDeclaration(<>),
+    EnumDeclaration => Statement::EnumDeclaration(<>)
 };
 
 // -----------------------------------------------------------------------------
@@ -102,6 +105,20 @@ StructDeclaration: StructDeclaration = {
 StructBodyStatement: StructBodyStatement = {
     <VariableDeclaration> ";" => StructBodyStatement::Property(<>),
     KeywordDefault <VariableAssignment> ";" => StructBodyStatement::DefaultValue(<>)
+}
+
+// -----------------------------------------------------------------------------
+
+EnumDeclaration: EnumDeclaration = {
+    KeywordEnum <name: Identifier> "{" <body_statements:(<TrailingComma<EnumBodyStatement>>)> "}"
+        => EnumDeclaration {
+            name,
+            body_statements
+        }
+}
+
+EnumBodyStatement: EnumBodyStatement = {
+    <name: Identifier> <number:("=" <Num>)?> => EnumBodyStatement{<>},
 }
 
 // -----------------------------------------------------------------------------
@@ -421,6 +438,7 @@ match {
     "default" => KeywordDefault,
     "latent" => KeywordLatent,
     "struct" => KeywordStruct,
+    "enum" => KeywordEnum,
     "timer" => KeywordTimer,
     "event" => KeywordEvent
 } else {

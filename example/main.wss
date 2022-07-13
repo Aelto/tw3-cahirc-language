@@ -21,6 +21,10 @@
     $output;
 };
 
+enum Test {
+  OK = 1,
+  Err
+}
 
 function main(a: int, b: string): int {
   var new_my_list: array<string>;

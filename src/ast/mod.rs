@@ -70,6 +70,12 @@ pub use structs::StructDeclaration;
 
 // -----------------------------------------------------------------------------
 
+mod enums;
+pub use enums::EnumBodyStatement;
+pub use enums::EnumDeclaration;
+
+// -----------------------------------------------------------------------------
+
 mod functions;
 pub use functions::FunctionBodyStatement;
 pub use functions::FunctionCallParameters;
