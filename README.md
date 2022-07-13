@@ -80,7 +80,7 @@ separated by commas for multiple types like so: `<Type1, Type2>`
 
 #### Compile time constants
 ```js
-#define A_CONSTANT = "Hello world!";
+#define const A_CONSTANT = "Hello world!";
 
 function main() {
   print(A_CONSTANT!);
@@ -97,8 +97,7 @@ constant.
 
 #### Conditional compilation
 ```js
-#define DEBUG = true;
-
+#define const DEBUG = true;
 
 function log(message: string) {
 #if DEBUG
@@ -117,17 +116,17 @@ function log(message: string) {
 
     body
   }
-}
+};
 
 function main() {
   var my_list: array<string> = { "foo", "bar", "foobar" };
   var sum: string;
 
-  FOREACH!(my_list, string, {
+  FOREACH!(my_list, string, {{
     print(child);
 
     sum += child;
-  });
+  }});
 
   print(sum);
 }
@@ -155,13 +154,13 @@ function main() {
 As you may notice the `!` symbol that is required for macro constants is also required for macro functions. You may also notice you do not need to write any type, the preprocessor will do a simple
 find/replace with the identifiers without checking anything. The code emitted by your macro may be invalid and the pre-processor will not emit any error.
 
-The second important detail is how you are able to pass a variable, an identifier `string`, but also a whole piece of code `{ ... }`. The pre-processor treats this parameter as any other parameter.
+The second important detail is how you are able to pass a variable, an identifier `string`, but also a whole piece of code `{{ ... }}`. The pre-processor treats this parameter as any other parameter.
 
 ---
 
 Recursive macros are also possible:
 ```js
-#define DEBUG = true;
+#define const DEBUG = true;
 
 // a macro that generates a basic if DEBUG condition,
 // so the supplied `code` is run only if DEBUG is true.
@@ -169,7 +168,7 @@ Recursive macros are also possible:
   #if DEBUG
   code
   #endif
-}
+};
 
 // a macro that expands into a print call, but only
 // if DEBUG is true.
@@ -177,7 +176,7 @@ Recursive macros are also possible:
   IF_DEBUG!({
     print(message);
   })
-}
+};
 
 function main() {
   PRINT!("Program is in debug");

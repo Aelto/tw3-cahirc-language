@@ -6,6 +6,7 @@ use std::rc::Rc;
 
 mod ast;
 mod config;
+mod preprocessor;
 mod utils;
 
 extern crate lalrpop_util;
@@ -30,19 +31,10 @@ fn main() {
 }
 
 fn compile_source_directory(config: &Config) -> std::io::Result<()> {
+  let preprocessed_content = preprocessor::preprocess(&config.package.src, &config.dependencies)?;
+
   let program_information = ProgramInformation::new();
   let global_context = Rc::new(RefCell::new(Context::new("Program", None)));
-  let wss_files = walkdir::WalkDir::new(&config.package.src)
-    .into_iter()
-    .filter(Result::is_ok)
-    .map(Result::unwrap)
-    .filter(|file| {
-      file
-        .path()
-        .extension()
-        .and_then(|ext| Some(ext == "wss"))
-        .unwrap_or(false)
-    });
 
   // 1.
   // Build the list of AST from the files
@@ -50,49 +42,27 @@ fn compile_source_directory(config: &Config) -> std::io::Result<()> {
   let mut ast_list = Vec::new();
 
   // starting with the dependencies
-  for (name, value) in config.dependencies.iter() {
-    if value.starts_with("https://") {
-      todo!();
-    } else {
-      println!("parsing dependency {}", name);
+  for (_name, value) in preprocessed_content.dependencies_files_content.iter() {
+    for (_filename, file) in value.iter() {
+      let expr = parser::ProgramParser::new()
+        .parse(&program_information, &file.content.borrow())
+        .unwrap();
 
-      let wss_files = walkdir::WalkDir::new(&Path::new(value))
-        .into_iter()
-        .filter(Result::is_ok)
-        .map(Result::unwrap)
-        .filter(|file| {
-          file
-            .path()
-            .extension()
-            .and_then(|ext| Some(ext == "wss"))
-            .unwrap_or(false)
-        });
-
-      for file in wss_files {
-        let content = utils::strip_comments(std::fs::read_to_string(file.path())?);
-
-        let expr = parser::ProgramParser::new()
-          .parse(&program_information, &content)
-          .unwrap();
-
-        dependency_ast_list.push(ParsedFile {
-          ast: expr,
-          file_path: file.path().to_path_buf(),
-        });
-      }
+      dependency_ast_list.push(ParsedFile {
+        ast: expr,
+        file_path: file.path.clone(),
+      });
     }
   }
 
-  for file in wss_files {
-    let content = utils::strip_comments(std::fs::read_to_string(file.path())?);
-
+  for (_filename, file) in preprocessed_content.source_files_content.iter() {
     let expr = parser::ProgramParser::new()
-      .parse(&program_information, &content)
+      .parse(&program_information, &file.content.borrow())
       .unwrap();
 
     ast_list.push(ParsedFile {
       ast: expr,
-      file_path: file.path().to_path_buf(),
+      file_path: file.path.clone(),
     });
   }
 
