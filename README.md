@@ -197,13 +197,9 @@ The pre-processor will continue to expand macro calls until none of them are fou
 </summary>
 
 ```js
-
 #define function state(state_name, parent_class, code) {
-
-#define function PREFIX_FUNCTION(function main) {
-code
-};
-
+  #pragma find function 
+  #pragma replace function state_name_
 
 state state_name in parent_class {
   event OnEnterState(previous_state_name: name) {
@@ -213,10 +209,11 @@ state state_name in parent_class {
     this.state_name_main();
   }
 
-  PREFIX_FUNCTION!(function state_name_main)
+  code
 }
 
 };
+
 ```
 ```js
 state!(Combat, EC_EnragedCombat, {{
@@ -243,4 +240,19 @@ state Combat in EC_EnragedCombat {
 
 ### Pragma directives
 Give directives to the compiler using pragma calls.
- - `#pragma cahirc-preprocessor-print` anywhere in the file will tell the compiler to print the output file right after the pre-preprocessor pass. Useful to debug macros.
+
+#### Print file output after pre-processour pass
+```
+#pragma cahirc-preprocessor-print
+```
+Anywhere in the file will tell the compiler to print the output file right after the pre-preprocessor pass. Useful to debug macros.
+
+---
+
+#### Find and replace patterns during macro expansions
+```js
+#pragma find pattern to find
+#pragma replace new value to replace the pattern
+```
+In macro definitions to find/replace pieces of text. The find & replace patterns
+a edited by the parameters of the macro while expanding.

@@ -46,17 +46,15 @@ fn compile_source_directory(config: &Config) -> std::io::Result<()> {
   // starting with the dependencies
   for (_name, value) in preprocessed_content.dependencies_files_content.iter() {
     for (_filename, file) in value.iter() {
-      let content = if file
+      let content = strip_pragmas(&file.content.borrow());
+
+      if file
         .content
         .borrow()
         .contains("#pragma cahirc-preprocessor-print")
       {
         println!("{}", &file.content.borrow());
-
-        strip_pragmas(&file.content.borrow())
-      } else {
-        file.content.borrow().to_string()
-      };
+      }
 
       let expr = parser::ProgramParser::new()
         .parse(&program_information, &content)
@@ -71,18 +69,15 @@ fn compile_source_directory(config: &Config) -> std::io::Result<()> {
 
   for (filename, file) in preprocessed_content.source_files_content.iter() {
     use ariadne::{ColorGenerator, Label, Report, ReportKind};
+    let content = strip_pragmas(&file.content.borrow());
 
-    let content = if file
+    if file
       .content
       .borrow()
       .contains("#pragma cahirc-preprocessor-print")
     {
       println!("{}", &file.content.borrow());
-
-      strip_pragmas(&file.content.borrow())
-    } else {
-      file.content.borrow().to_string()
-    };
+    }
 
     let expr = parser::ProgramParser::new().parse(&program_information, &content);
     let expr = match expr {

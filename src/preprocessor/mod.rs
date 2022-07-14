@@ -6,7 +6,11 @@ use std::path::PathBuf;
 use regex::Regex;
 use regex::RegexBuilder;
 
+mod pragma_replace;
+
 use crate::utils;
+
+use self::pragma_replace::get_pragma_replace_directives;
 
 /// Entry point for the pre-processor,
 /// It takes as input the source directory and the list of dependencies and their
@@ -411,6 +415,12 @@ fn expand_macro_call(
         let value = &parameters[i];
 
         body = body.replace(parameter, value.trim());
+      }
+
+      let findreplace_directives = get_pragma_replace_directives(&body);
+
+      for directive in findreplace_directives {
+        body = body.replace(&directive.find, &directive.replace);
       }
 
       let end = slice.as_ptr() as usize - content.as_ptr() as usize;
