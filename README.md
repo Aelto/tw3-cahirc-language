@@ -95,7 +95,7 @@ This is done for simplicity while implementing the compiler, but it also improve
 readability as you quickly know what is a local variable vs what is a global macro
 constant.
 
-#### Conditional compilation
+#### Conditional compilation (not supported yet)
 ```js
 #define const DEBUG = true;
 
