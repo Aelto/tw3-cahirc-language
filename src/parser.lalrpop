@@ -335,6 +335,7 @@ Term: Rc<Expression> = {
     Num => Rc::new(Expression::Number(<>)),
     "(" <Expression> ")",
     StringLiteral => Rc::new(Expression::String(String::from(<>))),
+    CharLiteral => Rc::new(Expression::Name(String::from(<>))),
 
     IdentifierTerm => Rc::new(Expression::Identifier(<>)),
     <accessor:IdentifierTerm> <generic_types:("::" <GenericTypesDeclaration>)?> <parameters:FunctionCallParameters>
@@ -453,6 +454,7 @@ match {
     r"\w+" => IdentifierRegex,
 
     r#"".*""# => StringLiteral,
+    r#"'.*'"# => CharLiteral,
 
     // This `_` means "add in all the other strings and
     // regular expressions in the grammer here" (e.g.,
