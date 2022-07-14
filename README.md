@@ -9,7 +9,7 @@ This allows the use of new features available to `wss` that get converted to val
  - [ ] Macros, conditional compilation, support for recursive macros (macros that generate calls to macros)
  - [ ] For..in loops
  - [ ] Constant primitive variables in the global scope (macro constants)
- - [ ] Lambdas
+ - [x] Lambdas, can be achieved using macros
  - [ ] Closures
  - [ ] Variable declarations anywhere in function bodies
  - [ ] some forms of static analysis, or at least syntax validation
@@ -187,3 +187,7 @@ The pre-processor will continue to expand macro calls until none of them are fou
 > recursivity in the macro functions you write. If such a
 > thing were to happen, the program would never stop growing
 > until it runs out of memory.
+
+# Pragma directives
+Give directives to the compiler using pragma calls.
+ - `#pragma cahirc-preprocessor-print` anywhere in the file will tell the compiler to print the output file right after the pre-preprocessor pass. Useful to debug macros.
