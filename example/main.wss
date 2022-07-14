@@ -34,6 +34,8 @@ function main(a: int, b: string): int {
   my_list.PushBack(10);
   my_list.PushBack(15);
 
+  a = -15.03;
+
   new_my_list = MAP!(my_list, int, string, "The number is: " + x)
 
   foo = thePlayer(a, 5 + 3 * thePlayer.foo(5));
