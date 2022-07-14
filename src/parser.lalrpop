@@ -118,7 +118,7 @@ EnumDeclaration: EnumDeclaration = {
 }
 
 EnumBodyStatement: EnumBodyStatement = {
-    <name: Identifier> <number:("=" <Num>)?> => EnumBodyStatement{<>},
+    <name: Identifier> <number:("=" <Integer>)?> => EnumBodyStatement{<>},
 }
 
 // -----------------------------------------------------------------------------
@@ -337,7 +337,7 @@ ComparisonType: ComparisonType = {
 }
 
 Term: Rc<Expression> = {
-    Num => Rc::new(Expression::Number(<>)),
+    Integer => Rc::new(Expression::Integer(<>)),
     Float => Rc::new(Expression::Float(<>)),
     "(" <SubExpression> ")",
     StringLiteral => Rc::new(Expression::String(String::from(<>))),
@@ -376,7 +376,7 @@ IdentifierTerm: Box<IdentifierTerm> = {
 
 // -----------------------------------------------------------------------------
 
-Num: i32 = {
+Integer: i32 = {
     r"[0-9]+" => i32::from_str(<>).unwrap()
 };
 

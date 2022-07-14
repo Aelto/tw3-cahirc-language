@@ -4,7 +4,7 @@ use super::*;
 
 #[derive(Debug)]
 pub enum Expression {
-  Number(i32),
+  Integer(i32),
   Float(f32),
 
   String(String),
@@ -25,7 +25,7 @@ pub enum Expression {
 impl visitor::Visited for Expression {
   fn accept<T: visitor::Visitor>(&self, visitor: &mut T) {
     match self {
-      Expression::Number(_)
+      Expression::Integer(_)
       | Expression::Float(_)
       | Expression::String(_)
       | Expression::Name(_)
@@ -46,8 +46,8 @@ impl Codegen for Expression {
     use std::io::Write as IoWrite;
 
     match self {
-      Expression::Number(x) => write!(f, "{}", x),
-      Expression::Float(x) => write!(f, "{}f", x),
+      Expression::Integer(x) => write!(f, "{x}"),
+      Expression::Float(x) => write!(f, "{x}f"),
       Expression::String(x) => write!(f, "{}", x),
       Expression::Name(x) => write!(f, "{}", x),
       Expression::Not(x) => {
