@@ -338,6 +338,7 @@ ComparisonType: ComparisonType = {
 
 Term: Rc<Expression> = {
     Num => Rc::new(Expression::Number(<>)),
+    Float => Rc::new(Expression::Float(<>)),
     "(" <SubExpression> ")",
     StringLiteral => Rc::new(Expression::String(String::from(<>))),
     CharLiteral => Rc::new(Expression::Name(String::from(<>))),
@@ -378,6 +379,10 @@ IdentifierTerm: Box<IdentifierTerm> = {
 Num: i32 = {
     r"[0-9]+" => i32::from_str(<>).unwrap()
 };
+
+Float: f32 = {
+    r"([0-9]*[.])?[0-9]+" => f32::from_str(<>).unwrap()
+}
 
 Boolean: bool = {
     "true" => true,

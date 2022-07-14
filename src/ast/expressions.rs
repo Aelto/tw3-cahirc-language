@@ -5,6 +5,7 @@ use super::*;
 #[derive(Debug)]
 pub enum Expression {
   Number(i32),
+  Float(f32),
 
   String(String),
   Name(String),
@@ -24,7 +25,11 @@ pub enum Expression {
 impl visitor::Visited for Expression {
   fn accept<T: visitor::Visitor>(&self, visitor: &mut T) {
     match self {
-      Expression::Number(_) | Expression::String(_) | Expression::Name(_) | Expression::Not(_) => {}
+      Expression::Number(_)
+      | Expression::Float(_)
+      | Expression::String(_)
+      | Expression::Name(_)
+      | Expression::Not(_) => {}
       Expression::Identifier(x) => x.accept(visitor),
       Expression::FunctionCall(x) => x.accept(visitor),
       Expression::Operation(x, _, y) => {
@@ -42,6 +47,7 @@ impl Codegen for Expression {
 
     match self {
       Expression::Number(x) => write!(f, "{}", x),
+      Expression::Float(x) => write!(f, "{}f", x),
       Expression::String(x) => write!(f, "{}", x),
       Expression::Name(x) => write!(f, "{}", x),
       Expression::Not(x) => {
