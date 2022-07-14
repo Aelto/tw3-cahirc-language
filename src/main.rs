@@ -22,6 +22,7 @@ use crate::ast::codegen::context::Context;
 use crate::ast::visitor::ContextBuildingVisitor;
 use crate::ast::visitor::FunctionVisitor;
 use crate::ast::visitor::LibraryEmitterVisitor;
+use crate::utils::strip_pragmas;
 
 lalrpop_mod!(pub parser);
 
@@ -45,6 +46,19 @@ fn compile_source_directory(config: &Config) -> std::io::Result<()> {
   // starting with the dependencies
   for (_name, value) in preprocessed_content.dependencies_files_content.iter() {
     for (_filename, file) in value.iter() {
+      let content = if file
+        .content
+        .borrow()
+        .contains("#pragma cahirc-preprocessor-print")
+      {
+        println!("{}", &file.content.borrow());
+
+        strip_pragmas(&file.content.borrow())
+      }
+      else {
+        file.content.borrow().to_string()
+      };
+
       let expr = parser::ProgramParser::new()
         .parse(&program_information, &file.content.borrow())
         .unwrap();
@@ -59,8 +73,20 @@ fn compile_source_directory(config: &Config) -> std::io::Result<()> {
   for (filename, file) in preprocessed_content.source_files_content.iter() {
     use ariadne::{ColorGenerator, Label, Report, ReportKind};
 
-    let a = &file.content.borrow();
-    let expr = parser::ProgramParser::new().parse(&program_information, a);
+    let content = if file
+      .content
+      .borrow()
+      .contains("#pragma cahirc-preprocessor-print")
+    {
+      println!("{}", &file.content.borrow());
+
+      strip_pragmas(&file.content.borrow())
+    }
+    else {
+      file.content.borrow().to_string()
+    };
+
+    let expr = parser::ProgramParser::new().parse(&program_information, &content);
     let expr = match expr {
       Ok(expr) => expr,
       Err(error) => {
