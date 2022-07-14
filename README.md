@@ -217,15 +217,13 @@ state state_name in parent_class {
 }
 
 };
-
-
-
+```
+```js
 state!(Combat, EC_EnragedCombat, {{
   entry function main() {
 
   }
 }});
-
 ```
 emits the following code:
 ```js
