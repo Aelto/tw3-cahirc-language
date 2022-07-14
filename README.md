@@ -188,6 +188,6 @@ The pre-processor will continue to expand macro calls until none of them are fou
 > thing were to happen, the program would never stop growing
 > until it runs out of memory.
 
-# Pragma directives
+### Pragma directives
 Give directives to the compiler using pragma calls.
  - `#pragma cahirc-preprocessor-print` anywhere in the file will tell the compiler to print the output file right after the pre-preprocessor pass. Useful to debug macros.
