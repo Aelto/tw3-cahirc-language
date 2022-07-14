@@ -188,6 +188,61 @@ The pre-processor will continue to expand macro calls until none of them are fou
 > thing were to happen, the program would never stop growing
 > until it runs out of memory.
 
+
+### Useful macro examples
+
+<details>
+<summary>
+  Automatic state creation with prefix method names
+</summary>
+
+```js
+
+#define function state(state_name, parent_class, code) {
+
+#define function PREFIX_FUNCTION(function main) {
+code
+};
+
+
+state state_name in parent_class {
+  event OnEnterState(previous_state_name: name) {
+    super.OnEnterState(previous_state_name);
+    LogChannel('parent_class', "Entering state state_name");
+
+    this.state_name_main();
+  }
+
+  PREFIX_FUNCTION!(function state_name_main)
+}
+
+};
+
+
+
+state!(Combat, EC_EnragedCombat, {{
+  entry function main() {
+
+  }
+}});
+
+```
+emits the following code:
+```js
+state Combat in EC_EnragedCombat {
+  event OnEnterState(previous_Combat: name) {
+    super.OnEnterState(previous_Combat, );
+    LogChannel('EC_EnragedCombat', "Entering state Combat", );
+    this.Combat_main();
+  }
+  
+  entry function Combat_main() {
+  }
+  
+}
+```
+</details>
+
 ### Pragma directives
 Give directives to the compiler using pragma calls.
  - `#pragma cahirc-preprocessor-print` anywhere in the file will tell the compiler to print the output file right after the pre-preprocessor pass. Useful to debug macros.

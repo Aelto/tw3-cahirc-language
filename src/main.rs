@@ -54,13 +54,12 @@ fn compile_source_directory(config: &Config) -> std::io::Result<()> {
         println!("{}", &file.content.borrow());
 
         strip_pragmas(&file.content.borrow())
-      }
-      else {
+      } else {
         file.content.borrow().to_string()
       };
 
       let expr = parser::ProgramParser::new()
-        .parse(&program_information, &file.content.borrow())
+        .parse(&program_information, &content)
         .unwrap();
 
       dependency_ast_list.push(ParsedFile {
@@ -81,8 +80,7 @@ fn compile_source_directory(config: &Config) -> std::io::Result<()> {
       println!("{}", &file.content.borrow());
 
       strip_pragmas(&file.content.borrow())
-    }
-    else {
+    } else {
       file.content.borrow().to_string()
     };
 
@@ -108,7 +106,7 @@ fn compile_source_directory(config: &Config) -> std::io::Result<()> {
                   .with_color(a),
               )
               .finish()
-              .print(Source::from(&file.content.borrow().to_string()))
+              .print(Source::from(&content))
               .unwrap();
           }
           lalrpop_util::ParseError::UnrecognizedEOF {
@@ -134,7 +132,7 @@ fn compile_source_directory(config: &Config) -> std::io::Result<()> {
                   .with_color(a),
               )
               .finish()
-              .print(Source::from(&file.content.borrow().to_string()))
+              .print(Source::from(&content))
               .unwrap();
           }
           lalrpop_util::ParseError::ExtraToken { token: _ } => todo!(),

@@ -13,7 +13,6 @@ pub struct FunctionDeclaration {
   pub parameters: Vec<TypedIdentifier>,
   pub type_declaration: Option<TypeDeclaration>,
   pub body_statements: Vec<FunctionBodyStatement>,
-  pub is_latent: bool,
 
   pub context: Rc<RefCell<Context>>,
 }
@@ -70,10 +69,6 @@ fn emit_function(
 ) -> Result<(), std::io::Error> {
   use std::io::Write as IoWrite;
 
-  if this.is_latent {
-    write!(f, "latent ")?;
-  }
-
   this.function_type.emit(context, f)?;
 
   if let Some(mangled_accessor) = &context.mangled_accessor {
@@ -107,6 +102,8 @@ pub enum FunctionType {
   Function,
   Timer,
   Event,
+  Entry,
+  Latent,
 }
 
 impl Codegen for FunctionType {
@@ -117,6 +114,8 @@ impl Codegen for FunctionType {
       FunctionType::Function => write!(f, "function"),
       FunctionType::Timer => write!(f, "timer"),
       FunctionType::Event => write!(f, "event"),
+      FunctionType::Entry => write!(f, "entry function"),
+      FunctionType::Latent => write!(f, "latent function"),
     }
   }
 }

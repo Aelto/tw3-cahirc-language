@@ -9,6 +9,9 @@ pub struct ClassDeclaration {
   pub class_type: ClassType,
   pub name: String,
   pub extended_class_name: Option<String>,
+
+  /// Mostly used by states, while defining `state Foo in parent_class_name`
+  pub parent_class_name: Option<String>,
   pub generic_types: Option<Vec<String>>,
   pub body_statements: Vec<ClassBodyStatement>,
 
@@ -81,6 +84,10 @@ fn emit_class(
     )?;
   }
 
+  if let Some(parent_class_name) = &this.parent_class_name {
+    write!(f, " in {parent_class_name}")?;
+  }
+
   if let Some(extended_class_name) = &this.extended_class_name {
     write!(f, " extends {extended_class_name}")?;
   }
@@ -99,6 +106,7 @@ fn emit_class(
 pub enum ClassType {
   Class,
   StatemachineClass,
+  State,
 }
 
 impl Display for ClassType {
@@ -106,6 +114,7 @@ impl Display for ClassType {
     match self {
       ClassType::Class => write!(f, "class"),
       ClassType::StatemachineClass => write!(f, "statemachine class"),
+      ClassType::State => write!(f, "state"),
     }
   }
 }

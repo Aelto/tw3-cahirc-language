@@ -4,10 +4,8 @@ use std::fmt::Display;
 use std::rc::Rc;
 
 use self::codegen::Codegen;
-use self::generic_calls_register::GenericFunctionsRegister;
 
 pub mod codegen;
-pub mod generic_calls_register;
 pub mod visitor;
 
 pub use codegen::context::Context;

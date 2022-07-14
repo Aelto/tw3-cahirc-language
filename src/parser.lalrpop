@@ -55,21 +55,25 @@ Statement: Statement = {
 // -----------------------------------------------------------------------------
 
 ClassDeclaration: ClassDeclaration = {
-    <statemachine:KeywordStatemachine?> KeywordClass <name: Identifier> <generic_types:GenericTypesDeclaration?>
+    <class_type:ClassType> <name: Identifier> <generic_types:GenericTypesDeclaration?>
+    <parent_class_name:(KeywordIn <Identifier>)?>
     <extended_class_name:(KeywordExtends <Identifier>)?>
     "{" <body_statements:(<ClassBodyStatement>)*> "}"
         => ClassDeclaration {
-            // TODO: accept generic types on classes too
             context: Rc::new(RefCell::new(Context::new(&format!("class: {}", &name), generic_types.clone()))),
-            class_type: match statemachine.is_some() {
-                true => ClassType::StatemachineClass,
-                false => ClassType::Class
-            },
+            class_type,
             name,
+            parent_class_name,
             extended_class_name,
             body_statements,
             generic_types
         }
+}
+
+ClassType: ClassType = {
+    KeywordStatemachine KeywordClass => ClassType::StatemachineClass,
+    KeywordState => ClassType::State,
+    KeywordClass => ClassType::Class,
 }
 
 ClassBodyStatement: ClassBodyStatement = {
@@ -128,7 +132,7 @@ GenericTypesDeclaration: Vec<String> = {
 }
 
 GlobalFunctionDeclaration: Rc<FunctionDeclaration> = {
-    <latent:KeywordLatent?> KeywordFunction <name: Identifier> <generic_types:GenericTypesDeclaration?>
+    <function_type:GlobalFunctionType> <name: Identifier> <generic_types:GenericTypesDeclaration?>
     "(" <parameters:SeparatedTypedIdentifier> ")" <type_declaration:TypeDeclaration?>
     "{" <body_statements:(<FunctionBodyStatement>)*> "}"
         => {
@@ -141,7 +145,6 @@ GlobalFunctionDeclaration: Rc<FunctionDeclaration> = {
                 parameters,
                 type_declaration: type_declaration,
                 body_statements,
-                is_latent: latent.is_some(),
             });
 
             /*if has_generic_types {
@@ -155,7 +158,7 @@ GlobalFunctionDeclaration: Rc<FunctionDeclaration> = {
 };
 
 MethodDeclaration: Rc<FunctionDeclaration> = {
-    <latent:KeywordLatent?> <function_type:FunctionType> <name: Identifier> <generic_types:GenericTypesDeclaration?>
+    <function_type:FunctionType> <name: Identifier> <generic_types:GenericTypesDeclaration?>
     "(" <parameters:SeparatedTypedIdentifier> ")" <type_declaration:TypeDeclaration?>
     "{" <body_statements:(<FunctionBodyStatement>)*> "}"
         => {
@@ -168,7 +171,6 @@ MethodDeclaration: Rc<FunctionDeclaration> = {
                 parameters,
                 type_declaration: type_declaration,
                 body_statements,
-                is_latent: latent.is_some(),
             });
 
             /*if has_generic_types {
@@ -184,6 +186,12 @@ MethodDeclaration: Rc<FunctionDeclaration> = {
 FunctionType: FunctionType = {
     KeywordTimer => FunctionType::Timer,
     KeywordEvent => FunctionType::Event,
+    KeywordEntry KeywordFunction => FunctionType::Entry,
+    GlobalFunctionType => <>
+}
+
+GlobalFunctionType: FunctionType = {
+    KeywordLatent KeywordFunction => FunctionType::Latent,
     KeywordFunction => FunctionType::Function
 }
 
@@ -448,6 +456,7 @@ match {
     "do" => KeywordDo,
     "class" => KeywordClass,
     "statemachine" => KeywordStatemachine,
+    "state" => KeywordState,
     "extends" => KeywordExtends,
     "private" => KeywordPrivate,
     "public" => KeywordPublic,
@@ -457,7 +466,9 @@ match {
     "struct" => KeywordStruct,
     "enum" => KeywordEnum,
     "timer" => KeywordTimer,
-    "event" => KeywordEvent
+    "event" => KeywordEvent,
+    "in" => KeywordIn,
+    "entry" => KeywordEntry
 } else {
     // These items have next highest precedence.
 
