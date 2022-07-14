@@ -125,7 +125,7 @@ impl Codegen for FunctionType {
 pub enum FunctionBodyStatement {
   VariableDeclaration(VariableDeclaration),
   Expression(Rc<Expression>),
-  Return(Rc<Expression>),
+  Return(Option<Rc<Expression>>),
   Assignement(VariableAssignment),
   IfStatement(IfStatement),
   ForStatement(ForStatement),

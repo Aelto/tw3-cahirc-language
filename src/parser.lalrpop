@@ -191,7 +191,7 @@ FunctionBodyStatement: FunctionBodyStatement = {
     <var:VariableDeclaration> ";" => FunctionBodyStatement::VariableDeclaration(var),
     <expression:Expression> ";" => FunctionBodyStatement::Expression(expression),
     
-    KeywordReturn <expression:Expression> ";" => FunctionBodyStatement::Return(expression),
+    KeywordReturn <expression:Expression?> ";" => FunctionBodyStatement::Return(expression),
 
     <var:VariableAssignment> ";" => FunctionBodyStatement::Assignement(<>),
     IfStatement => FunctionBodyStatement::IfStatement(<>),
@@ -294,7 +294,12 @@ FunctionCallParameters: FunctionCallParameters = {
 // -----------------------------------------------------------------------------
 
 Expression: Rc<Expression> = {
-    Expression ExprOperation Factor => Rc::new(Expression::Operation(<>)),
+    NotExpression => <>,
+    SubExpression => <>
+}
+
+SubExpression: Rc<Expression> = {
+    SubExpression ExprOperation Factor => Rc::new(Expression::Operation(<>)),
     Factor,
 };
 
@@ -333,7 +338,7 @@ ComparisonType: ComparisonType = {
 
 Term: Rc<Expression> = {
     Num => Rc::new(Expression::Number(<>)),
-    "(" <Expression> ")",
+    "(" <SubExpression> ")",
     StringLiteral => Rc::new(Expression::String(String::from(<>))),
     CharLiteral => Rc::new(Expression::Name(String::from(<>))),
 
@@ -352,7 +357,11 @@ Term: Rc<Expression> = {
 };
 
 Indexing: Rc<Expression> = {
-    "[" <Expression> "]" => <>
+    "[" <SubExpression> "]" => <>
+}
+
+NotExpression: Rc<Expression> = {
+    "!" <SubExpression> => Rc::new(Expression::Not(<>))
 }
 
 IdentifierTerm: Box<IdentifierTerm> = {

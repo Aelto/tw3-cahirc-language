@@ -118,7 +118,7 @@ pub fn preprocess(
         for cap in macro_call_regex.captures_iter(&content.content.borrow()) {
           let macro_name = &cap[1];
 
-          println!("found macro call: {macro_name}");
+          // println!("found macro call: {macro_name}");
 
           if !registered_macros.contains_key(macro_name) {
             println!("Warning, macro call to unkown macro: {}", &macro_name);
@@ -199,7 +199,7 @@ pub fn preprocess(
       for cap in macro_call_regex.captures_iter(&content.content.borrow()) {
         let macro_name = &cap[1];
 
-        println!("found macro call: {macro_name}");
+        // println!("found macro call: {macro_name}");
 
         if !registered_macros.contains_key(macro_name) {
           println!("Warning, macro call to unkown macro: {}", &macro_name);

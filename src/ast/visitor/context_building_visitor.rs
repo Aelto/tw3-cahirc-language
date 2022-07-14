@@ -10,8 +10,6 @@ pub struct ContextBuildingVisitor {
 
 impl super::Visitor for ContextBuildingVisitor {
   fn visit_function_declaration(&mut self, node: &crate::ast::FunctionDeclaration) {
-    println!("ContextBuildingVisitor, function: {:?}", node.name);
-
     Context::set_parent_context(&node.context, &self.current_context);
 
     // then make a new context building visitor for the context of the
@@ -24,8 +22,6 @@ impl super::Visitor for ContextBuildingVisitor {
   }
 
   fn visit_class_declaration(&mut self, node: &crate::ast::ClassDeclaration) {
-    println!("ContextBuildingVisitor, class: {:?}", node.name);
-
     Context::set_parent_context(&node.context, &self.current_context);
 
     // then make a new context building visitor for the context of the

@@ -224,8 +224,6 @@ impl GenericContext {
     // the identifier is just the concatenation of all types used in the variant
     let identifier = types.values().map(|s| s.to_string()).collect::<String>();
 
-    println!("adding generic call variant {identifier}");
-
     // we already have the variant in the map
     if self.translation_variants.contains_key(&identifier) {
       return;

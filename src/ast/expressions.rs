@@ -15,13 +15,16 @@ pub enum Expression {
 
   /// An operation between two expressions
   Operation(Rc<Expression>, OperationCode, Rc<Expression>),
+
+  Not(Rc<Expression>),
+
   Error,
 }
 
 impl visitor::Visited for Expression {
   fn accept<T: visitor::Visitor>(&self, visitor: &mut T) {
     match self {
-      Expression::Number(_) | Expression::String(_) | Expression::Name(_) => {}
+      Expression::Number(_) | Expression::String(_) | Expression::Name(_) | Expression::Not(_) => {}
       Expression::Identifier(x) => x.accept(visitor),
       Expression::FunctionCall(x) => x.accept(visitor),
       Expression::Operation(x, _, y) => {
@@ -41,6 +44,10 @@ impl Codegen for Expression {
       Expression::Number(x) => write!(f, "{}", x),
       Expression::String(x) => write!(f, "{}", x),
       Expression::Name(x) => write!(f, "{}", x),
+      Expression::Not(x) => {
+        write!(f, "!")?;
+        x.emit(context, f)
+      }
       Expression::Identifier(x) => x.emit(context, f),
       Expression::FunctionCall(x) => x.emit(context, f),
       Expression::Operation(left, op, right) => {
