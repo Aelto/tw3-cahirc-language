@@ -144,7 +144,11 @@ fn compile_source_directory(config: &Config) -> std::io::Result<()> {
       .expect("failed to recursively make the outoput directories");
 
     match std::str::from_utf8(&output_code) {
-      Ok(s) => fs::write(new_path, format_code(s)).expect("failed to write output file"),
+      Ok(s) => {
+        if !s.trim().is_empty() {
+          fs::write(new_path, format_code(s)).expect("failed to write output file")
+        }
+      }
       Err(e) => println!("{}", e),
     };
 
@@ -167,7 +171,11 @@ fn compile_source_directory(config: &Config) -> std::io::Result<()> {
       .expect("failed to recursively make the outoput directories");
 
     match std::str::from_utf8(&visitor.emitted_code) {
-      Ok(s) => fs::write(new_path, format_code(s)).expect("failed to write output file"),
+      Ok(s) => {
+        if !s.trim().is_empty() {
+          fs::write(new_path, format_code(s)).expect("failed to write output file")
+        }
+      }
       Err(e) => println!("{}", e),
     };
   }

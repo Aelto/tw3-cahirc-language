@@ -19,13 +19,14 @@ pub struct ConfigPackage {
 pub fn read_config() -> std::io::Result<Config> {
   let default_path = ".".to_string();
   let args: Vec<String> = std::env::args().collect();
-  let cwd = Path::new(args.get(2).unwrap_or(&default_path));
+  let cwd = Path::new(args.get(1).unwrap_or(&default_path));
   let config_path = cwd.join("cahirc.toml");
   let content = std::fs::read_to_string(config_path)?;
 
   let mut config: Config = toml::from_str(&content)?;
 
   config.package.src = cwd.join(config.package.src).to_str().unwrap().to_string();
+  config.package.dist = cwd.join(config.package.dist).to_str().unwrap().to_string();
 
   let keys: Vec<String> = config.dependencies.keys().map(String::to_string).collect();
   for dep_name in keys {
@@ -37,5 +38,5 @@ pub fn read_config() -> std::io::Result<Config> {
     );
   }
 
-  Ok(toml::from_str(&content)?)
+  Ok(config)
 }
