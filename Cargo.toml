@@ -14,6 +14,8 @@ toml = "0.5.9"
 serde = { version = "1.0", features = ["derive"] }
 walkdir = "2"
 uuid = { version = "1.1.2", features = ["v4"] }
+ariadne = "0.1.5" # error display
+dunce = "1.0.2" # better windows path display
 
 [build-dependencies]
 lalrpop = "0.19.7"

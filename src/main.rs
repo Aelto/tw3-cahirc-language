@@ -11,6 +11,7 @@ mod utils;
 
 extern crate lalrpop_util;
 
+use ariadne::Source;
 use ast::Program;
 use ast::ProgramInformation;
 use config::read_config;
@@ -55,10 +56,68 @@ fn compile_source_directory(config: &Config) -> std::io::Result<()> {
     }
   }
 
-  for (_filename, file) in preprocessed_content.source_files_content.iter() {
-    let expr = parser::ProgramParser::new()
-      .parse(&program_information, &file.content.borrow())
-      .unwrap();
+  for (filename, file) in preprocessed_content.source_files_content.iter() {
+    use ariadne::{ColorGenerator, Label, Report, ReportKind};
+
+    let a = &file.content.borrow();
+    let expr = parser::ProgramParser::new().parse(&program_information, a);
+    let expr = match expr {
+      Ok(expr) => expr,
+      Err(error) => {
+        match error {
+          lalrpop_util::ParseError::InvalidToken { location } => {
+            let mut colors = ColorGenerator::new();
+            let a = colors.next();
+            let absolute_path =
+              dunce::canonicalize(std::env::current_dir().unwrap().join(&file.path)).unwrap();
+
+            Report::build(ReportKind::Error, (), location)
+              .with_message(&format!(
+                "Invalid token in file://{}",
+                absolute_path.to_str().unwrap().replace("\\", "/")
+              ))
+              .with_label(
+                Label::new(location..location.checked_add(1).unwrap_or(location))
+                  .with_message("The invalid token")
+                  .with_color(a),
+              )
+              .finish()
+              .print(Source::from(&file.content.borrow().to_string()))
+              .unwrap();
+          }
+          lalrpop_util::ParseError::UnrecognizedEOF {
+            location: _,
+            expected: _,
+          } => {
+            println!("Unrecognized EOF in {}", filename);
+          }
+          lalrpop_util::ParseError::UnrecognizedToken { token, expected } => {
+            let mut colors = ColorGenerator::new();
+            let a = colors.next();
+            let absolute_path =
+              dunce::canonicalize(std::env::current_dir().unwrap().join(&file.path)).unwrap();
+
+            Report::build(ReportKind::Error, (), token.0)
+              .with_message(&format!(
+                "Unrecognized token in file://{}",
+                absolute_path.to_str().unwrap().replace("\\", "/")
+              ))
+              .with_label(
+                Label::new(token.0..token.2)
+                  .with_message(format!("Expected {}", expected.join(" | ")))
+                  .with_color(a),
+              )
+              .finish()
+              .print(Source::from(&file.content.borrow().to_string()))
+              .unwrap();
+          }
+          lalrpop_util::ParseError::ExtraToken { token: _ } => todo!(),
+          lalrpop_util::ParseError::User { error: _ } => todo!(),
+        };
+
+        continue;
+      }
+    };
 
     ast_list.push(ParsedFile {
       ast: expr,
