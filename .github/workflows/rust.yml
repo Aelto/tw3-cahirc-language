@@ -1,0 +1,57 @@
+name: draft-release
+
+on:
+  push:
+    tags: '*'
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        target:
+        - x86_64-pc-windows-msvc
+        - x86_64-unknown-linux-gnu
+        extra: ['bin']
+        include:
+        - target: x86_64-pc-windows-msvc
+          extra: 'bin'
+          os: windows-latest
+          target_rustflags: ''
+          output: cahirc.exe
+        - target: x86_64-unknown-linux-gnu
+          os: ubuntu-latest
+          target_rustflags: ''
+          output: cahirc
+      
+  
+    runs-on: ${{matrix.os}}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Use Rust stable
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: x86_64-pc-windows-msvc
+          override: true
+      - name: Build with Cargo
+        uses: actions-rs/cargo@v1
+        with:
+          use-cross: true
+          command: build
+          args: --release --target=${{ matrix.target }}
+      - name: Zip the executable
+        uses: papeloto/action-zip@v1
+        with:
+          files: 'target/${{ matrix.target }}/release/${{ matrix.output }}'
+          dest: 'cahirc.zip'
+      - name: Create draft release
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: 'cahirc.zip'
+          draft: true
+          generateReleaseNotes: true
