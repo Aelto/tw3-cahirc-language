@@ -5,12 +5,14 @@ use std::path::Path;
 use regex::Regex;
 use regex::RegexBuilder;
 
+mod conditionals;
 mod expand_macros;
 mod pragma_replace;
 mod types;
 
 use crate::utils;
 
+use self::conditionals::filter_conditionals;
 use self::types::*;
 
 /// Entry point for the pre-processor,
@@ -48,7 +50,18 @@ pub fn preprocess(
       .dot_matches_new_line(true)
       .build()
       .unwrap(),
-    macro_const: Regex::new(r"#define const (\w+) = (.*);").unwrap(),
+    macro_const: Regex::new(r"#define const (\w+);").unwrap(),
+    macro_const_value: Regex::new(r"= (.*);").unwrap(),
+    macro_ifdef: RegexBuilder::new(r"#ifdef (\w*) \{(.*?)\};")
+      .multi_line(true)
+      .dot_matches_new_line(true)
+      .build()
+      .unwrap(),
+    macro_ifndef: RegexBuilder::new(r"#ifndef (\w*) \{(.*?)\};")
+      .multi_line(true)
+      .dot_matches_new_line(true)
+      .build()
+      .unwrap(),
   };
 
   let mut registered_macros = HashMap::new();
@@ -59,6 +72,13 @@ pub fn preprocess(
     for (_name, files) in output.dependencies_files_content.iter() {
       for (_filename, content) in files.iter() {
         let mut new_content = content.content.borrow().to_string();
+
+        // filter_conditionals(
+        //   &mut registered_macros,
+        //   &mut new_content,
+        //   &regex_collection,
+        //   false,
+        // );
 
         contains_macro_call = contains_macro_call
           || expand_macros::expand_macros(
@@ -74,6 +94,13 @@ pub fn preprocess(
     for (_filename, content) in output.source_files_content.iter() {
       let mut new_content = content.content.borrow().to_string();
 
+      // filter_conditionals(
+      //   &mut registered_macros,
+      //   &mut new_content,
+      //   &regex_collection,
+      //   false,
+      // );
+
       contains_macro_call = contains_macro_call
         || expand_macros::expand_macros(
           &mut registered_macros,
@@ -83,6 +110,49 @@ pub fn preprocess(
 
       content.content.replace(new_content);
     }
+  }
+
+  // a final pass over the files to remove the conditional macros
+  for (_name, files) in output.dependencies_files_content.iter() {
+    for (_filename, content) in files.iter() {
+      let mut new_content = content.content.borrow().to_string();
+
+      filter_conditionals(
+        &registered_macros,
+        &mut new_content,
+        &regex_collection,
+        conditionals::ConditionType::IfDefined,
+      );
+
+      filter_conditionals(
+        &registered_macros,
+        &mut new_content,
+        &regex_collection,
+        conditionals::ConditionType::IfNotDefined,
+      );
+
+      content.content.replace(new_content);
+    }
+  }
+
+  for (_filename, content) in output.source_files_content.iter() {
+    let mut new_content = content.content.borrow().to_string();
+
+    filter_conditionals(
+      &registered_macros,
+      &mut new_content,
+      &regex_collection,
+      conditionals::ConditionType::IfDefined,
+    );
+
+    filter_conditionals(
+      &registered_macros,
+      &mut new_content,
+      &regex_collection,
+      conditionals::ConditionType::IfNotDefined,
+    );
+
+    content.content.replace(new_content);
   }
 
   Ok(output)

@@ -38,6 +38,9 @@ pub enum MacroDefinition {
 
 pub struct RegexCollection {
   pub macro_const: Regex,
+  pub macro_const_value: Regex,
   pub macro_function: Regex,
   pub macro_call: Regex,
+  pub macro_ifdef: Regex,
+  pub macro_ifndef: Regex,
 }

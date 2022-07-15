@@ -77,6 +77,13 @@ where `T` can be replaced by any letter or word, and where you can have multiple
 separated by commas for multiple types like so: `<Type1, Type2>`
 
 ### Macros
+> Important detail for people used to the C macros, the `cahir` preprocessor
+> will replace any occurence of your macro parameters. For example a parameter `x`
+> will match with the letter x in the word `extra` and will be replaced by the
+> value that was provided during the macro call.
+>
+> Choose parameter names wisely, especially if you plan on doing recursive macros
+> with code blocks.
 
 #### Compile time constants
 ```js
@@ -95,14 +102,14 @@ This is done for simplicity while implementing the compiler, but it also improve
 readability as you quickly know what is a local variable vs what is a global macro
 constant.
 
-#### Conditional compilation (not supported yet)
+#### Conditional compilation
 ```js
-#define const DEBUG = true;
+#define const DEBUG;
 
 function log(message: string) {
-#if DEBUG
-  print(message);
-#endif
+  #ifdef DEBUG {
+    print(message);
+  };
 }
 ```
 
@@ -160,14 +167,14 @@ The second important detail is how you are able to pass a variable, an identifie
 
 Recursive macros are also possible:
 ```js
-#define const DEBUG = true;
+#define const DEBUG;
 
 // a macro that generates a basic if DEBUG condition,
 // so the supplied `code` is run only if DEBUG is true.
 #define function IF_DEBUG(code) {
-  #if DEBUG
-  code
-  #endif
+  #ifdef DEBUG {
+    code
+  };
 };
 
 // a macro that expands into a print call, but only

@@ -47,7 +47,11 @@ pub fn expand_macros(
 
     let cap = cap.unwrap();
     let macro_name = &cap[1];
-    let macro_value = &cap[2].trim();
+
+    let macro_value = match regex_collection.macro_const_value.captures(&cap[0]) {
+      Some(value_capture) => value_capture[1].to_string(),
+      None => String::from("true"),
+    };
 
     println!("registering macro const: {macro_name} = {macro_value}");
 
