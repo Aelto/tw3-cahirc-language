@@ -48,10 +48,13 @@ jobs:
         uses: papeloto/action-zip@v1
         with:
           files: 'target/${{ matrix.target }}/release/${{ matrix.output }}'
-          dest: 'cahirc.zip'
-      - name: Create draft release
-        uses: ncipollo/release-action@v1
+          dest: 'cahirc-${{ matrix.target }}.zip'
+      # REF: https://github.com/marketplace/actions/gh-release
+      - name: Publish Archive
+        uses: softprops/action-gh-release@v1
+        if: ${{ startsWith(github.ref, 'refs/tags/') }}
         with:
-          artifacts: 'cahirc.zip'
           draft: true
-          generateReleaseNotes: true
+          files: 'cahirc-${{ matrix.target }}.zip'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
