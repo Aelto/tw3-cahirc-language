@@ -56,5 +56,6 @@ jobs:
         with:
           draft: true
           files: 'cahirc-${{ matrix.target }}.zip'
+          generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
