@@ -62,10 +62,7 @@ impl Codegen for FunctionDeclaration {
 }
 
 fn emit_function(
-  this: &FunctionDeclaration,
-  context: &Context,
-  f: &mut Vec<u8>,
-  generic_variant_suffix: &str,
+  this: &FunctionDeclaration, context: &Context, f: &mut Vec<u8>, generic_variant_suffix: &str,
 ) -> Result<(), std::io::Error> {
   use std::io::Write as IoWrite;
 
@@ -192,7 +189,7 @@ impl Codegen for FunctionBodyStatement {
 }
 
 #[derive(Debug)]
-pub struct FunctionCallParameters(pub Vec<Rc<Expression>>);
+pub struct FunctionCallParameters(pub Vec<Option<Rc<Expression>>>);
 
 impl Visited for FunctionCallParameters {
   fn accept<T: visitor::Visitor>(&self, visitor: &mut T) {

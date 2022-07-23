@@ -306,7 +306,7 @@ Type: TypeDeclaration = {
 // -----------------------------------------------------------------------------
 
 FunctionCallParameters: FunctionCallParameters = {
-    "(" <parameters:SeparatedExpressions> ")" => FunctionCallParameters(parameters)
+    "(" <parameters:SeparatedOptionalExpressions> ")" => FunctionCallParameters(parameters)
 }
 
 // -----------------------------------------------------------------------------
@@ -416,11 +416,67 @@ Identifier: String = {
 
 // -----------------------------------------------------------------------------
 
+SeparatedOptionalExpressions = OptionalTrailingComma<Expression>;
 SeparatedExpressions = TrailingComma<Expression>;
 SeparatedTypedIdentifier = TrailingComma<TypedIdentifier>;
 SeparatedIdentifier = TrailingComma<Identifier>;
 
 DotSeparatedIdentifiers = DotSeparated<Identifier>;
+
+OptionalTrailingComma<T>: Vec<Option<T>> = {
+    <v:(<ElAndCommas<T>>)*> <e:T?> => match e {
+        // for anyone, or future me, reading this:
+        // This is the equivalent of: v.flatmap(|x| x.clone()).collect();
+        // 
+        // basically to convert [[Some(T), None, None], [None, Some(T)]]
+        // into [Some(T), None, None, None, Some(T)]
+        // All of this because it needs type annotation and i couldn't figure
+        // how to access the `T` from the macro in lalrpop syntax, and the doc
+        // is lacking a little i must say.
+        None => {
+            let mut o = Vec::new();
+
+            for x in v {
+                for y in x {
+                    o.push(y.clone());
+                }
+            }
+
+            o
+        },
+
+        Some(e) => {
+            let mut o = Vec::new();
+
+            for x in v {
+                for y in x {
+                    o.push(y.clone());
+                }
+            }
+
+            o.push(Some(e));
+
+            o
+        }
+    },
+}
+
+ElAndCommas<T>: Vec<Option<T>> = {
+    <v:T> <c:(",")+> => {
+        let mut output = Vec::new();
+
+        output.push(Some(v));
+
+        let mut u = (0..c.len() - 1)
+            .into_iter()
+            .map(|_| None)
+            .collect();
+
+        output.append(&mut u);
+
+        output
+    }
+}
 
 /// A comma separated list of `T` with the possibility of a trailing comma
 TrailingComma<T>: Vec<T> = {
