@@ -59,11 +59,12 @@ Here is a list of the differences in syntax between the two languages, the ones 
 will cause a `.ws` file to not be compiled by the cahirc compiler:
 - <details>
     <summary>Type casting</summary>
-    ```js
+    
+    ```c
     my_var = (int)a_float_variable;
     ```
     is no longer valid, instead it should be replaced with:
-    ```js
+    ```c
     my_var = a_float_variable as int;
     my_var = a_float_variable as int + 5;
     ```
