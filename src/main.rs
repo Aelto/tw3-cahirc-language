@@ -279,7 +279,7 @@ fn format_code(origin: &str) -> String {
     lines[i] = formated_line;
   }
 
-  lines.join("\r\n")
+  lines.join("\n")
 }
 
 struct ParsedFile {

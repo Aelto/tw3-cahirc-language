@@ -13,6 +13,7 @@ pub enum Expression {
   Identifier(Box<IdentifierTerm>),
 
   FunctionCall(FunctionCall),
+  ClassInstantiation(ClassInstantiation),
 
   /// An operation between two expressions
   Operation(Rc<Expression>, OperationCode, Rc<Expression>),
@@ -29,7 +30,8 @@ impl visitor::Visited for Expression {
       | Expression::Float(_)
       | Expression::String(_)
       | Expression::Name(_)
-      | Expression::Not(_) => {}
+      | Expression::Not(_)
+      | Expression::ClassInstantiation(_) => {}
       Expression::Identifier(x) => x.accept(visitor),
       Expression::FunctionCall(x) => x.accept(visitor),
       Expression::Operation(x, _, y) => {
@@ -64,6 +66,7 @@ impl Codegen for Expression {
         right.emit(context, f)
       }
       Expression::Error => todo!(),
+      Expression::ClassInstantiation(x) => x.emit(context, f),
     }
   }
 }

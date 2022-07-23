@@ -34,6 +34,7 @@ use crate::ast::{
     FunctionCall,
     EnumDeclaration,
     EnumBodyStatement,
+    ClassInstantiation
 };
 
 use crate::ast::codegen::context::Context;
@@ -221,6 +222,15 @@ VariableAssignment: VariableAssignment = {
 
 // -----------------------------------------------------------------------------
 
+ClassInstantiation: ClassInstantiation = {
+    KeywordNew <class_name:Identifier> KeywordIn <lifetime:Identifier> => ClassInstantiation {
+        class_name,
+        lifetime
+    }
+}
+
+// -----------------------------------------------------------------------------
+
 IfStatement: IfStatement = {
     KeywordIf "(" <condition:Expression> ")" "{" <body_statements:(<FunctionBodyStatement>)*> "}" <else_statements:(<ElseStatement>)*>
         => IfStatement::If {
@@ -352,6 +362,7 @@ Term: Rc<Expression> = {
     CharLiteral => Rc::new(Expression::Name(String::from(<>))),
 
     IdentifierTerm => Rc::new(Expression::Identifier(<>)),
+    ClassInstantiation => Rc::new(Expression::ClassInstantiation(<>)),
     <accessor:IdentifierTerm> <generic_types:("::" <GenericTypesDeclaration>)?> <parameters:FunctionCallParameters>
         => {
             let function_call = Rc::new(Expression::FunctionCall(FunctionCall {
@@ -468,7 +479,8 @@ match {
     "timer" => KeywordTimer,
     "event" => KeywordEvent,
     "in" => KeywordIn,
-    "entry" => KeywordEntry
+    "entry" => KeywordEntry,
+    "new" => KeywordNew,
 } else {
     // These items have next highest precedence.
 

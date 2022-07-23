@@ -62,6 +62,11 @@ pub use classes::EncapsulationType;
 
 // -----------------------------------------------------------------------------
 
+mod class_instantiation;
+pub use class_instantiation::ClassInstantiation;
+
+// -----------------------------------------------------------------------------
+
 mod structs;
 pub use structs::StructBodyStatement;
 pub use structs::StructDeclaration;
