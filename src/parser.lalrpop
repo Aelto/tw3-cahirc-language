@@ -34,7 +34,9 @@ use crate::ast::{
     FunctionCall,
     EnumDeclaration,
     EnumBodyStatement,
-    ClassInstantiation
+    ClassInstantiation,
+    FunctionDeclarationParameter,
+    ParameterType
 };
 
 use crate::ast::codegen::context::Context;
@@ -134,7 +136,7 @@ GenericTypesDeclaration: Vec<String> = {
 
 GlobalFunctionDeclaration: Rc<FunctionDeclaration> = {
     <function_type:GlobalFunctionType> <name: Identifier> <generic_types:GenericTypesDeclaration?>
-    "(" <parameters:SeparatedTypedIdentifier> ")" <type_declaration:TypeDeclaration?>
+    "(" <parameters:TrailingComma<FunctionDeclarationParameter>> ")" <type_declaration:TypeDeclaration?>
     "{" <body_statements:(<FunctionBodyStatement>)*> "}"
         => {
             let has_generic_types = generic_types.is_some();
@@ -160,7 +162,7 @@ GlobalFunctionDeclaration: Rc<FunctionDeclaration> = {
 
 MethodDeclaration: Rc<FunctionDeclaration> = {
     <function_type:FunctionType> <name: Identifier> <generic_types:GenericTypesDeclaration?>
-    "(" <parameters:SeparatedTypedIdentifier> ")" <type_declaration:TypeDeclaration?>
+    "(" <parameters:TrailingComma<FunctionDeclarationParameter>> ")" <type_declaration:TypeDeclaration?>
     "{" <body_statements:(<FunctionBodyStatement>)*> "}"
         => {
             let has_generic_types = generic_types.is_some();
@@ -183,6 +185,18 @@ MethodDeclaration: Rc<FunctionDeclaration> = {
             declaration
         }
 };
+
+FunctionDeclarationParameter: FunctionDeclarationParameter = {
+    <param_type:ParameterType?> <typed_identifier:TypedIdentifier> => FunctionDeclarationParameter {
+        parameter_type: param_type.unwrap_or(ParameterType::Copy),
+        typed_identifier
+    }
+}
+
+ParameterType: ParameterType = {
+    KeywordOptional => ParameterType::Optional,
+    KeywordOut => ParameterType::Reference
+}
 
 FunctionType: FunctionType = {
     KeywordTimer => FunctionType::Timer,
@@ -537,6 +551,8 @@ match {
     "entry" => KeywordEntry,
     "new" => KeywordNew,
     "as" => KeywordAs,
+    "optional" => KeywordOptional,
+    "out" => KeywordOut
 } else {
     // These items have next highest precedence.
 

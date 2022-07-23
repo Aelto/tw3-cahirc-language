@@ -10,7 +10,7 @@ pub struct FunctionDeclaration {
   pub function_type: FunctionType,
   pub name: String,
   pub generic_types: Option<Vec<String>>,
-  pub parameters: Vec<TypedIdentifier>,
+  pub parameters: Vec<FunctionDeclarationParameter>,
   pub type_declaration: Option<TypeDeclaration>,
   pub body_statements: Vec<FunctionBodyStatement>,
 
@@ -207,5 +207,43 @@ impl Codegen for FunctionCallParameters {
     }
 
     Ok(())
+  }
+}
+
+#[derive(Debug)]
+pub struct FunctionDeclarationParameter {
+  pub parameter_type: ParameterType,
+  pub typed_identifier: TypedIdentifier,
+}
+
+impl Codegen for FunctionDeclarationParameter {
+  fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
+    self.parameter_type.emit(context, f)?;
+    self.typed_identifier.emit(context, f)
+  }
+}
+
+impl Visited for FunctionDeclarationParameter {
+  fn accept<T: visitor::Visitor>(&self, visitor: &mut T) {
+    self.typed_identifier.accept(visitor);
+  }
+}
+
+#[derive(Debug)]
+pub enum ParameterType {
+  Copy,
+  Optional,
+  Reference,
+}
+
+impl Codegen for ParameterType {
+  fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
+    use std::io::Write as IoWrite;
+
+    match self {
+      ParameterType::Copy => Ok(()),
+      ParameterType::Optional => write!(f, "optional "),
+      ParameterType::Reference => write!(f, "out "),
+    }
   }
 }

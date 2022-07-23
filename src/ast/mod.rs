@@ -83,7 +83,9 @@ mod functions;
 pub use functions::FunctionBodyStatement;
 pub use functions::FunctionCallParameters;
 pub use functions::FunctionDeclaration;
+pub use functions::FunctionDeclarationParameter;
 pub use functions::FunctionType;
+pub use functions::ParameterType;
 
 // -----------------------------------------------------------------------------
 
