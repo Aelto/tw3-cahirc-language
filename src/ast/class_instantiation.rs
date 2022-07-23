@@ -10,11 +10,11 @@ pub struct ClassInstantiation {
 }
 
 impl Visited for ClassInstantiation {
-  fn accept<T: visitor::Visitor>(&self, visitor: &mut T) {}
+  fn accept<T: visitor::Visitor>(&self, _: &mut T) {}
 }
 
 impl Codegen for ClassInstantiation {
-  fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
+  fn emit(&self, _: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
     use std::io::Write as IoWrite;
 
     write!(f, "new {} in {}", self.class_name, self.lifetime)
