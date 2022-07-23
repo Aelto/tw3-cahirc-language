@@ -83,6 +83,7 @@ pub enum OperationCode {
   Add,
   Sub,
   Nesting,
+  BooleanJoin(BooleanJoinType),
   Comparison(ComparisonType),
 }
 
@@ -97,6 +98,7 @@ impl Codegen for OperationCode {
       OperationCode::Sub => write!(f, "-"),
       OperationCode::Nesting => write!(f, "."),
       OperationCode::Comparison(x) => x.emit(context, f),
+      OperationCode::BooleanJoin(x) => x.emit(context, f),
     }
   }
 }
@@ -145,6 +147,23 @@ impl Codegen for ComparisonType {
       ComparisonType::LowerEqual => write!(f, "<="),
       ComparisonType::Equal => write!(f, "=="),
       ComparisonType::Different => write!(f, "!="),
+    }
+  }
+}
+
+#[derive(Copy, Clone, Debug)]
+pub enum BooleanJoinType {
+  And,
+  Or,
+}
+
+impl Codegen for BooleanJoinType {
+  fn emit(&self, _: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
+    use std::io::Write as IoWrite;
+
+    match self {
+      BooleanJoinType::And => write!(f, " && "),
+      BooleanJoinType::Or => write!(f, " || "),
     }
   }
 }

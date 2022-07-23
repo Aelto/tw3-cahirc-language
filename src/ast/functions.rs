@@ -199,14 +199,7 @@ impl Visited for FunctionCallParameters {
 
 impl Codegen for FunctionCallParameters {
   fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
-    use std::io::Write as IoWrite;
-
-    for param in &self.0 {
-      param.emit(context, f)?;
-      write!(f, ", ")?;
-    }
-
-    Ok(())
+    self.0.emit_join(context, f, ", ")
   }
 }
 

@@ -36,7 +36,8 @@ use crate::ast::{
     EnumBodyStatement,
     ClassInstantiation,
     FunctionDeclarationParameter,
-    ParameterType
+    ParameterType,
+    BooleanJoinType
 };
 
 use crate::ast::codegen::context::Context;
@@ -348,6 +349,7 @@ ExprOperation: OperationCode = {
     "+" => OperationCode::Add,
     "-" => OperationCode::Sub,
     "." => OperationCode::Nesting,
+    "||" => OperationCode::BooleanJoin(BooleanJoinType::Or),
     ComparisonType => OperationCode::Comparison(<>)
 };
 
@@ -359,6 +361,7 @@ Factor: Rc<Expression> = {
 FactorOp: OperationCode = {
     "*" => OperationCode::Mul,
     "/" => OperationCode::Div,
+    "&&" => OperationCode::BooleanJoin(BooleanJoinType::And),
 };
 
 AssignmentType: AssignmentType = {

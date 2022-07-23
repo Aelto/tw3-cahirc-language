@@ -10,6 +10,12 @@ pub trait Codegen {
 
     Ok(())
   }
+
+  fn emit_join(
+    &self, context: &context::Context, output: &mut Vec<u8>, join_char: &'static str,
+  ) -> Result<(), std::io::Error> {
+    unimplemented!("default emit_join impl called");
+  }
 }
 
 impl<A> Codegen for Vec<A>
@@ -19,6 +25,24 @@ where
   fn emit(&self, context: &context::Context, output: &mut Vec<u8>) -> Result<(), std::io::Error> {
     for child in self {
       child.emit(context, output)?;
+    }
+
+    Ok(())
+  }
+
+  fn emit_join(
+    &self, context: &context::Context, output: &mut Vec<u8>, join_char: &'static str,
+  ) -> Result<(), std::io::Error> {
+    use std::io::Write as IoWrite;
+
+    let mut children = self.iter().peekable();
+
+    while let Some(child) = children.next() {
+      child.emit(context, output)?;
+
+      if children.peek().is_some() {
+        write!(output, "{}", join_char)?;
+      }
     }
 
     Ok(())

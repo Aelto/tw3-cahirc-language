@@ -94,16 +94,7 @@ impl Codegen for TypeDeclaration {
       // special case: array is the only generic type support by vanilla WS
       if self.type_name == "array" {
         write!(f, "<")?;
-
-        let mut types = comma_separated_types.iter().peekable();
-        while let Some(t) = types.next() {
-          t.emit(context, f)?;
-
-          if types.peek().is_some() {
-            write!(f, ", ")?;
-          }
-        }
-
+        comma_separated_types.emit_join(context, f, ", ")?;
         write!(f, ">")?;
       } else {
         let generic_variant_suffix =
