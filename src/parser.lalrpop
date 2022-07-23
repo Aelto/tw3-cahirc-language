@@ -320,8 +320,13 @@ NotExpression: Rc<Expression> = {
     "!" <SubExpression> => Rc::new(Expression::Not(<>))
 };
 
+CastExpression: Rc<Expression> = {
+    <expr:SubExpression> KeywordAs <cast:Identifier>  => Rc::new(Expression::Cast(cast, expr)),
+}
+
 SubExpression: Rc<Expression> = {
     SubExpression ExprOperation Factor => Rc::new(Expression::Operation(<>)),
+    CastExpression => <>,
     Factor,
 };
 
@@ -531,6 +536,7 @@ match {
     "in" => KeywordIn,
     "entry" => KeywordEntry,
     "new" => KeywordNew,
+    "as" => KeywordAs,
 } else {
     // These items have next highest precedence.
 

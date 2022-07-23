@@ -41,7 +41,7 @@ cahirc
 ```
 
 ## The syntax
-The syntax of the cahirc language is the exact same as the WitcherScript language
+The syntax of the cahirc language is almost the same as the WitcherScript language
 with a few additions.
 
 ```js
@@ -54,6 +54,20 @@ function main() {
   }
 }
 ```
+
+Here is a list of the differences in syntax between the two languages, the ones that
+will cause a `.ws` file to not be compiled by the cahirc compiler:
+- <details>
+    <summary>Type casting</summary>
+    ```js
+    my_var = (int)a_float_variable;
+    ```
+    is no longer valid, instead it should be replaced with:
+    ```js
+    my_var = a_float_variable as int;
+    my_var = a_float_variable as int + 5;
+    ```
+  </details>
 
 ### Generics
 To define a generic function/class you can use the `<T>` annotation right behind
