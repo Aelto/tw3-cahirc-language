@@ -112,6 +112,12 @@ pub use while_loops::WhileStatement;
 
 // -----------------------------------------------------------------------------
 
+mod switch_case;
+pub use switch_case::SwitchCaseStatement;
+pub use switch_case::SwitchStatement;
+
+// -----------------------------------------------------------------------------
+
 mod identifiers;
 pub use identifiers::IdentifierTerm;
 pub use identifiers::TypeDeclaration;

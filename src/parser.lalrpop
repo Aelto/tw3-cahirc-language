@@ -37,7 +37,9 @@ use crate::ast::{
     ClassInstantiation,
     FunctionDeclarationParameter,
     ParameterType,
-    BooleanJoinType
+    BooleanJoinType,
+    SwitchStatement,
+    SwitchCaseStatement
 };
 
 use crate::ast::codegen::context::Context;
@@ -221,7 +223,8 @@ FunctionBodyStatement: FunctionBodyStatement = {
     IfStatement => FunctionBodyStatement::IfStatement(<>),
     ForStatement => FunctionBodyStatement::ForStatement(<>),
     WhileStatement => FunctionBodyStatement::WhileStatement(<>),
-    <DoWhileStatement> ";" => FunctionBodyStatement::DoWhileStatement(<>)
+    <DoWhileStatement> ";" => FunctionBodyStatement::DoWhileStatement(<>),
+    SwitchStatement => FunctionBodyStatement::SwitchStatement(<>)
 }
 
 // -----------------------------------------------------------------------------
@@ -274,6 +277,30 @@ ForStatement: ForStatement = {
 VariableDeclarationOrAssignment: VariableDeclarationOrAssignment = {
     VariableDeclaration => VariableDeclarationOrAssignment::Declaration(<>),
     VariableAssignment => VariableDeclarationOrAssignment::Assignement(<>)
+}
+
+// -----------------------------------------------------------------------------
+
+SwitchStatement: SwitchStatement = {
+    KeywordSwitch "(" <compared:Expression> ")" "{" <cases:SwitchCaseStatement*> "}" => SwitchStatement {
+        compared,
+        cases
+    }
+}
+
+SwitchCaseStatement: SwitchCaseStatement = {
+    <cases:Case+> <body_statements:(<FunctionBodyStatement>)*> KeywordBreak ";" => SwitchCaseStatement::Case {
+        cases,
+        body_statements
+    },
+
+    KeywordDefault ":" <body_statements:(<FunctionBodyStatement>)*> KeywordBreak ";" => SwitchCaseStatement::Default {
+        body_statements
+    }
+}
+
+Case: Rc<Expression> = {
+    KeywordCase <Expression> ":" => <>
 }
 
 // -----------------------------------------------------------------------------
@@ -555,7 +582,10 @@ match {
     "new" => KeywordNew,
     "as" => KeywordAs,
     "optional" => KeywordOptional,
-    "out" => KeywordOut
+    "out" => KeywordOut,
+    "case" => KeywordCase,
+    "switch" => KeywordSwitch,
+    "break" => KeywordBreak,
 } else {
     // These items have next highest precedence.
 

@@ -127,6 +127,7 @@ pub enum FunctionBodyStatement {
   ForStatement(ForStatement),
   WhileStatement(WhileStatement),
   DoWhileStatement(DoWhileStatement),
+  SwitchStatement(SwitchStatement),
 }
 
 impl visitor::Visited for FunctionBodyStatement {
@@ -140,6 +141,7 @@ impl visitor::Visited for FunctionBodyStatement {
       FunctionBodyStatement::ForStatement(x) => x.accept(visitor),
       FunctionBodyStatement::WhileStatement(x) => x.accept(visitor),
       FunctionBodyStatement::DoWhileStatement(x) => x.accept(visitor),
+      FunctionBodyStatement::SwitchStatement(x) => x.accept(visitor),
     };
   }
 }
@@ -179,6 +181,10 @@ impl Codegen for FunctionBodyStatement {
         writeln!(f, "")?;
       }
       FunctionBodyStatement::DoWhileStatement(x) => {
+        x.emit(context, f)?;
+        writeln!(f, "")?;
+      }
+      FunctionBodyStatement::SwitchStatement(x) => {
         x.emit(context, f)?;
         writeln!(f, "")?;
       }
