@@ -122,6 +122,8 @@ pub enum FunctionBodyStatement {
   VariableDeclaration(VariableDeclaration),
   Expression(Rc<Expression>),
   Return(Option<Rc<Expression>>),
+  Break,
+  Continue,
   Assignement(VariableAssignment),
   IfStatement(IfStatement),
   ForStatement(ForStatement),
@@ -142,6 +144,8 @@ impl visitor::Visited for FunctionBodyStatement {
       FunctionBodyStatement::WhileStatement(x) => x.accept(visitor),
       FunctionBodyStatement::DoWhileStatement(x) => x.accept(visitor),
       FunctionBodyStatement::SwitchStatement(x) => x.accept(visitor),
+      FunctionBodyStatement::Break => {}
+      FunctionBodyStatement::Continue => {}
     };
   }
 }
@@ -187,6 +191,12 @@ impl Codegen for FunctionBodyStatement {
       FunctionBodyStatement::SwitchStatement(x) => {
         x.emit(context, f)?;
         writeln!(f, "")?;
+      }
+      FunctionBodyStatement::Break => {
+        writeln!(f, "break;")?;
+      }
+      FunctionBodyStatement::Continue => {
+        writeln!(f, "continue;")?;
       }
     };
 

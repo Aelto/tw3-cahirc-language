@@ -218,6 +218,8 @@ FunctionBodyStatement: FunctionBodyStatement = {
     <expression:Expression> ";" => FunctionBodyStatement::Expression(expression),
     
     KeywordReturn <expression:Expression?> ";" => FunctionBodyStatement::Return(expression),
+    KeywordBreak ";" => FunctionBodyStatement::Break,
+    KeywordContinue ";" => FunctionBodyStatement::Continue,
 
     <var:VariableAssignment> ";" => FunctionBodyStatement::Assignement(<>),
     IfStatement => FunctionBodyStatement::IfStatement(<>),
@@ -586,6 +588,7 @@ match {
     "case" => KeywordCase,
     "switch" => KeywordSwitch,
     "break" => KeywordBreak,
+    "continue" => KeywordContinue,
 } else {
     // These items have next highest precedence.
 
