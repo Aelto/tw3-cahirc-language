@@ -35,7 +35,7 @@ impl super::Visitor for GenericCallsVisitor<'_> {
   }
 
   fn visit_generic_function_call(&mut self, node: &crate::ast::FunctionCall) {
-    let function_name = node.accessor.get_last_text();
+    let function_name = node.accessor.text.to_string();
     let function_context =
       Context::find_global_function_declaration(&self.current_context, &function_name);
 

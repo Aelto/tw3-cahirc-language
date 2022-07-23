@@ -3,7 +3,7 @@ use super::*;
 
 #[derive(Debug)]
 pub struct VariableAssignment {
-  pub variable_name: Box<IdentifierTerm>,
+  pub variable_name: Rc<Expression>,
   pub assignment_type: AssignmentType,
   pub following_expression: Rc<Expression>,
 }

@@ -212,7 +212,7 @@ FunctionBodyStatement: FunctionBodyStatement = {
 // -----------------------------------------------------------------------------
 
 VariableAssignment: VariableAssignment = {
-    <variable_name:IdentifierTerm> <assignment_type:AssignmentType> <following_expression:Expression>
+    <variable_name:SubExpression> <assignment_type:AssignmentType> <following_expression:Expression>
         => VariableAssignment {
             variable_name,
             assignment_type,
@@ -313,8 +313,12 @@ FunctionCallParameters: FunctionCallParameters = {
 
 Expression: Rc<Expression> = {
     NotExpression => <>,
-    SubExpression => <>
+    SubExpression => <>,
 }
+
+NotExpression: Rc<Expression> = {
+    "!" <SubExpression> => Rc::new(Expression::Not(<>))
+};
 
 SubExpression: Rc<Expression> = {
     SubExpression ExprOperation Factor => Rc::new(Expression::Operation(<>)),
@@ -324,6 +328,7 @@ SubExpression: Rc<Expression> = {
 ExprOperation: OperationCode = {
     "+" => OperationCode::Add,
     "-" => OperationCode::Sub,
+    "." => OperationCode::Nesting,
     ComparisonType => OperationCode::Comparison(<>)
 };
 
@@ -356,7 +361,6 @@ ComparisonType: ComparisonType = {
 
 Term: Rc<Expression> = {
     Integer => Rc::new(Expression::Integer(<>)),
-    Float => Rc::new(Expression::Float(<>)),
     "(" <SubExpression> ")",
     StringLiteral => Rc::new(Expression::String(String::from(<>))),
     CharLiteral => Rc::new(Expression::Name(String::from(<>))),
@@ -380,30 +384,20 @@ Indexing: Rc<Expression> = {
     "[" <SubExpression> "]" => <>
 }
 
-NotExpression: Rc<Expression> = {
-    "!" <SubExpression> => Rc::new(Expression::Not(<>))
-}
-
 IdentifierTerm: Box<IdentifierTerm> = {
-    // <ids:DotSeparatedIdentifiers> => IdentifierTerm::NestedIdentifiers(ids),
-    <text:Identifier> <indexing:Indexing*> <nesting:("." <IdentifierTerm>)?> => Box::new(IdentifierTerm {
+    <text:Identifier> <indexing:Indexing*> => Box::new(IdentifierTerm {
         text,
-        indexing,
-        nesting
+        indexing
     })
 }
 
 // -----------------------------------------------------------------------------
 
-Integer: i32 = {
-    "+" <n:r"[0-9]+"> => i32::from_str(&format!("+{n}")).unwrap(),
-    "-" <n:r"[0-9]+"> => i32::from_str(&format!("+{n}")).unwrap(),
-    r"[0-9]+" => i32::from_str(<>).unwrap()
+Integer: String = {
+    "+" <n:r"[0-9]+"> => <>.to_string(),
+    "-" <n:r"[0-9]+"> => <>.to_string(),
+    r"[0-9]+" => <>.to_string()
 };
-
-Float: f32 = {
-    <int:Integer> "." <float:Integer> => f32::from_str(&format!("{int}.{float}")).unwrap()
-}
 
 Boolean: bool = {
     "true" => true,

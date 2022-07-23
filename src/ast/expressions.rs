@@ -4,8 +4,7 @@ use super::*;
 
 #[derive(Debug)]
 pub enum Expression {
-  Integer(i32),
-  Float(f32),
+  Integer(String),
 
   String(String),
   Name(String),
@@ -19,6 +18,7 @@ pub enum Expression {
   Operation(Rc<Expression>, OperationCode, Rc<Expression>),
 
   Not(Rc<Expression>),
+  Nesting(Vec<Expression>),
 
   Error,
 }
@@ -27,7 +27,6 @@ impl visitor::Visited for Expression {
   fn accept<T: visitor::Visitor>(&self, visitor: &mut T) {
     match self {
       Expression::Integer(_)
-      | Expression::Float(_)
       | Expression::String(_)
       | Expression::Name(_)
       | Expression::Not(_)
@@ -38,6 +37,7 @@ impl visitor::Visited for Expression {
         x.accept(visitor);
         y.accept(visitor);
       }
+      Expression::Nesting(x) => x.accept(visitor),
       Expression::Error => todo!(),
     }
   }
@@ -49,7 +49,6 @@ impl Codegen for Expression {
 
     match self {
       Expression::Integer(x) => write!(f, "{x}"),
-      Expression::Float(x) => write!(f, "{x}f"),
       Expression::String(x) => write!(f, "{}", x),
       Expression::Name(x) => write!(f, "{}", x),
       Expression::Not(x) => {
@@ -60,12 +59,11 @@ impl Codegen for Expression {
       Expression::FunctionCall(x) => x.emit(context, f),
       Expression::Operation(left, op, right) => {
         left.emit(context, f)?;
-        write!(f, " ")?;
         op.emit(context, f)?;
-        write!(f, " ")?;
         right.emit(context, f)
       }
       Expression::Error => todo!(),
+      Expression::Nesting(x) => x.emit(context, f),
       Expression::ClassInstantiation(x) => x.emit(context, f),
     }
   }
@@ -77,6 +75,7 @@ pub enum OperationCode {
   Div,
   Add,
   Sub,
+  Nesting,
   Comparison(ComparisonType),
 }
 
@@ -89,6 +88,7 @@ impl Codegen for OperationCode {
       OperationCode::Div => write!(f, "/"),
       OperationCode::Add => write!(f, "+"),
       OperationCode::Sub => write!(f, "-"),
+      OperationCode::Nesting => write!(f, "."),
       OperationCode::Comparison(x) => x.emit(context, f),
     }
   }

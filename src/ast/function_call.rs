@@ -15,7 +15,7 @@ pub struct FunctionCall {
 
 impl FunctionCall {
   pub fn get_function_name(&self) -> String {
-    self.accessor.get_last_text()
+    self.accessor.text.to_string()
   }
 }
 

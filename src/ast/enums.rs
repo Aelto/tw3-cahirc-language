@@ -35,7 +35,7 @@ impl Codegen for EnumDeclaration {
 #[derive(Debug)]
 pub struct EnumBodyStatement {
   pub name: String,
-  pub number: Option<i32>,
+  pub number: Option<String>,
 }
 
 impl Visited for EnumBodyStatement {
@@ -48,7 +48,7 @@ impl Codegen for EnumBodyStatement {
 
     write!(f, "{}", self.name)?;
 
-    if let Some(number) = self.number {
+    if let Some(number) = &self.number {
       write!(f, " = {}", number)?;
     }
 
