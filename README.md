@@ -40,6 +40,29 @@ following command will compile your code:
 cahirc
 ```
 
+The compiler is made for your local scripts, it cannot compile the vanilla scripts and it should not compile them either. The code emitted by the compiler is vastly different than the input code, using the compiler on vanilla scripts would create unnecessary conflicts for the users of your mod.
+
+If you wish to call code from the vanilla files to the local files, however rare the scenario is, it is the exact same process as using local witcherscript files. The exception being generic types from libraries, the `cahirc` compiler mangles the names of the generic types of your libraries to avoid collisions with other mods that would use the same libraries. This means you will have to write some sort of wrapper in your `.wss` files that will serve as an interface between `.ws` and `.wss`.
+
+<details>
+  <summary>Here is an example of how you would write such a wrapper:</summary>
+  
+  ```js
+  // vanilla .ws file ... in witcherscript
+  addElementToHashMap("an-id", "the-value");
+  ```
+  
+  ```js
+  // local .wss file ... in cahirc
+  function addElementToHashMap(key: string, value: string) {
+    addElementToHashMap_internal::<string, string>(key, value);
+  }
+  ```
+  
+  As you can see, it is just about making a wrapper function in cahirc with the generic types that is then compiled by the compiler. And the vanilla code calls the wrapper function.
+</details>
+
+
 ## The syntax
 The syntax of the cahirc language is almost the same as the WitcherScript language
 with a few additions.
