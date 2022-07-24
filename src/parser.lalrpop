@@ -78,9 +78,9 @@ ClassDeclaration: ClassDeclaration = {
 
 ClassType: ClassType = {
     KeywordStatemachine KeywordClass => ClassType::StatemachineClass,
+    KeywordAbstract KeywordClass => ClassType::Abstract,
     KeywordState => ClassType::State,
     KeywordClass => ClassType::Class,
-    KeywordAbstract => ClassType::Abstract
 }
 
 ClassBodyStatement: ClassBodyStatement = {
@@ -358,29 +358,41 @@ FunctionCallParameters: FunctionCallParameters = {
 // -----------------------------------------------------------------------------
 
 Expression: Rc<Expression> = {
-    Expression BooleanOperation SubExpression => Rc::new(Expression::Operation(<>)),
+    CastExpression,
+}
+
+CastExpression: Rc<Expression> = {
+    <expr:BooleanExpression> KeywordAs <cast:Identifier>  => Rc::new(Expression::Cast(cast, expr)),
+    BooleanExpression,
+}
+
+BooleanExpression: Rc<Expression> = {
+    BooleanExpression BooleanOperation SubExpression => Rc::new(Expression::Operation(<>)),
     SubExpression,
 }
 
 SubExpression: Rc<Expression> = {
-    SubExpression ExprOperation Factor => Rc::new(Expression::Operation(<>)),
-    NotExpression,
+    SubExpression ExprOperation NestedExpression => Rc::new(Expression::Operation(<>)),
+    NestedExpression,
 };
+
+NestedExpression: Rc<Expression> = {
+    NestedExpression ExprNesting NotExpression => Rc::new(Expression::Operation(<>)),
+    NotExpression,
+}
 
 NotExpression: Rc<Expression> = {
-    "!" <CastExpression> => Rc::new(Expression::Not(<>)),
-    CastExpression,
+    "!" <Factor> => Rc::new(Expression::Not(<>)),
+    Factor,
 };
 
-CastExpression: Rc<Expression> = {
-    <expr:Factor> KeywordAs <cast:Identifier>  => Rc::new(Expression::Cast(cast, expr)),
-    Factor,
+ExprNesting: OperationCode = {
+    "." => OperationCode::Nesting,
 }
 
 ExprOperation: OperationCode = {
     "+" => OperationCode::Add,
     "-" => OperationCode::Sub,
-    "." => OperationCode::Nesting,
 
     ComparisonType => OperationCode::Comparison(<>)
 };
