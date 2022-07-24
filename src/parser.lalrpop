@@ -561,6 +561,14 @@ Tier<Op,NextTier>: Rc<Expression> = {
     NextTier
 };
 
+StringLiteral = {
+    r#""[^"]*""#
+};
+
+CharLiteral = {
+    r#"'[^']*'"#
+};
+
 // `match`: Declares the precedence of regular expressions
 // relative to one another when synthesizing
 // the lexer
@@ -611,9 +619,6 @@ match {
     // Here, we also renamed the regex to the name `ID`, which we can
     // use in the grammar itself.
     r"\w+" => IdentifierRegex,
-
-    r#"".*""# => StringLiteral,
-    r#"'.*'"# => CharLiteral,
 
     // This `_` means "add in all the other strings and
     // regular expressions in the grammer here" (e.g.,
