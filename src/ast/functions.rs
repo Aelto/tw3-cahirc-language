@@ -114,6 +114,7 @@ impl Codegen for FunctionType {
       FunctionType::Event => write!(f, "event"),
       FunctionType::Entry => write!(f, "entry function"),
       FunctionType::Latent => write!(f, "latent function"),
+      FunctionType::Exec => write!(f, "exec function"),
     }
   }
 }

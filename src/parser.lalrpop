@@ -205,13 +205,13 @@ FunctionType: FunctionType = {
     KeywordTimer => FunctionType::Timer,
     KeywordEvent => FunctionType::Event,
     KeywordEntry KeywordFunction => FunctionType::Entry,
-    KeywordExec KeywordFunction => FunctionType::Exec,
     GlobalFunctionType => <>
 }
 
 GlobalFunctionType: FunctionType = {
     KeywordLatent KeywordFunction => FunctionType::Latent,
-    KeywordFunction => FunctionType::Function
+    KeywordFunction => FunctionType::Function,
+    KeywordExec KeywordFunction => FunctionType::Exec
 }
 
 FunctionBodyStatement: FunctionBodyStatement = {
@@ -392,6 +392,8 @@ FactorOp: OperationCode = {
     "*" => OperationCode::Mul,
     "/" => OperationCode::Div,
     "&&" => OperationCode::BooleanJoin(BooleanJoinType::And),
+    "|" => OperationCode::BitwiseOr,
+    "&" => OperationCode::BitwiseAnd,
 };
 
 AssignmentType: AssignmentType = {

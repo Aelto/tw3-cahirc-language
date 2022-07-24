@@ -83,6 +83,8 @@ pub enum OperationCode {
   Add,
   Sub,
   Nesting,
+  BitwiseOr,
+  BitwiseAnd,
   BooleanJoin(BooleanJoinType),
   Comparison(ComparisonType),
 }
@@ -99,6 +101,8 @@ impl Codegen for OperationCode {
       OperationCode::Nesting => write!(f, "."),
       OperationCode::Comparison(x) => x.emit(context, f),
       OperationCode::BooleanJoin(x) => x.emit(context, f),
+      OperationCode::BitwiseOr => write!(f, "|"),
+      OperationCode::BitwiseAnd => write!(f, "&"),
     }
   }
 }
