@@ -278,3 +278,6 @@ Anywhere in the file will tell the compiler to print the output file right after
 ```
 In macro definitions to find/replace pieces of text. The find & replace patterns
 a edited by the parameters of the macro while expanding.
+
+# Projects using the `cahir` language
+ - [Random Encounters Reworked](https://github.com/Aelto/tw3-random-encounters-reworked), another project of mine, was recently translated to the language and compiles/runs successfully. It is composed of 20K+ lines of code.
