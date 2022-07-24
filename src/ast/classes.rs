@@ -63,10 +63,7 @@ impl Codegen for ClassDeclaration {
 }
 
 fn emit_class(
-  this: &ClassDeclaration,
-  context: &Context,
-  f: &mut Vec<u8>,
-  generic_variant_suffix: &str,
+  this: &ClassDeclaration, context: &Context, f: &mut Vec<u8>, generic_variant_suffix: &str,
 ) -> Result<(), std::io::Error> {
   use std::io::Write as IoWrite;
 
@@ -107,6 +104,7 @@ pub enum ClassType {
   Class,
   StatemachineClass,
   State,
+  Abstract,
 }
 
 impl Display for ClassType {
@@ -115,6 +113,7 @@ impl Display for ClassType {
       ClassType::Class => write!(f, "class"),
       ClassType::StatemachineClass => write!(f, "statemachine class"),
       ClassType::State => write!(f, "state"),
+      ClassType::Abstract => write!(f, "abstract"),
     }
   }
 }

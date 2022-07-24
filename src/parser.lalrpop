@@ -80,6 +80,7 @@ ClassType: ClassType = {
     KeywordStatemachine KeywordClass => ClassType::StatemachineClass,
     KeywordState => ClassType::State,
     KeywordClass => ClassType::Class,
+    KeywordAbstract => ClassType::Abstract
 }
 
 ClassBodyStatement: ClassBodyStatement = {
@@ -577,6 +578,7 @@ match {
     "do" => KeywordDo,
     "class" => KeywordClass,
     "statemachine" => KeywordStatemachine,
+    "abstract" => KeywordAbstract,
     "state" => KeywordState,
     "extends" => KeywordExtends,
     "private" => KeywordPrivate,
