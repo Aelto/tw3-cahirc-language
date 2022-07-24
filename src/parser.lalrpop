@@ -357,31 +357,37 @@ FunctionCallParameters: FunctionCallParameters = {
 // -----------------------------------------------------------------------------
 
 Expression: Rc<Expression> = {
-    NotExpression => <>,
-    SubExpression => <>,
-}
-
-NotExpression: Rc<Expression> = {
-    "!" <SubExpression> => Rc::new(Expression::Not(<>))
-};
-
-CastExpression: Rc<Expression> = {
-    <expr:SubExpression> KeywordAs <cast:Identifier>  => Rc::new(Expression::Cast(cast, expr)),
+    Expression BooleanOperation SubExpression => Rc::new(Expression::Operation(<>)),
+    SubExpression,
 }
 
 SubExpression: Rc<Expression> = {
     SubExpression ExprOperation Factor => Rc::new(Expression::Operation(<>)),
-    CastExpression => <>,
-    Factor,
+    NotExpression,
 };
+
+NotExpression: Rc<Expression> = {
+    "!" <CastExpression> => Rc::new(Expression::Not(<>)),
+    CastExpression,
+};
+
+CastExpression: Rc<Expression> = {
+    <expr:Factor> KeywordAs <cast:Identifier>  => Rc::new(Expression::Cast(cast, expr)),
+    Factor,
+}
 
 ExprOperation: OperationCode = {
     "+" => OperationCode::Add,
     "-" => OperationCode::Sub,
     "." => OperationCode::Nesting,
-    "||" => OperationCode::BooleanJoin(BooleanJoinType::Or),
+
     ComparisonType => OperationCode::Comparison(<>)
 };
+
+BooleanOperation: OperationCode = {
+    "&&" => OperationCode::BooleanJoin(BooleanJoinType::And),
+    "||" => OperationCode::BooleanJoin(BooleanJoinType::Or),
+}
 
 Factor: Rc<Expression> = {
     Factor FactorOp Term => Rc::new(Expression::Operation(<>)),
@@ -392,7 +398,6 @@ FactorOp: OperationCode = {
     "*" => OperationCode::Mul,
     "/" => OperationCode::Div,
     "%" => OperationCode::Modulo,
-    "&&" => OperationCode::BooleanJoin(BooleanJoinType::And),
     "|" => OperationCode::BitwiseOr,
     "&" => OperationCode::BitwiseAnd,
 };
