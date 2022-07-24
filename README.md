@@ -93,7 +93,7 @@ where `T` can be replaced by any letter or word, and where you can have multiple
 separated by commas for multiple types like so: `<Type1, Type2>`
 
 ### Macros
-> Important detail for people used to the C macros, the `cahir` preprocessor
+> Important detail for people used to the C macros, the `cahirc` preprocessor
 > will replace any occurence of your macro parameters. For example a parameter `x`
 > will match with the letter x in the word `extra` and will be replaced by the
 > value that was provided during the macro call.
@@ -280,5 +280,5 @@ Anywhere in the file will tell the compiler to print the output file right after
 In macro definitions to find/replace pieces of text. The find & replace patterns
 a edited by the parameters of the macro while expanding.
 
-# Projects using the `cahir` language
+# Projects using the `cahirc` language
  - [Random Encounters Reworked](https://github.com/Aelto/tw3-random-encounters-reworked), another project of mine, was recently translated to the language and compiles/runs successfully. It is composed of 20K+ lines of code.
