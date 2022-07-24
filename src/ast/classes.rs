@@ -113,7 +113,7 @@ impl Display for ClassType {
       ClassType::Class => write!(f, "class"),
       ClassType::StatemachineClass => write!(f, "statemachine class"),
       ClassType::State => write!(f, "state"),
-      ClassType::Abstract => write!(f, "abstract"),
+      ClassType::Abstract => write!(f, "abstract class"),
     }
   }
 }
