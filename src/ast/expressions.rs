@@ -82,6 +82,7 @@ pub enum OperationCode {
   Div,
   Add,
   Sub,
+  Modulo,
   Nesting,
   BitwiseOr,
   BitwiseAnd,
@@ -96,6 +97,7 @@ impl Codegen for OperationCode {
     match self {
       OperationCode::Mul => write!(f, "*"),
       OperationCode::Div => write!(f, "/"),
+      OperationCode::Modulo => write!(f, "%"),
       OperationCode::Add => write!(f, "+"),
       OperationCode::Sub => write!(f, "-"),
       OperationCode::Nesting => write!(f, "."),

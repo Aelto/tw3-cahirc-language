@@ -35,7 +35,7 @@ impl Codegen for IdentifierTerm {
 
 #[derive(Debug)]
 pub struct TypedIdentifier {
-  pub name: String,
+  pub names: Vec<String>,
   pub type_declaration: TypeDeclaration,
 }
 
@@ -43,7 +43,7 @@ impl Codegen for TypedIdentifier {
   fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
     use std::io::Write as IoWrite;
 
-    write!(f, "{}: ", self.name,)?;
+    write!(f, "{}: ", self.names.join(", "))?;
     self.type_declaration.emit(context, f)
   }
 }

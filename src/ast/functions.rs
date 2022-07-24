@@ -110,7 +110,7 @@ impl Codegen for FunctionType {
 
     match self {
       FunctionType::Function => write!(f, "function"),
-      FunctionType::Timer => write!(f, "timer"),
+      FunctionType::Timer => write!(f, "timer function"),
       FunctionType::Event => write!(f, "event"),
       FunctionType::Entry => write!(f, "entry function"),
       FunctionType::Latent => write!(f, "latent function"),

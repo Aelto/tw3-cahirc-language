@@ -202,7 +202,7 @@ ParameterType: ParameterType = {
 }
 
 FunctionType: FunctionType = {
-    KeywordTimer => FunctionType::Timer,
+    KeywordTimer KeywordFunction => FunctionType::Timer,
     KeywordEvent => FunctionType::Event,
     KeywordEntry KeywordFunction => FunctionType::Entry,
     GlobalFunctionType => <>
@@ -330,8 +330,8 @@ VariableDeclaration: VariableDeclaration = {
 // -----------------------------------------------------------------------------
 
 TypedIdentifier: TypedIdentifier = {
-    <name:Identifier> <type_declaration:TypeDeclaration> => TypedIdentifier {
-        name: name,
+    <names:SeparatedIdentifier> <type_declaration:TypeDeclaration> => TypedIdentifier {
+        names,
         type_declaration
     }
 }
@@ -391,6 +391,7 @@ Factor: Rc<Expression> = {
 FactorOp: OperationCode = {
     "*" => OperationCode::Mul,
     "/" => OperationCode::Div,
+    "%" => OperationCode::Modulo,
     "&&" => OperationCode::BooleanJoin(BooleanJoinType::And),
     "|" => OperationCode::BitwiseOr,
     "&" => OperationCode::BitwiseAnd,
