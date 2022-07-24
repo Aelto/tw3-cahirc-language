@@ -74,7 +74,7 @@ fn emit_function(
     write!(f, " {}{}(", this.name, generic_variant_suffix)?;
   }
 
-  this.parameters.emit(context, f)?;
+  this.parameters.emit_join(context, f, ", ")?;
   write!(f, ")")?;
 
   if let Some(t) = &this.type_declaration {
@@ -132,6 +132,7 @@ pub enum FunctionBodyStatement {
   WhileStatement(WhileStatement),
   DoWhileStatement(DoWhileStatement),
   SwitchStatement(SwitchStatement),
+  Delete(Rc<Expression>),
 }
 
 impl visitor::Visited for FunctionBodyStatement {
@@ -146,6 +147,7 @@ impl visitor::Visited for FunctionBodyStatement {
       FunctionBodyStatement::WhileStatement(x) => x.accept(visitor),
       FunctionBodyStatement::DoWhileStatement(x) => x.accept(visitor),
       FunctionBodyStatement::SwitchStatement(x) => x.accept(visitor),
+      FunctionBodyStatement::Delete(x) => x.accept(visitor),
       FunctionBodyStatement::Break => {}
       FunctionBodyStatement::Continue => {}
     };
@@ -200,6 +202,11 @@ impl Codegen for FunctionBodyStatement {
       FunctionBodyStatement::Continue => {
         writeln!(f, "continue;")?;
       }
+      FunctionBodyStatement::Delete(x) => {
+        write!(f, "delete ")?;
+        x.emit(context, f)?;
+        writeln!(f, ";")?;
+      }
     };
 
     Ok(())
@@ -248,7 +255,7 @@ pub enum ParameterType {
 }
 
 impl Codegen for ParameterType {
-  fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
+  fn emit(&self, _: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
     use std::io::Write as IoWrite;
 
     match self {

@@ -21,6 +21,8 @@ pub enum Expression {
   Nesting(Vec<Expression>),
   Cast(String, Rc<Expression>),
 
+  Group(Rc<Expression>),
+
   Error,
 }
 
@@ -41,6 +43,7 @@ impl visitor::Visited for Expression {
       }
       Expression::Nesting(x) => x.accept(visitor),
       Expression::Error => todo!(),
+      Expression::Group(x) => x.accept(visitor),
     }
   }
 }
@@ -67,11 +70,16 @@ impl Codegen for Expression {
       Expression::Error => todo!(),
       Expression::Nesting(x) => x.emit(context, f),
       Expression::Cast(t, x) => {
-        write!(f, "(({t})")?;
+        write!(f, "({t})(")?;
         x.emit(context, f)?;
         write!(f, ")")
       }
       Expression::ClassInstantiation(x) => x.emit(context, f),
+      Expression::Group(x) => {
+        write!(f, "(")?;
+        x.emit(context, f)?;
+        write!(f, ")")
+      }
     }
   }
 }

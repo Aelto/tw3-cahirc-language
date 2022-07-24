@@ -146,7 +146,7 @@ GlobalFunctionDeclaration: Rc<FunctionDeclaration> = {
             let has_generic_types = generic_types.is_some();
             let declaration = Rc::new(FunctionDeclaration {
                 context: Rc::new(RefCell::new(Context::new(&format!("function: {}", &name), generic_types.clone()))),
-                function_type: FunctionType::Function,
+                function_type,
                 name: name.clone(),
                 generic_types,
                 parameters,
@@ -222,6 +222,7 @@ FunctionBodyStatement: FunctionBodyStatement = {
     KeywordReturn <expression:Expression?> ";" => FunctionBodyStatement::Return(expression),
     KeywordBreak ";" => FunctionBodyStatement::Break,
     KeywordContinue ";" => FunctionBodyStatement::Continue,
+    KeywordDelete <expression:Expression> ";" => FunctionBodyStatement::Delete(expression),
 
     <var:VariableAssignment> ";" => FunctionBodyStatement::Assignement(<>),
     IfStatement => FunctionBodyStatement::IfStatement(<>),
@@ -434,7 +435,7 @@ ComparisonType: ComparisonType = {
 
 Term: Rc<Expression> = {
     Integer => Rc::new(Expression::Integer(<>)),
-    "(" <Expression> ")",
+    "(" <Expression> ")" => Rc::new(Expression::Group(<>)),
     StringLiteral => Rc::new(Expression::String(String::from(<>))),
     CharLiteral => Rc::new(Expression::Name(String::from(<>))),
 
@@ -621,6 +622,7 @@ match {
     "break" => KeywordBreak,
     "continue" => KeywordContinue,
     "exec" => KeywordExec,
+    "delete" => KeywordDelete,
 } else {
     // These items have next highest precedence.
 
