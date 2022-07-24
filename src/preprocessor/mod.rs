@@ -20,8 +20,7 @@ use self::types::*;
 /// names. And returns as output the files content from the source directory
 /// and the files content from the dependencies.
 pub fn preprocess(
-  source_directory: &str,
-  dependencies: &HashMap<String, String>,
+  source_directory: &str, dependencies: &HashMap<String, String>,
 ) -> std::io::Result<PreprocessorOutput> {
   let mut output = PreprocessorOutput {
     dependencies_files_content: HashMap::new(),
@@ -180,13 +179,7 @@ fn get_wss_files_content_for_directory(
     )?));
 
     output.push((
-      filename
-        .path()
-        .file_name()
-        .unwrap()
-        .to_str()
-        .unwrap()
-        .to_string(),
+      filename.path().to_str().unwrap().to_string(),
       ProcessedFile {
         content,
         path: filename.path().to_path_buf(),
