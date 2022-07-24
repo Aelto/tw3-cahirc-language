@@ -205,6 +205,7 @@ FunctionType: FunctionType = {
     KeywordTimer => FunctionType::Timer,
     KeywordEvent => FunctionType::Event,
     KeywordEntry KeywordFunction => FunctionType::Entry,
+    KeywordExec KeywordFunction => FunctionType::Exec,
     GlobalFunctionType => <>
 }
 
@@ -589,6 +590,7 @@ match {
     "switch" => KeywordSwitch,
     "break" => KeywordBreak,
     "continue" => KeywordContinue,
+    "exec" => KeywordExec,
 } else {
     // These items have next highest precedence.
 

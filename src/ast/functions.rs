@@ -101,6 +101,7 @@ pub enum FunctionType {
   Event,
   Entry,
   Latent,
+  Exec,
 }
 
 impl Codegen for FunctionType {
