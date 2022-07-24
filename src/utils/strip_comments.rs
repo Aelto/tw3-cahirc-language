@@ -17,7 +17,7 @@ pub fn strip_comments(input: String) -> String {
       }
 
       let mut is_in_string = false;
-      for chunk in quotes_indices.chunks(2) {
+      'chunkloop: for chunk in quotes_indices.chunks(2) {
         if chunk.len() > 1 {
           let start = chunk[0];
           let end = chunk[1];
@@ -25,7 +25,7 @@ pub fn strip_comments(input: String) -> String {
           is_in_string = is_in_string || start < comment_start && comment_start < end;
         } else {
           println!("Warning: unterminated string found while stripping comments");
-          continue;
+          continue 'chunkloop;
         }
       }
 
