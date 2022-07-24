@@ -66,7 +66,8 @@ will cause a `.ws` file to not be compiled by the cahirc compiler:
     is no longer valid, instead it should be replaced with:
     ```c
     my_var = a_float_variable as int;
-    my_var = a_float_variable as int + 5;
+    // paranthesis required for combined expressions
+    my_var = (a_float_variable as int) + 5;
     ```
   </details>
 
