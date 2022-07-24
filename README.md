@@ -1,4 +1,4 @@
-# tw3-witcherscript-superset
+# tw3-cahirc-language
 Transpiler for the WitcherScript superset `WitcherScriptSuperset`
 
 The goal of this project is to offer a basic compiler (more of a transpiler) that takes as input `.wss` files and converts them into `.ws` files.
