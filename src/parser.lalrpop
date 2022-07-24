@@ -233,7 +233,7 @@ FunctionBodyStatement: FunctionBodyStatement = {
 // -----------------------------------------------------------------------------
 
 VariableAssignment: VariableAssignment = {
-    <variable_name:SubExpression> <assignment_type:AssignmentType> <following_expression:Expression>
+    <variable_name:Expression> <assignment_type:AssignmentType> <following_expression:Expression>
         => VariableAssignment {
             variable_name,
             assignment_type,
@@ -421,7 +421,7 @@ ComparisonType: ComparisonType = {
 
 Term: Rc<Expression> = {
     Integer => Rc::new(Expression::Integer(<>)),
-    "(" <SubExpression> ")",
+    "(" <Expression> ")",
     StringLiteral => Rc::new(Expression::String(String::from(<>))),
     CharLiteral => Rc::new(Expression::Name(String::from(<>))),
 
@@ -441,7 +441,7 @@ Term: Rc<Expression> = {
 };
 
 Indexing: Rc<Expression> = {
-    "[" <SubExpression> "]" => <>
+    "[" <Expression> "]" => <>
 }
 
 IdentifierTerm: Box<IdentifierTerm> = {
