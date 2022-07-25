@@ -12,7 +12,7 @@ pub trait Codegen {
   }
 
   fn emit_join(
-    &self, context: &context::Context, output: &mut Vec<u8>, join_char: &'static str,
+    &self, _: &context::Context, _: &mut Vec<u8>, _: &'static str,
   ) -> Result<(), std::io::Error> {
     unimplemented!("default emit_join impl called");
   }

@@ -166,7 +166,7 @@ impl TypeDeclaration {
           match result {
             Ok(_) => std::str::from_utf8(&type_name)
               .and_then(|s| Ok(s.to_string()))
-              .unwrap_or_else(|err| stringified_type),
+              .unwrap_or_else(|_| stringified_type),
             Err(_) => stringified_type,
           }
         })

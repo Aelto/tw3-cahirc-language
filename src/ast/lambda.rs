@@ -34,7 +34,9 @@ impl Codegen for Lambda {
 
 #[derive(Debug)]
 pub enum StructBodyStatement {
+  #[allow(dead_code)]
   Property(VariableDeclaration),
+  #[allow(dead_code)]
   DefaultValue(VariableAssignment),
 }
 
