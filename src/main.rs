@@ -21,6 +21,7 @@ use lalrpop_util::lalrpop_mod;
 use crate::ast::codegen::context::Context;
 use crate::ast::visitor::ContextBuildingVisitor;
 use crate::ast::visitor::FunctionVisitor;
+use crate::ast::visitor::LambdaDeclarationVisitor;
 use crate::ast::visitor::LibraryEmitterVisitor;
 use crate::ast::visitor::VariableDeclarationVisitor;
 use crate::utils::strip_pragmas;
@@ -241,27 +242,39 @@ fn compile_source_directory(config: &Config) -> std::io::Result<()> {
   // 4.
   // emit code for the libraries code, especially the generic functions that
   // were used.
-  for parsed_file in &dependency_ast_list {
-    let new_path = Path::new(&config.package.dist)
-      .join(uuid::Uuid::new_v4().to_string())
-      .with_extension("ws");
+  let generated_code_file = Path::new(&config.package.dist)
+    .join(uuid::Uuid::new_v4().to_string())
+    .with_extension("ws");
 
+  let mut file_content = Vec::new();
+
+  std::fs::create_dir_all(&generated_code_file.parent().unwrap())
+    .expect("failed to recursively make the output directories");
+
+  for parsed_file in &dependency_ast_list {
     use ast::visitor::Visited;
-    let mut visitor = LibraryEmitterVisitor::new(&global_context);
+    let mut visitor = LibraryEmitterVisitor::new(&global_context, &mut file_content);
     parsed_file.ast.accept(&mut visitor);
 
-    std::fs::create_dir_all(&new_path.parent().unwrap())
-      .expect("failed to recursively make the outoput directories");
-
-    match std::str::from_utf8(&visitor.emitted_code) {
-      Ok(s) => {
-        if !s.trim().is_empty() {
-          fs::write(new_path, format_code(s)).expect("failed to write output file")
-        }
-      }
-      Err(e) => println!("{}", e),
-    };
+    let mut visitor = LambdaDeclarationVisitor::new(&mut file_content);
+    parsed_file.ast.accept(&mut visitor);
   }
+
+  for parsed_file in &ast_list {
+    use ast::visitor::Visited;
+
+    let mut visitor = LambdaDeclarationVisitor::new(&mut file_content);
+    parsed_file.ast.accept(&mut visitor);
+  }
+
+  match std::str::from_utf8(&file_content) {
+    Ok(s) => {
+      if !s.trim().is_empty() {
+        fs::write(&generated_code_file, format_code(s)).expect("failed to write output file")
+      }
+    }
+    Err(e) => println!("{}", e),
+  };
 
   Ok(())
 }

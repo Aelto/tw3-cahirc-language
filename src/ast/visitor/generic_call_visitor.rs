@@ -54,36 +54,59 @@ impl super::Visitor for GenericCallsVisitor<'_> {
   }
 
   fn visit_generic_variable_declaration(&mut self, node: &crate::ast::TypeDeclaration) {
-    let class_name = &node.type_name;
-    let class_context = Context::find_global_class_declaration(&self.current_context, class_name);
+    match node {
+      TypeDeclaration::Regular {
+        type_name,
+        generic_type_assignment,
+        mangled_accessor,
+      } => {
+        let class_name = &type_name;
+        let class_context =
+          Context::find_global_class_declaration(&self.current_context, class_name);
 
-    if let Some(_) = &node.generic_type_assignment {
-      if let Some(class_context) = class_context {
-        let stringified_generic_types = &TypeDeclaration::stringified_generic_types(
-          &node.generic_type_assignment,
-          &class_context.borrow(),
-        );
+        if let Some(_) = &generic_type_assignment {
+          if let Some(class_context) = class_context {
+            let stringified_generic_types = match &generic_type_assignment {
+              Some(x) => {
+                let types = {
+                  let mut list = Vec::new();
 
-        let still_contains_generic_types = match &self.current_context.borrow().generic_context {
-          Some(gen) => gen.contains_generic_identifier(&TypeDeclaration::flat_type_names(
-            &node.type_name,
-            &node.generic_type_assignment,
-          )),
-          None => false,
-        };
+                  for child in x {
+                    list.push(child);
+                  }
 
-        if still_contains_generic_types {
-          return;
-        }
+                  list
+                };
 
-        let response = class_context
-          .borrow_mut()
-          .register_generic_call(&stringified_generic_types);
+                TypeDeclaration::stringified_generic_types(&types, &class_context.borrow())
+              }
+              None => Vec::new(),
+            };
 
-        if response.is_some() {
-          node.mangled_accessor.replace(response);
+            let still_contains_generic_types = match &self.current_context.borrow().generic_context
+            {
+              Some(gen) => gen.contains_generic_identifier(&TypeDeclaration::flat_type_names(
+                &type_name,
+                &generic_type_assignment,
+              )),
+              None => false,
+            };
+
+            if still_contains_generic_types {
+              return;
+            }
+
+            let response = class_context
+              .borrow_mut()
+              .register_generic_call(&stringified_generic_types);
+
+            if response.is_some() {
+              mangled_accessor.replace(response);
+            }
+          }
         }
       }
+      TypeDeclaration::Lambda(_) => todo!(),
     }
   }
 
@@ -93,10 +116,22 @@ impl super::Visitor for GenericCallsVisitor<'_> {
 
     if let Some(_) = &node.generic_type_assignment {
       if let Some(class_context) = class_context {
-        let stringified_generic_types = &TypeDeclaration::stringified_generic_types(
-          &node.generic_type_assignment,
-          &class_context.borrow(),
-        );
+        let stringified_generic_types = match &node.generic_type_assignment {
+          Some(x) => {
+            let types = {
+              let mut list = Vec::new();
+
+              for child in x {
+                list.push(child);
+              }
+
+              list
+            };
+
+            TypeDeclaration::stringified_generic_types(&types, &class_context.borrow())
+          }
+          None => Vec::new(),
+        };
 
         let still_contains_generic_types = match &self.current_context.borrow().generic_context {
           Some(gen) => gen.contains_generic_identifier(&TypeDeclaration::flat_type_names(

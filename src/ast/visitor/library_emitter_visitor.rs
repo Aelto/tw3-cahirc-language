@@ -6,21 +6,21 @@ use crate::ast::codegen::Codegen;
 
 /// Traverse the AST of a library and emit only the code that is coming from
 /// generic types with generic calls.
-pub struct LibraryEmitterVisitor {
+pub struct LibraryEmitterVisitor<'a> {
   pub current_context: Rc<RefCell<Context>>,
-  pub emitted_code: Vec<u8>,
+  pub emitted_code: &'a mut Vec<u8>,
 }
 
-impl LibraryEmitterVisitor {
-  pub fn new(context: &Rc<RefCell<Context>>) -> Self {
+impl<'a> LibraryEmitterVisitor<'a> {
+  pub fn new(context: &Rc<RefCell<Context>>, emitted_code: &'a mut Vec<u8>) -> Self {
     Self {
       current_context: context.clone(),
-      emitted_code: Vec::new(),
+      emitted_code,
     }
   }
 }
 
-impl super::Visitor for LibraryEmitterVisitor {
+impl<'a> super::Visitor for LibraryEmitterVisitor<'a> {
   fn visitor_type(&self) -> super::VisitorType {
     super::VisitorType::LibraryEmitterVisitor
   }

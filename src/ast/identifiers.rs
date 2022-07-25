@@ -61,21 +61,33 @@ impl Visited for TypedIdentifier {
 ///
 /// `: int` is the typeDeclaration
 #[derive(Debug)]
-pub struct TypeDeclaration {
-  pub type_name: String,
-  pub generic_type_assignment: Option<Vec<TypeDeclaration>>,
+pub enum TypeDeclaration {
+  Regular {
+    type_name: String,
+    generic_type_assignment: Option<Vec<TypeDeclaration>>,
 
-  pub mangled_accessor: RefCell<Option<String>>,
+    mangled_accessor: RefCell<Option<String>>,
+  },
+  Lambda(LambdaDeclaration),
 }
 
 impl Visited for TypeDeclaration {
   fn accept<T: visitor::Visitor>(&self, visitor: &mut T) {
-    if let Some(generic_types) = &self.generic_type_assignment {
-      visitor.visit_generic_variable_declaration(self);
+    match self {
+      TypeDeclaration::Regular {
+        type_name: _,
+        generic_type_assignment,
+        mangled_accessor: _,
+      } => {
+        if let Some(generic_types) = &generic_type_assignment {
+          visitor.visit_generic_variable_declaration(self);
 
-      for t in generic_types {
-        t.accept(visitor);
+          for t in generic_types {
+            t.accept(visitor);
+          }
+        }
       }
+      TypeDeclaration::Lambda(x) => x.accept(visitor),
     }
   }
 }
@@ -84,26 +96,50 @@ impl Codegen for TypeDeclaration {
   fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
     use std::io::Write as IoWrite;
 
-    if let Some(mangled_accessor) = self.mangled_accessor.borrow().as_deref() {
-      write!(f, "{}", mangled_accessor)?;
-    } else {
-      context.transform_if_generic_type(f, &self.type_name)?;
-    }
+    match self {
+      TypeDeclaration::Regular {
+        type_name,
+        generic_type_assignment,
+        mangled_accessor,
+      } => {
+        if let Some(mangled_accessor) = mangled_accessor.borrow().as_deref() {
+          write!(f, "{}", mangled_accessor)?;
+        } else {
+          context.transform_if_generic_type(f, &type_name)?;
+        }
 
-    if let Some(comma_separated_types) = &self.generic_type_assignment {
-      // special case: array is the only generic type supported by vanilla WS
-      if self.type_name == "array" {
-        write!(f, "<")?;
-        comma_separated_types.emit_join(context, f, ", ")?;
-        write!(f, ">")?;
-      } else {
-        let generic_variant_suffix = GenericContext::generic_variant_suffix_from_types(
-          &TypeDeclaration::stringified_generic_types(&self.generic_type_assignment, &context),
-        );
+        if let Some(comma_separated_types) = &generic_type_assignment {
+          // special case: array is the only generic type supported by vanilla WS
+          if type_name == "array" {
+            write!(f, "<")?;
+            comma_separated_types.emit_join(context, f, ", ")?;
+            write!(f, ">")?;
+          } else {
+            let stringified_types = match &generic_type_assignment {
+              Some(x) => {
+                let types = {
+                  let mut list = Vec::new();
 
-        write!(f, "{generic_variant_suffix}")?;
+                  for child in x {
+                    list.push(child);
+                  }
+
+                  list
+                };
+
+                TypeDeclaration::stringified_generic_types(&types, &context)
+              }
+              None => Vec::new(),
+            };
+            let generic_variant_suffix =
+              GenericContext::generic_variant_suffix_from_types(&stringified_types);
+
+            write!(f, "{generic_variant_suffix}")?;
+          }
+        }
       }
-    }
+      TypeDeclaration::Lambda(x) => x.emit(context, f)?,
+    };
 
     Ok(())
   }
@@ -111,19 +147,30 @@ impl Codegen for TypeDeclaration {
 
 impl TypeDeclaration {
   pub fn to_string(&self) -> String {
-    if let Some(generics) = &self.generic_type_assignment {
-      let mut output = self.type_name.clone();
+    match self {
+      TypeDeclaration::Regular {
+        type_name,
+        generic_type_assignment,
+        mangled_accessor: _,
+      } => {
+        if let Some(generics) = &generic_type_assignment {
+          let mut output = type_name.clone();
 
-      for generic in generics {
-        output.push_str(&generic.to_string());
+          for generic in generics {
+            output.push_str(&generic.to_string());
+          }
+
+          output
+        } else {
+          type_name.clone()
+        }
       }
-
-      output
-    } else {
-      self.type_name.clone()
+      TypeDeclaration::Lambda(_) => todo!(),
     }
   }
 
+  /// Returns a flattened list of all the type names this type declaration contains.
+  /// Mainly used for generic type declarations with nested types.
   pub fn flat_type_names<'a>(
     type_name: &'a String, generic_type_assignment: &'a Option<Vec<TypeDeclaration>>,
   ) -> Vec<&'a str> {
@@ -131,7 +178,16 @@ impl TypeDeclaration {
 
     if let Some(gen) = generic_type_assignment {
       for subtype in gen {
-        for t in Self::flat_type_names(&subtype.type_name, &subtype.generic_type_assignment) {
+        let subtypes = match subtype {
+          TypeDeclaration::Regular {
+            type_name,
+            generic_type_assignment,
+            mangled_accessor: _,
+          } => Self::flat_type_names(&type_name, &generic_type_assignment),
+          TypeDeclaration::Lambda(lambda) => lambda.flat_type_names(),
+        };
+
+        for t in subtypes {
           output.push(t);
         }
       }
@@ -140,21 +196,27 @@ impl TypeDeclaration {
     output
   }
 
-  pub fn stringified_generic_types(
-    generic_type_assignment: &Option<Vec<TypeDeclaration>>, context: &Context,
+  pub fn stringified_generic_types<'a>(
+    generic_types: &Vec<&'a TypeDeclaration>, context: &Context,
   ) -> Vec<String> {
-    match generic_type_assignment {
-      None => Vec::new(),
-      Some(generic_types) => generic_types
-        .iter()
-        .map(|t| {
+    generic_types
+      .into_iter()
+      .map(|t| match t {
+        TypeDeclaration::Regular {
+          type_name: _,
+          generic_type_assignment,
+          mangled_accessor: _,
+        } => {
           let mut type_name: Vec<u8> = Vec::new();
-          let stringified_type = if t.generic_type_assignment.is_some() {
+          let stringified_type = if let Some(subtypes) = generic_type_assignment {
             let mut output = t.to_string();
+            let mut list = Vec::new();
 
-            output.push_str(
-              &Self::stringified_generic_types(&t.generic_type_assignment, context).join(""),
-            );
+            for subtype in subtypes {
+              list.push(subtype);
+            }
+
+            output.push_str(&Self::stringified_generic_types(&list, context).join(""));
 
             output
           } else {
@@ -169,8 +231,9 @@ impl TypeDeclaration {
               .unwrap_or_else(|_| stringified_type),
             Err(_) => stringified_type,
           }
-        })
-        .collect::<Vec<String>>(),
-    }
+        }
+        TypeDeclaration::Lambda(_) => todo!(),
+      })
+      .collect::<Vec<String>>()
   }
 }

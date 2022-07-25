@@ -38,7 +38,8 @@ use crate::ast::{
     ParameterType,
     BooleanJoinType,
     SwitchStatement,
-    SwitchCaseStatement
+    SwitchCaseStatement,
+    LambdaDeclaration
 };
 
 use crate::ast::codegen::context::Context;
@@ -231,6 +232,19 @@ FunctionBodyStatement: FunctionBodyStatement = {
     SwitchStatement => FunctionBodyStatement::SwitchStatement(<>)
 }
 
+
+
+// -----------------------------------------------------------------------------
+
+LambdaDeclaration: LambdaDeclaration = {
+    KeywordFn "(" <parameters:TrailingComma<FunctionDeclarationParameter>> ")" <type_declaration:TypeDeclaration?> => {
+        LambdaDeclaration {
+            parameters,
+            type_declaration: type_declaration.and_then(|td| Some(Rc::new(td))),
+        }
+    }
+}
+
 // -----------------------------------------------------------------------------
 
 VariableAssignment: VariableAssignment = {
@@ -343,11 +357,13 @@ TypeDeclaration: TypeDeclaration = {
 }
 
 Type: TypeDeclaration = {
-    <type_name:Identifier> <generic_type_assignment:("<" <TrailingComma<Type>> ">")?> => TypeDeclaration {
+    <type_name:Identifier> <generic_type_assignment:("<" <TrailingComma<Type>> ">")?> => TypeDeclaration::Regular {
         type_name,
         generic_type_assignment,
         mangled_accessor: RefCell::new(None)
-    }
+    },
+
+    LambdaDeclaration => TypeDeclaration::Lambda(<>)
 }
 
 // -----------------------------------------------------------------------------
@@ -623,6 +639,7 @@ match {
     "continue" => KeywordContinue,
     "exec" => KeywordExec,
     "delete" => KeywordDelete,
+    "fn" => KeywordFn,
 } else {
     // These items have next highest precedence.
 

@@ -40,9 +40,24 @@ impl Codegen for ClassInstantiation {
   fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
     use std::io::Write as IoWrite;
 
-    let generic_variant_suffix = GenericContext::generic_variant_suffix_from_types(
-      &TypeDeclaration::stringified_generic_types(&self.generic_type_assignment, &context),
-    );
+    let stringified_types = match &self.generic_type_assignment {
+      Some(x) => {
+        let types = {
+          let mut list = Vec::new();
+
+          for child in x {
+            list.push(child);
+          }
+
+          list
+        };
+
+        TypeDeclaration::stringified_generic_types(&types, &context)
+      }
+      None => Vec::new(),
+    };
+    let generic_variant_suffix =
+      GenericContext::generic_variant_suffix_from_types(&stringified_types);
 
     write!(
       f,
