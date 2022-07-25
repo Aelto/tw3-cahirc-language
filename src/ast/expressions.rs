@@ -13,6 +13,7 @@ pub enum Expression {
 
   FunctionCall(FunctionCall),
   ClassInstantiation(ClassInstantiation),
+  Lambda(Lambda),
 
   /// An operation between two expressions
   Operation(Rc<Expression>, OperationCode, Rc<Expression>),
@@ -42,6 +43,7 @@ impl visitor::Visited for Expression {
       Expression::Group(x) => x.accept(visitor),
       Expression::ClassInstantiation(x) => x.accept(visitor),
       Expression::Not(x) => x.accept(visitor),
+      Expression::Lambda(x) => x.accept(visitor),
     }
   }
 }
@@ -78,6 +80,7 @@ impl Codegen for Expression {
         x.emit(context, f)?;
         write!(f, ")")
       }
+      Expression::Lambda(x) => x.emit(context, f),
     }
   }
 }

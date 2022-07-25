@@ -39,7 +39,9 @@ use crate::ast::{
     BooleanJoinType,
     SwitchStatement,
     SwitchCaseStatement,
-    LambdaDeclaration
+    LambdaDeclaration,
+    Lambda,
+    LambdaType
 };
 
 use crate::ast::codegen::context::Context;
@@ -232,8 +234,6 @@ FunctionBodyStatement: FunctionBodyStatement = {
     SwitchStatement => FunctionBodyStatement::SwitchStatement(<>)
 }
 
-
-
 // -----------------------------------------------------------------------------
 
 LambdaDeclaration: LambdaDeclaration = {
@@ -242,6 +242,24 @@ LambdaDeclaration: LambdaDeclaration = {
             parameters,
             type_declaration: type_declaration.and_then(|td| Some(Rc::new(td))),
         }
+    }
+}
+
+// -----------------------------------------------------------------------------
+
+
+Lambda: Lambda = {
+    "|" <parameters:TrailingComma<FunctionDeclarationParameter>> "|" "{" <body_statements:(<FunctionBodyStatement>)*> "}" => Lambda {
+        lambda_type: LambdaType::MultiLine,
+        parameters,
+        body_statements,
+        mangled_accessor: RefCell::new(None)
+    },
+    "|" <parameters:TrailingComma<FunctionDeclarationParameter>> "|" <body_statement:(<FunctionBodyStatement>)> => Lambda {
+        lambda_type: LambdaType::SingleLine,
+        parameters,
+        body_statements: vec![body_statement],
+        mangled_accessor: RefCell::new(None)
     }
 }
 
@@ -451,6 +469,7 @@ ComparisonType: ComparisonType = {
 
 Term: Rc<Expression> = {
     Integer => Rc::new(Expression::Integer(<>)),
+    Lambda => Rc::new(Expression::Lambda(<>)),
     "(" <Expression> ")" => Rc::new(Expression::Group(<>)),
     StringLiteral => Rc::new(Expression::String(String::from(<>))),
     CharLiteral => Rc::new(Expression::Name(String::from(<>))),

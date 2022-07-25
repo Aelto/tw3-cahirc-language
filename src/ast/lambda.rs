@@ -13,8 +13,6 @@ impl LambdaDeclaration {
   pub fn flat_type_names<'a>(&'a self) -> Vec<&'a str> {
     let mut output = vec![];
 
-    println!("flat_type_names");
-
     for param in &self.parameters {
       let subtypes = match &param.typed_identifier.type_declaration {
         TypeDeclaration::Regular {
@@ -66,7 +64,7 @@ impl LambdaDeclaration {
 }
 
 fn emit_lambda_declaration(
-  this: &LambdaDeclaration, context: &Context, f: &mut Vec<u8>, generic_variant_suffix: &str,
+  this: &LambdaDeclaration, context: &Context, f: &mut Vec<u8>, _generic_variant_suffix: &str,
 ) -> Result<(), std::io::Error> {
   use std::io::Write as IoWrite;
 
@@ -80,15 +78,14 @@ fn emit_lambda_declaration(
     list
   };
 
+  // we generate a more complete generic variant suffix that includes all types
+  // and not just the generic ones.
   let this_generic_variant_suffix = GenericContext::generic_variant_suffix_from_types(
     &TypeDeclaration::stringified_generic_types(&parameter_types, &context),
   );
 
-  dbg!(&generic_variant_suffix);
-  dbg!(&this_generic_variant_suffix);
-
   writeln!(f, "abstract class lambda_{this_generic_variant_suffix} {{")?;
-  write!(f, "  function run(")?;
+  write!(f, "  function call(")?;
   this.parameters.emit_join(context, f, ", ")?;
   writeln!(f, ") {{}}")?;
   writeln!(f, "}}")?;
@@ -130,37 +127,112 @@ impl Codegen for LambdaDeclaration {
 }
 
 #[derive(Debug)]
-pub enum StructBodyStatement {
-  #[allow(dead_code)]
-  Property(VariableDeclaration),
-  #[allow(dead_code)]
-  DefaultValue(VariableAssignment),
+pub struct Lambda {
+  pub lambda_type: LambdaType,
+  pub parameters: Vec<FunctionDeclarationParameter>,
+  pub body_statements: Vec<FunctionBodyStatement>,
+
+  pub mangled_accessor: RefCell<Option<String>>,
 }
 
-impl Visited for StructBodyStatement {
-  fn accept<T: visitor::Visitor>(&self, visitor: &mut T) {
-    match self {
-      StructBodyStatement::Property(x) => x.accept(visitor),
-      StructBodyStatement::DefaultValue(x) => x.accept(visitor),
+#[derive(Debug)]
+pub enum LambdaType {
+  SingleLine,
+  MultiLine,
+}
+
+impl Lambda {
+  /// emits the base abstract class the lambdas will extend to finally implement
+  /// the run method.
+  pub fn emit_base_type(
+    &self, context: &mut Context, f: &mut Vec<u8>,
+  ) -> Result<(), std::io::Error> {
+    let has_generic_context = context.generic_context.is_some();
+    if has_generic_context {
+      let mut variants = Vec::new();
+
+      if let Some(generic_context) = &context.generic_context {
+        for variant in generic_context.translation_variants.keys() {
+          variants.push(String::from(variant));
+        }
+      }
+
+      for variant in variants {
+        {
+          if let Some(generic_context) = &mut context.generic_context {
+            generic_context.currently_used_variant = Some(variant.clone());
+          }
+        }
+
+        emit_lambda(self, &context, f, &variant)?;
+      }
+    } else {
+      emit_lambda(self, &context, f, "")?;
     }
+
+    Ok(())
   }
 }
 
-impl Codegen for StructBodyStatement {
-  fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
+fn emit_lambda(
+  this: &Lambda, context: &Context, f: &mut Vec<u8>, _generic_variant_suffix: &str,
+) -> Result<(), std::io::Error> {
+  use std::io::Write as IoWrite;
+
+  let parameter_types = {
+    let mut list = Vec::new();
+
+    for child in &this.parameters {
+      list.push(&child.typed_identifier.type_declaration);
+    }
+
+    list
+  };
+
+  // we generate a more complete generic variant suffix that includes all types
+  // and not just the generic ones.
+  let this_generic_variant_suffix = GenericContext::generic_variant_suffix_from_types(
+    &TypeDeclaration::stringified_generic_types(&parameter_types, &context),
+  );
+
+  if let Some(mangled_suffix) = this.mangled_accessor.borrow().as_ref() {
+    writeln!(
+      f,
+      "class lambda_{mangled_suffix} extends lambda_{this_generic_variant_suffix} {{"
+    )?;
+    write!(f, "function call(")?;
+    this.parameters.emit_join(context, f, ", ")?;
+    writeln!(f, ") {{")?;
+    match this.lambda_type {
+      LambdaType::SingleLine => {
+        write!(f, "return ")?;
+        this.body_statements.emit(context, f)?;
+      }
+      LambdaType::MultiLine => this.body_statements.emit(context, f)?,
+    };
+    writeln!(f, "}}")?;
+    writeln!(f, "}}")?;
+  }
+
+  Ok(())
+}
+
+impl Visited for Lambda {
+  fn accept<T: visitor::Visitor>(&self, visitor: &mut T) {
+    visitor.visit_lambda(self);
+    self.body_statements.accept(visitor);
+  }
+}
+
+impl Codegen for Lambda {
+  fn emit(&self, _: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
     use std::io::Write as IoWrite;
 
-    match self {
-      StructBodyStatement::Property(x) => {
-        x.emit(context, f)?;
-        write!(f, ";")?;
-      }
-      StructBodyStatement::DefaultValue(x) => {
-        write!(f, "default ")?;
-        x.emit(context, f)?;
-        writeln!(f, ";")?;
-      }
-    };
+    let suffix = format!("wss{}", uuid::Uuid::new_v4().to_string().replace("-", ""));
+
+    write!(f, "new lambda_{suffix} in thePlayer")?;
+
+    self.mangled_accessor.replace(Some(suffix));
 
     Ok(())
   }

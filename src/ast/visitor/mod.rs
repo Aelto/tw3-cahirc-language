@@ -28,6 +28,7 @@ pub trait Visitor {
   fn visit_variable_declaration(&mut self, _: &VariableDeclaration) {}
   fn visit_generic_class_instantiation(&mut self, _: &ClassInstantiation) {}
   fn visit_lambda_declaration(&mut self, _: &LambdaDeclaration) {}
+  fn visit_lambda(&mut self, _: &Lambda) {}
   fn visitor_type(&self) -> VisitorType;
 }
 

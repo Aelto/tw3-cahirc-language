@@ -10,7 +10,7 @@ This allows the use of new features available to `wss` that get converted to val
  - [x] _unstable_: Macros, support for recursive macros (macros that generate calls to macros)
  - [ ] For..in loops
  - [x] Constant primitive variables in the global scope (macro constants)
- - [x] Lambdas, can be achieved using macros
+ - [x] Lambdas, can be achieved with & without macros. Lambdas can be stored in variables as well
  - [ ] Closures
  - [x] Variable declarations anywhere in function bodies
  - [ ] some forms of static analysis, or at least syntax validation
@@ -94,6 +94,89 @@ will cause a `.ws` file to not be compiled by the cahirc compiler:
     my_var = (a_float_variable as int) + 5;
     ```
   </details>
+
+### Lambdas
+The `cahirc` language supports lambda functions. Functions you can store into variables
+and pass to other function as parameters.
+
+Here is an example of how you declare a lambda function:
+```js
+var a_lambda: fn(x: int): int;
+```
+This lambda is a function that takes 1 parameter `x` of type `int` and returns an `int`.
+
+
+You can then define the lambda using the following syntax:
+```js
+a_lambda = |el: int| el * 2;
+```
+As you notice, parameters are surrounded by two pipes `|`, we also took the opportunity to rename
+the variable `x` the way we wanted. And finally the expression `el * 2` that is instantly returned.
+
+When a lambda has only one expression, you can omit the `{` and `}` around the body
+as well as the `return` statement. If you were to include two or more lines of code
+in the body of the lambda, these would be required:
+
+```js
+a_lambda = |el: int| {
+  var another_number: int = 5; // you can declare variables
+
+  return el + another_number;
+};
+```
+
+Once you your lambda is defined, you can call it using the `.call()` statement:
+```js
+var x = a_lambda.call(10);
+```
+
+`.call(...)` is the only way to call a lambda, as doing `a_lambda(10)` will be
+considered invalid and will not compile.
+
+___
+
+Lambda functions also accept `out` argument if you wish the body of your lambda
+to mutate the content of the received parameters.
+```js
+add_five = |out el: int| el += 5;
+
+var x: int = 0;
+
+assert(add_five(x) == 5);
+```
+
+___
+
+Lamba functions also work inside generic functions:
+
+<details>
+  <summary>Complex example while implementing a `map` function</summary>
+
+  ```js
+  function map<I, O>(input: array<I>, predicate: fn(child: I): O): array<O> {
+    var output: array<O>;
+    var i: int;
+
+    for (i = 0; i < input.Size(); i += 1) {
+      var child: I;
+
+      output.PushBack(predicate.call(child));
+    }
+
+    return output;
+  }
+  ```
+
+  which can be called like so:
+  ```js
+  var my_list_1: array<int>;
+  var my_list_2: array<int>;
+
+  // ...
+
+  my_list_2 = map::<int, string>(my_list_1, |x: int| "the number is: " + x;);
+  ```
+</details>
 
 ### Generics
 To define a generic function/class you can use the `<T>` annotation right behind

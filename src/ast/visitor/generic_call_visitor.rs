@@ -141,8 +141,6 @@ impl super::Visitor for GenericCallsVisitor<'_> {
           None => false,
         };
 
-        dbg!(still_contains_generic_types);
-
         if still_contains_generic_types {
           return;
         }

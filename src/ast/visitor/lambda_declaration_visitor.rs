@@ -2,7 +2,9 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use crate::ast::codegen::context::Context;
+use crate::ast::codegen::context::GenericContext;
 use crate::ast::ProgramInformation;
+use crate::ast::TypeDeclaration;
 
 /// Looks for generic calls and register them to the GenericCallRegister
 pub struct LambdaDeclarationVisitor<'a> {
@@ -35,6 +37,19 @@ impl super::Visitor for LambdaDeclarationVisitor<'_> {
   }
 
   fn visit_lambda_declaration(&mut self, node: &crate::ast::LambdaDeclaration) {
+    if let Err(err) = node.emit_base_type(
+      &mut self.current_context.borrow_mut(),
+      &mut self.emitted_code,
+    ) {
+      println!(
+        "Error while emitting code for {}: {}",
+        self.current_context.borrow().name,
+        err
+      );
+    }
+  }
+
+  fn visit_lambda(&mut self, node: &crate::ast::Lambda) {
     if let Err(err) = node.emit_base_type(
       &mut self.current_context.borrow_mut(),
       &mut self.emitted_code,
