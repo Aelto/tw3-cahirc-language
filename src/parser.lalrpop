@@ -246,8 +246,9 @@ VariableAssignment: VariableAssignment = {
 // -----------------------------------------------------------------------------
 
 ClassInstantiation: ClassInstantiation = {
-    KeywordNew <class_name:Identifier> KeywordIn <lifetime:Identifier> => ClassInstantiation {
+    KeywordNew <class_name:Identifier> <generic_type_assignment:("<" <TrailingComma<Type>> ">")?> KeywordIn <lifetime:Identifier> => ClassInstantiation {
         class_name,
+        generic_type_assignment,
         lifetime
     }
 }
