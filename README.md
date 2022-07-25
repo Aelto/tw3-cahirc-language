@@ -125,7 +125,7 @@ a_lambda = |el: int| {
 };
 ```
 
-Once you your lambda is defined, you can call it using the `.call()` statement:
+Once your lambda is defined, you can call it using the `.call()` statement:
 ```js
 var x = a_lambda.call(10);
 ```
@@ -135,7 +135,7 @@ considered invalid and will not compile.
 
 ___
 
-Lambda functions also accept `out` argument if you wish the body of your lambda
+Lambda functions also accept `out` parameters if you wish the body of your lambda
 to mutate the content of the received parameters.
 ```js
 add_five = |out el: int| el += 5;
@@ -147,7 +147,7 @@ assert(add_five(x) == 5);
 
 ___
 
-Lamba functions also work inside generic functions:
+Lamba functions also work inside generic contexts:
 
 <details>
   <summary>Complex example while implementing a `map` function</summary>
