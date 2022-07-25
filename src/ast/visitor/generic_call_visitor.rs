@@ -65,7 +65,10 @@ impl super::Visitor for GenericCallsVisitor<'_> {
         );
 
         let still_contains_generic_types = match &self.current_context.borrow().generic_context {
-          Some(gen) => gen.contains_generic_identifier(&node.flat_type_names()),
+          Some(gen) => gen.contains_generic_identifier(&TypeDeclaration::flat_type_names(
+            &node.type_name,
+            &node.generic_type_assignment,
+          )),
           None => false,
         };
 
@@ -79,6 +82,43 @@ impl super::Visitor for GenericCallsVisitor<'_> {
 
         if response.is_some() {
           node.mangled_accessor.replace(response);
+        }
+      }
+    }
+  }
+
+  fn visit_generic_class_instantiation(&mut self, node: &crate::ast::ClassInstantiation) {
+    let class_name = &node.class_name;
+    let class_context = Context::find_global_class_declaration(&self.current_context, class_name);
+
+    if let Some(_) = &node.generic_type_assignment {
+      if let Some(class_context) = class_context {
+        let stringified_generic_types = &TypeDeclaration::stringified_generic_types(
+          &node.generic_type_assignment,
+          &class_context.borrow(),
+        );
+
+        let still_contains_generic_types = match &self.current_context.borrow().generic_context {
+          Some(gen) => gen.contains_generic_identifier(&TypeDeclaration::flat_type_names(
+            &node.class_name,
+            &node.generic_type_assignment,
+          )),
+          None => false,
+        };
+
+        dbg!(still_contains_generic_types);
+
+        if still_contains_generic_types {
+          return;
+        }
+
+        let response = class_context
+          .borrow_mut()
+          .register_generic_call(&stringified_generic_types);
+
+        if response.is_some() {
+          // TODO: perhaps? Not sure it is needed tbh
+          // node.mangled_accessor.replace(response);
         }
       }
     }

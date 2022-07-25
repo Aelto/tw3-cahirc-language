@@ -29,11 +29,7 @@ pub enum Expression {
 impl visitor::Visited for Expression {
   fn accept<T: visitor::Visitor>(&self, visitor: &mut T) {
     match self {
-      Expression::Integer(_)
-      | Expression::String(_)
-      | Expression::Name(_)
-      | Expression::Not(_)
-      | Expression::ClassInstantiation(_) => {}
+      Expression::Integer(_) | Expression::String(_) | Expression::Name(_) => {}
       Expression::Cast(_, x) => x.accept(visitor),
       Expression::Identifier(x) => x.accept(visitor),
       Expression::FunctionCall(x) => x.accept(visitor),
@@ -44,6 +40,8 @@ impl visitor::Visited for Expression {
       Expression::Nesting(x) => x.accept(visitor),
       Expression::Error => todo!(),
       Expression::Group(x) => x.accept(visitor),
+      Expression::ClassInstantiation(x) => x.accept(visitor),
+      Expression::Not(x) => x.accept(visitor),
     }
   }
 }

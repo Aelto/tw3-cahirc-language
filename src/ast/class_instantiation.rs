@@ -25,7 +25,15 @@ impl ClassInstantiation {
 }
 
 impl Visited for ClassInstantiation {
-  fn accept<T: visitor::Visitor>(&self, _: &mut T) {}
+  fn accept<T: visitor::Visitor>(&self, visitor: &mut T) {
+    if let Some(generic_types) = &self.generic_type_assignment {
+      visitor.visit_generic_class_instantiation(self);
+
+      for t in generic_types {
+        t.accept(visitor);
+      }
+    };
+  }
 }
 
 impl Codegen for ClassInstantiation {

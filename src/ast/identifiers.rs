@@ -124,12 +124,14 @@ impl TypeDeclaration {
     }
   }
 
-  pub fn flat_type_names(&self) -> Vec<&str> {
-    let mut output = vec![self.type_name.as_str()];
+  pub fn flat_type_names<'a>(
+    type_name: &'a String, generic_type_assignment: &'a Option<Vec<TypeDeclaration>>,
+  ) -> Vec<&'a str> {
+    let mut output = vec![type_name.as_str()];
 
-    if let Some(gen) = &self.generic_type_assignment {
+    if let Some(gen) = generic_type_assignment {
       for subtype in gen {
-        for t in subtype.flat_type_names() {
+        for t in Self::flat_type_names(&subtype.type_name, &subtype.generic_type_assignment) {
           output.push(t);
         }
       }
