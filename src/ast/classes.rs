@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use std::rc::Rc;
 
 use super::codegen::context::Context;
@@ -91,6 +92,22 @@ fn emit_class(
 
   writeln!(f, " {{")?;
 
+  // the hashset will allow us to emit duplicate variable names once.
+  let mut emitted_variable_names = HashSet::new();
+  for declaration in &context.variable_declarations {
+    'name_emitting: for name in &declaration.names {
+      if emitted_variable_names.contains(name.as_str()) {
+        continue 'name_emitting;
+      }
+
+      write!(f, "var {name}: ")?;
+      declaration.type_declaration.emit(context, f)?;
+      writeln!(f, ";")?;
+
+      emitted_variable_names.insert(name.clone());
+    }
+  }
+
   for statement in &this.body_statements {
     statement.emit(context, f)?;
     writeln!(f, "")?;
@@ -157,7 +174,7 @@ impl Codegen for ClassBodyStatement {
         }
 
         property_declaration.emit(context, f)?;
-        writeln!(f, ";")?;
+        // writeln!(f, ";")?;
       }
       ClassBodyStatement::DefaultValue(x) => {
         write!(f, "default ")?;

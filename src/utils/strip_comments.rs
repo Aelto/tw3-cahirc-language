@@ -24,7 +24,7 @@ pub fn strip_comments(input: String) -> String {
 
           is_in_string = is_in_string || start < comment_start && comment_start < end;
         } else {
-          println!("Warning: unterminated string found while stripping comments");
+          // println!("Warning: unterminated string found while stripping comments");
           continue 'chunkloop;
         }
       }

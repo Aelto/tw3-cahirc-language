@@ -29,6 +29,7 @@ impl visitor::Visited for FunctionDeclaration {
       _ => {}
     };
 
+    self.parameters.accept(visitor);
     self.body_statements.accept(visitor);
   }
 }
@@ -95,7 +96,7 @@ fn emit_function(
 
       write!(f, "var {name}: ")?;
       declaration.type_declaration.emit(context, f)?;
-      writeln!(f, ";");
+      writeln!(f, ";")?;
 
       emitted_variable_names.insert(name.clone());
     }

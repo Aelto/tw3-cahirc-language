@@ -1,5 +1,6 @@
 use std::cell::RefCell;
 use std::collections::HashMap;
+use std::collections::HashSet;
 use std::rc::Rc;
 
 use crate::ast::TypedIdentifier;
@@ -245,6 +246,12 @@ impl GenericContext {
   fn is_variant_valid(&self, types: &HashMap<GenericType, ResolvedGenericType>) -> bool {
     self.types.iter().all(|t| types.contains_key(t))
       && types.iter().all(|(key, _)| self.types.contains(key))
+  }
+
+  pub fn contains_generic_identifier(&self, identifiers: &Vec<&str>) -> bool {
+    let hash: HashSet<String> = HashSet::from_iter(self.types.iter().cloned());
+
+    identifiers.iter().any(|t| hash.contains(*t))
   }
 }
 

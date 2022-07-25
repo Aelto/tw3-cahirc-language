@@ -91,14 +91,15 @@ impl Codegen for TypeDeclaration {
     }
 
     if let Some(comma_separated_types) = &self.generic_type_assignment {
-      // special case: array is the only generic type support by vanilla WS
+      // special case: array is the only generic type supported by vanilla WS
       if self.type_name == "array" {
         write!(f, "<")?;
         comma_separated_types.emit_join(context, f, ", ")?;
         write!(f, ">")?;
       } else {
-        let generic_variant_suffix =
-          GenericContext::generic_variant_suffix_from_types(&self.stringified_generic_types());
+        let generic_variant_suffix = GenericContext::generic_variant_suffix_from_types(
+          &TypeDeclaration::stringified_generic_types(&self.generic_type_assignment, &context),
+        );
 
         write!(f, "{generic_variant_suffix}")?;
       }
@@ -123,12 +124,50 @@ impl TypeDeclaration {
     }
   }
 
-  pub fn stringified_generic_types(&self) -> Vec<String> {
-    match &self.generic_type_assignment {
+  pub fn flat_type_names(&self) -> Vec<&str> {
+    let mut output = vec![self.type_name.as_str()];
+
+    if let Some(gen) = &self.generic_type_assignment {
+      for subtype in gen {
+        for t in subtype.flat_type_names() {
+          output.push(t);
+        }
+      }
+    }
+
+    output
+  }
+
+  pub fn stringified_generic_types(
+    generic_type_assignment: &Option<Vec<TypeDeclaration>>, context: &Context,
+  ) -> Vec<String> {
+    match generic_type_assignment {
       None => Vec::new(),
       Some(generic_types) => generic_types
         .iter()
-        .map(|t| t.to_string())
+        .map(|t| {
+          let mut type_name: Vec<u8> = Vec::new();
+          let stringified_type = if t.generic_type_assignment.is_some() {
+            let mut output = t.to_string();
+
+            output.push_str(
+              &Self::stringified_generic_types(&t.generic_type_assignment, context).join(""),
+            );
+
+            output
+          } else {
+            t.to_string()
+          };
+
+          let result = context.transform_if_generic_type(&mut type_name, &stringified_type);
+
+          match result {
+            Ok(_) => std::str::from_utf8(&type_name)
+              .and_then(|s| Ok(s.to_string()))
+              .unwrap_or_else(|err| stringified_type),
+            Err(_) => stringified_type,
+          }
+        })
         .collect::<Vec<String>>(),
     }
   }

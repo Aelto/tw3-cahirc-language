@@ -136,3 +136,8 @@ pub use expressions::OperationCode;
 
 mod function_call;
 pub use function_call::FunctionCall;
+
+// -----------------------------------------------------------------------------
+
+mod lambda;
+pub use lambda::Lambda;

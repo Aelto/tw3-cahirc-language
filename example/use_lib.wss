@@ -1,9 +1,0 @@
-
-function main() {
-  var counter_str: Counter<string>;
-
-  counter_str.add("hello");
-  counter_str.add("world");
-
-  testGeneric::<int>();
-}

@@ -3,6 +3,7 @@ use std::rc::Rc;
 
 use crate::ast::codegen::context::Context;
 use crate::ast::ProgramInformation;
+use crate::ast::TypeDeclaration;
 
 /// Looks for generic calls and register them to the GenericCallRegister
 pub struct GenericCallsVisitor<'a> {
@@ -58,9 +59,23 @@ impl super::Visitor for GenericCallsVisitor<'_> {
 
     if let Some(_) = &node.generic_type_assignment {
       if let Some(class_context) = class_context {
+        let stringified_generic_types = &TypeDeclaration::stringified_generic_types(
+          &node.generic_type_assignment,
+          &class_context.borrow(),
+        );
+
+        let still_contains_generic_types = match &self.current_context.borrow().generic_context {
+          Some(gen) => gen.contains_generic_identifier(&node.flat_type_names()),
+          None => false,
+        };
+
+        if still_contains_generic_types {
+          return;
+        }
+
         let response = class_context
           .borrow_mut()
-          .register_generic_call(&node.stringified_generic_types());
+          .register_generic_call(&stringified_generic_types);
 
         if response.is_some() {
           node.mangled_accessor.replace(response);

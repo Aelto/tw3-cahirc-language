@@ -29,11 +29,12 @@ impl Visited for ClassInstantiation {
 }
 
 impl Codegen for ClassInstantiation {
-  fn emit(&self, _: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
+  fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
     use std::io::Write as IoWrite;
 
-    let generic_variant_suffix =
-      GenericContext::generic_variant_suffix_from_types(&self.stringified_generic_types());
+    let generic_variant_suffix = GenericContext::generic_variant_suffix_from_types(
+      &TypeDeclaration::stringified_generic_types(&self.generic_type_assignment, &context),
+    );
 
     write!(
       f,
