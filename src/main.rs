@@ -22,6 +22,7 @@ use crate::ast::codegen::context::Context;
 use crate::ast::visitor::ContextBuildingVisitor;
 use crate::ast::visitor::FunctionVisitor;
 use crate::ast::visitor::LibraryEmitterVisitor;
+use crate::ast::visitor::VariableDeclarationVisitor;
 use crate::utils::strip_pragmas;
 
 lalrpop_mod!(pub parser);
@@ -147,6 +148,7 @@ fn compile_source_directory(config: &Config) -> std::io::Result<()> {
   // 2.
   // Traverse the AST to collect information about it
   for parsed_file in &dependency_ast_list {
+    let mut variable_declaration_visitor = VariableDeclarationVisitor::new(&program_information);
     let mut function_visitor = FunctionVisitor {
       program_information: &program_information,
     };
@@ -169,9 +171,11 @@ fn compile_source_directory(config: &Config) -> std::io::Result<()> {
 
     parsed_file.ast.accept(&mut context_builder);
     parsed_file.ast.accept(&mut function_visitor);
+    parsed_file.ast.accept(&mut variable_declaration_visitor);
   }
 
   for parsed_file in &ast_list {
+    let mut variable_declaration_visitor = VariableDeclarationVisitor::new(&program_information);
     let mut function_visitor = FunctionVisitor {
       program_information: &program_information,
     };
@@ -191,6 +195,7 @@ fn compile_source_directory(config: &Config) -> std::io::Result<()> {
 
     parsed_file.ast.accept(&mut context_builder);
     parsed_file.ast.accept(&mut function_visitor);
+    parsed_file.ast.accept(&mut variable_declaration_visitor);
   }
 
   // 3.

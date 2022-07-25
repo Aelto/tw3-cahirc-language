@@ -32,11 +32,7 @@ impl Codegen for ForStatement {
     self.iteration.emit(context, f)?;
     writeln!(f, ") {{")?;
 
-    
-    for statement in &self.body_statements {
-      statement.emit(context, f)?;
-      writeln!(f, "")?;
-    }
+    self.body_statements.emit_join(context, f, "\n")?;
 
     writeln!(f, "}}")?;
 

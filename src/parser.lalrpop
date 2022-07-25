@@ -324,7 +324,7 @@ DoWhileStatement: DoWhileStatement = {
 
 VariableDeclaration: VariableDeclaration = {
     KeywordVar <typed_identifier: TypedIdentifier> <expression:("=" <Expression>)?> => VariableDeclaration {
-        declaration: typed_identifier,
+        declaration: Rc::new(typed_identifier),
         following_expression: expression
     }
 }

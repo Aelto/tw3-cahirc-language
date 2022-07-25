@@ -53,12 +53,14 @@ impl Codegen for VariableDeclarationOrAssignment {
 
 #[derive(Debug)]
 pub struct VariableDeclaration {
-  pub declaration: TypedIdentifier,
+  pub declaration: Rc<TypedIdentifier>,
   pub following_expression: Option<Rc<Expression>>,
 }
 
 impl visitor::Visited for VariableDeclaration {
   fn accept<T: visitor::Visitor>(&self, visitor: &mut T) {
+    visitor.visit_variable_declaration(self);
+
     self.declaration.accept(visitor);
     self.following_expression.accept(visitor);
   }
@@ -67,13 +69,20 @@ impl visitor::Visited for VariableDeclaration {
 impl Codegen for VariableDeclaration {
   fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
     use std::io::Write as IoWrite;
-
-    write!(f, "var ")?;
-    self.declaration.emit(context, f)?;
+    // variables are emitted manually by the functions, it is part of the feature
+    // allowing variable declarations anywhere in function bodies.
+    //
+    // write!(f, "var ")?;
+    // self.declaration.emit(context, f)?;
 
     if let Some(expr) = &self.following_expression {
+      if let Some(variable_name) = self.declaration.names.first() {
+        write!(f, "{variable_name}")?;
+      }
+
       write!(f, " = ")?;
       expr.emit(context, f)?;
+      writeln!(f, ";")?;
     }
 
     Ok(())

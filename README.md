@@ -6,12 +6,13 @@ This allows the use of new features available to `wss` that get converted to val
 
 ## Main features & goals
  - [x] Generics, with mangled names to allow use of `wss` libraries
- - [x] Macros, conditional compilation, support for recursive macros (macros that generate calls to macros)
+ - [x] Conditional compilation
+ - [x] _unstable_: Macros, support for recursive macros (macros that generate calls to macros)
  - [ ] For..in loops
  - [x] Constant primitive variables in the global scope (macro constants)
  - [x] Lambdas, can be achieved using macros
  - [ ] Closures
- - [ ] Variable declarations anywhere in function bodies
+ - [x] Variable declarations anywhere in function bodies
  - [ ] some forms of static analysis, or at least syntax validation
  - [ ] namespaces and import statements
 

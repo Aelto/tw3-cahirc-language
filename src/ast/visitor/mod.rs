@@ -12,6 +12,9 @@ pub use context_building_visitor::ContextBuildingVisitor;
 mod library_emitter_visitor;
 pub use library_emitter_visitor::LibraryEmitterVisitor;
 
+mod variable_declaration_visitor;
+pub use variable_declaration_visitor::VariableDeclarationVisitor;
+
 pub mod implementations;
 
 pub trait Visitor {
@@ -19,6 +22,7 @@ pub trait Visitor {
   fn visit_class_declaration(&mut self, _: &ClassDeclaration) {}
   fn visit_generic_function_call(&mut self, _: &FunctionCall) {}
   fn visit_generic_variable_declaration(&mut self, _: &TypeDeclaration) {}
+  fn visit_variable_declaration(&mut self, _: &VariableDeclaration) {}
   fn visitor_type(&self) -> VisitorType;
 }
 
@@ -31,4 +35,5 @@ pub enum VisitorType {
   GenericCallsVisitor,
   ContextBuildingVisitor,
   LibraryEmitterVisitor,
+  VariableDeclarationVisitor,
 }

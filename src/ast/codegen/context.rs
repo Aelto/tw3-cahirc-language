@@ -2,6 +2,8 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
 
+use crate::ast::TypedIdentifier;
+
 #[derive(Debug)]
 pub struct Context {
   /// Mostly for debugging purposes
@@ -18,6 +20,10 @@ pub struct Context {
 
   pub is_library: bool,
   pub mangled_accessor: Option<String>,
+
+  /// Stores the variable declarations in the context. To be able to emit them
+  /// at the start of the functions/classes/structs
+  pub variable_declarations: Vec<Rc<TypedIdentifier>>,
 }
 
 impl Context {
@@ -30,6 +36,7 @@ impl Context {
       generic_context: generic_types.and_then(|t| Some(GenericContext::new(t))),
       is_library: false,
       mangled_accessor: None,
+      variable_declarations: Vec::new(),
     }
   }
 
@@ -77,8 +84,7 @@ impl Context {
   }
 
   pub fn find_global_function_declaration(
-    this: &Rc<RefCell<Context>>,
-    name: &str,
+    this: &Rc<RefCell<Context>>, name: &str,
   ) -> Option<Rc<RefCell<Context>>> {
     let program = Self::get_top_most_context(this);
     let context_name = format!("function: {}", name);
@@ -100,8 +106,7 @@ impl Context {
   }
 
   pub fn find_global_class_declaration(
-    this: &Rc<RefCell<Context>>,
-    name: &str,
+    this: &Rc<RefCell<Context>>, name: &str,
   ) -> Option<Rc<RefCell<Context>>> {
     let program = Self::get_top_most_context(this);
     let context_name = format!("class: {}", name);
@@ -153,9 +158,7 @@ impl Context {
   /// the resolved type in return. If not or if there is no match then return
   /// the unchanged identifier that was passed as a parameter.
   pub fn transform_if_generic_type(
-    &self,
-    f: &mut Vec<u8>,
-    identifier: &str,
+    &self, f: &mut Vec<u8>, identifier: &str,
   ) -> Result<(), std::io::Error> {
     use std::io::Write as IoWrite;
 
@@ -247,9 +250,7 @@ impl GenericContext {
 
 impl<'a> GenericContext {
   pub fn transform_if_generic_type(
-    &'a self,
-    f: &mut Vec<u8>,
-    identifier: &str,
+    &'a self, f: &mut Vec<u8>, identifier: &str,
   ) -> Option<Result<(), std::io::Error>> {
     use std::io::Write as IoWrite;
 

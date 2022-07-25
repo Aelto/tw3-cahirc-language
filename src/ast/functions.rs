@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use std::rc::Rc;
 
 use super::codegen::context::Context;
@@ -33,7 +34,7 @@ impl visitor::Visited for FunctionDeclaration {
 }
 
 impl Codegen for FunctionDeclaration {
-  fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
+  fn emit(&self, _: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
     let has_generic_context = self.context.borrow().generic_context.is_some();
     if has_generic_context {
       let mut variants = Vec::new();
@@ -54,7 +55,7 @@ impl Codegen for FunctionDeclaration {
         emit_function(self, &self.context.borrow(), f, &variant)?;
       }
     } else {
-      emit_function(self, &context, f, "")?;
+      emit_function(self, &self.context.borrow(), f, "")?;
     }
 
     Ok(())
@@ -83,6 +84,22 @@ fn emit_function(
   }
 
   writeln!(f, " {{")?;
+
+  // the hashset will allow us to emit duplicate variable names once.
+  let mut emitted_variable_names = HashSet::new();
+  for declaration in &context.variable_declarations {
+    'name_emitting: for name in &declaration.names {
+      if emitted_variable_names.contains(name.as_str()) {
+        continue 'name_emitting;
+      }
+
+      write!(f, "var {name}: ")?;
+      declaration.type_declaration.emit(context, f)?;
+      writeln!(f, ";");
+
+      emitted_variable_names.insert(name.clone());
+    }
+  }
 
   for statement in &this.body_statements {
     statement.emit(context, f)?;
@@ -161,7 +178,9 @@ impl Codegen for FunctionBodyStatement {
     match self {
       FunctionBodyStatement::VariableDeclaration(x) => {
         x.emit(context, f)?;
-        writeln!(f, ";")?;
+        // the semicolon is added by the variable declaration itself as it does
+        // not always need to be emitted.
+        // writeln!(f, ";")?;
       }
       FunctionBodyStatement::Expression(x) => {
         x.emit(context, f)?;
