@@ -1,13 +1,13 @@
 use std::collections::HashMap;
 
+use crate::ast::ProgramInformation;
 use crate::preprocessor::MacroConstant;
 
 use super::pragma_replace::get_pragma_replace_directives;
 use super::types::*;
 
 pub fn expand_macros(
-  registered_macros: &mut HashMap<String, MacroDefinition>,
-  new_content: &mut String,
+  registered_macros: &mut HashMap<String, MacroDefinition>, new_content: &mut String,
   regex_collection: &RegexCollection,
 ) -> bool {
   loop {
@@ -92,9 +92,7 @@ pub fn expand_macros(
 }
 
 fn expand_macro_call(
-  content: &mut String,
-  macro_name: &str,
-  registered_macros: &HashMap<String, MacroDefinition>,
+  content: &mut String, macro_name: &str, registered_macros: &HashMap<String, MacroDefinition>,
 ) {
   let macro_call_index = content.find(&format!("{macro_name}!"));
 
@@ -141,12 +139,41 @@ fn expand_macro_call(
 
           slice = &slice[2 + body_end_index + 2..];
         } else {
-          let end = slice.len();
-          let comma_index = slice.find(",").unwrap_or(end);
-          let paren_index = slice.find(")").unwrap_or(end);
+          let program_information = ProgramInformation::new();
+          let parsing_result =
+            crate::parser::ExpressionParser::new().parse(&program_information, &slice);
 
-          parameters.push(&slice[..comma_index.min(paren_index)]);
-          slice = &slice[comma_index.min(paren_index)..];
+          let parameter_slice = match parsing_result {
+            Ok(_) => unreachable!(),
+            // A bit of a weird case here, we expect to have an unrecognized token
+            // which will help us know when the expression end. So we get the
+            // index out of the error to build the slice.
+            Err(err) => match err {
+              lalrpop_util::ParseError::UnrecognizedToken { token, expected: _ } => {
+                let token_position = token.0;
+
+                &slice[..token_position]
+              }
+              lalrpop_util::ParseError::InvalidToken { location: _ } => unreachable!(),
+              lalrpop_util::ParseError::UnrecognizedEOF {
+                location: _,
+                expected: _,
+              } => unreachable!(),
+              lalrpop_util::ParseError::ExtraToken { token: _ } => unreachable!(),
+              lalrpop_util::ParseError::User { error: _ } => unreachable!(),
+            },
+          };
+
+          parameters.push(&parameter_slice);
+          slice = &slice[parameter_slice.len()..];
+
+          // this is the old, buggy, way of doing it:
+          // let end = slice.len();
+          // let comma_index = slice.find(",").unwrap_or(end);
+          // let paren_index = slice.find(")").unwrap_or(end);
+
+          // parameters.push(&slice[..comma_index.min(paren_index)]);
+          // slice = &slice[comma_index.min(paren_index)..];
         }
       }
 
