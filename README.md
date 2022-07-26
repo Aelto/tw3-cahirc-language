@@ -108,10 +108,13 @@ This lambda is a function that takes 1 parameter `x` of type `int` and returns a
 
 You can then define the lambda using the following syntax:
 ```js
-a_lambda = |el: int| el * 2;
+a_lambda = |el: int| el * 2 as int;
 ```
 As you notice, parameters are surrounded by two pipes `|`, we also took the opportunity to rename
 the variable `x` the way we wanted. And finally the expression `el * 2` that is instantly returned.
+We also specify the return type using the `as <type>` syntax. If the last statement
+is a type cast then it will be used as the lambda's return type, otherwise the lambda
+will default to `void`.
 
 When a lambda has only one expression, you can omit the `{` and `}` around the body
 as well as the `return` statement. If you were to include two or more lines of code
@@ -121,7 +124,7 @@ in the body of the lambda, these would be required:
 a_lambda = |el: int| {
   var another_number: int = 5; // you can declare variables
 
-  return el + another_number;
+  return el + another_number as int;
 };
 ```
 
@@ -174,7 +177,7 @@ Lamba functions also work inside generic contexts:
 
   // ...
 
-  my_list_2 = map::<int, string>(my_list_1, |x: int| "the number is: " + x;);
+  my_list_2 = map::<int, string>(my_list_1, |x: int| "the number is: " + x as string;);
   ```
 </details>
 

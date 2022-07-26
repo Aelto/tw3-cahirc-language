@@ -1,3 +1,4 @@
+use std::borrow::Borrow;
 use std::collections::HashSet;
 
 use crate::ast::codegen::context::GenericContext;
@@ -83,9 +84,22 @@ fn emit_lambda_declaration(
 
   // we generate a more complete generic variant suffix that includes all types
   // and not just the generic ones.
-  let this_generic_variant_suffix = GenericContext::generic_variant_suffix_from_types(
+  let mut this_generic_variant_suffix = GenericContext::generic_variant_suffix_from_types(
     &TypeDeclaration::stringified_generic_types(&parameter_types, &context),
   );
+
+  let return_type_suffix = if let Some(returntype) = &this.type_declaration {
+    let returntype: &TypeDeclaration = &returntype.borrow();
+    GenericContext::generic_variant_suffix_from_types(&TypeDeclaration::stringified_generic_types(
+      &vec![returntype],
+      &context,
+    ))
+  } else {
+    String::from("_void")
+  };
+
+  this_generic_variant_suffix.push_str("_rt_");
+  this_generic_variant_suffix.push_str(&return_type_suffix);
 
   // a similar type was already emitted
   if emitted_types.contains(&this_generic_variant_suffix) {
@@ -95,8 +109,14 @@ fn emit_lambda_declaration(
   writeln!(f, "abstract class lambda_{this_generic_variant_suffix} {{")?;
   write!(f, "  function call(")?;
   this.parameters.emit_join(context, f, ", ")?;
-  writeln!(f, ") {{}}")?;
-  writeln!(f, "}}")?;
+  write!(f, ")")?;
+
+  if let Some(returntype) = &this.type_declaration {
+    write!(f, ": ")?;
+    returntype.emit(context, f)?;
+  }
+
+  writeln!(f, " {{}}\n}}")?;
 
   emitted_types.insert(this_generic_variant_suffix);
 
@@ -205,6 +225,24 @@ fn emit_lambda(
     &TypeDeclaration::stringified_generic_types(&parameter_types, &context),
   );
 
+  // get the return type from the last body statement, if it is a type cast then
+  // we use it as the return type, otherwise it defaults to void (None).
+  let return_type = match this.body_statements.last().unwrap() {
+    FunctionBodyStatement::Expression(expression) => match expression.borrow() {
+      Expression::Cast(cast_type, _) => Some(cast_type),
+      _ => None,
+    },
+    FunctionBodyStatement::Return(x) => match x {
+      Some(expression) => match expression.borrow() {
+        Expression::Cast(cast_type, _) => Some(cast_type),
+        _ => None,
+      },
+      None => None,
+    },
+
+    _ => None,
+  };
+
   if let Some(mangled_suffix) = this.mangled_accessor.borrow().as_ref() {
     writeln!(
       f,
@@ -212,7 +250,13 @@ fn emit_lambda(
     )?;
     write!(f, "function call(")?;
     this.parameters.emit_join(context, f, ", ")?;
-    writeln!(f, ") {{")?;
+    write!(f, ")")?;
+
+    if let Some(returntype) = &return_type {
+      write!(f, ": {returntype}")?;
+    }
+
+    writeln!(f, " {{")?;
     match this.lambda_type {
       LambdaType::SingleLine => {
         write!(f, "return ")?;
