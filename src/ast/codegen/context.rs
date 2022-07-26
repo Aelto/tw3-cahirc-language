@@ -221,7 +221,7 @@ impl GenericContext {
   }
 
   pub fn generic_variant_suffix_from_types(types: &Vec<GenericType>) -> String {
-    types.iter().map(|s| s.to_string()).collect::<String>()
+    types.iter().map(|s| format!("_{s}")).collect::<String>()
   }
 
   pub fn add_generic_variant(&mut self, types: HashMap<GenericType, ResolvedGenericType>) {

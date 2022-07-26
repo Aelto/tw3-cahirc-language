@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use crate::ast::codegen::context::GenericContext;
 
 use super::visitor::Visited;
@@ -34,7 +36,7 @@ impl LambdaDeclaration {
   /// emits the base abstract class the lambdas will extend to finally implement
   /// the run method.
   pub fn emit_base_type(
-    &self, context: &mut Context, f: &mut Vec<u8>,
+    &self, context: &mut Context, f: &mut Vec<u8>, emitted_types: &mut HashSet<String>,
   ) -> Result<(), std::io::Error> {
     let has_generic_context = context.generic_context.is_some();
     if has_generic_context {
@@ -53,10 +55,10 @@ impl LambdaDeclaration {
           }
         }
 
-        emit_lambda_declaration(self, &context, f, &variant)?;
+        emit_lambda_declaration(self, &context, f, &variant, emitted_types)?;
       }
     } else {
-      emit_lambda_declaration(self, &context, f, "")?;
+      emit_lambda_declaration(self, &context, f, "", emitted_types)?;
     }
 
     Ok(())
@@ -65,6 +67,7 @@ impl LambdaDeclaration {
 
 fn emit_lambda_declaration(
   this: &LambdaDeclaration, context: &Context, f: &mut Vec<u8>, _generic_variant_suffix: &str,
+  emitted_types: &mut HashSet<String>,
 ) -> Result<(), std::io::Error> {
   use std::io::Write as IoWrite;
 
@@ -84,11 +87,18 @@ fn emit_lambda_declaration(
     &TypeDeclaration::stringified_generic_types(&parameter_types, &context),
   );
 
+  // a similar type was already emitted
+  if emitted_types.contains(&this_generic_variant_suffix) {
+    return Ok(());
+  }
+
   writeln!(f, "abstract class lambda_{this_generic_variant_suffix} {{")?;
   write!(f, "  function call(")?;
   this.parameters.emit_join(context, f, ", ")?;
   writeln!(f, ") {{}}")?;
   writeln!(f, "}}")?;
+
+  emitted_types.insert(this_generic_variant_suffix);
 
   Ok(())
 }
