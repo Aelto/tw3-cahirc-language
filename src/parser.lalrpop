@@ -41,7 +41,8 @@ use crate::ast::{
     SwitchCaseStatement,
     LambdaDeclaration,
     Lambda,
-    LambdaType
+    LambdaType,
+    ForInStatement,
 };
 
 use crate::ast::codegen::context::Context;
@@ -229,6 +230,7 @@ FunctionBodyStatement: FunctionBodyStatement = {
     <var:VariableAssignment> ";" => FunctionBodyStatement::Assignement(<>),
     IfStatement => FunctionBodyStatement::IfStatement(<>),
     ForStatement => FunctionBodyStatement::ForStatement(<>),
+    ForInStatement => FunctionBodyStatement::ForInStatement(<>),
     WhileStatement => FunctionBodyStatement::WhileStatement(<>),
     <DoWhileStatement> ";" => FunctionBodyStatement::DoWhileStatement(<>),
     SwitchStatement => FunctionBodyStatement::SwitchStatement(<>)
@@ -315,6 +317,20 @@ VariableDeclarationOrAssignment: VariableDeclarationOrAssignment = {
     VariableDeclaration => VariableDeclarationOrAssignment::Declaration(<>),
     VariableAssignment => VariableDeclarationOrAssignment::Assignement(<>)
 }
+
+// -----------------------------------------------------------------------------
+
+ForInStatement: ForInStatement = {
+    KeywordFor <child:TypedIdentifier> KeywordIn <parent:Expression>
+    "{" <mut body_statements:(<FunctionBodyStatement>)*> "}"
+        => ForInStatement {
+            child: Rc::new(child),
+            parent,
+            body_statements,
+            indexor_name: RefCell::new(String::new()),
+        }
+}
+
 
 // -----------------------------------------------------------------------------
 

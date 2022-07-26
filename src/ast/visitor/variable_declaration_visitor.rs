@@ -3,6 +3,7 @@ use std::rc::Rc;
 
 use crate::ast::codegen::context::Context;
 use crate::ast::ProgramInformation;
+use crate::ast::TypedIdentifier;
 
 /// Looks variable declarations and register them to the context of the current
 /// function. Allows for variable declarations anywhere in function bodies.
@@ -36,10 +37,14 @@ impl super::Visitor for VariableDeclarationVisitor<'_> {
   }
 
   fn visit_variable_declaration(&mut self, node: &crate::ast::VariableDeclaration) {
+    self.register_variable_declaration(node.declaration.clone());
+  }
+
+  fn register_variable_declaration(&mut self, declaration: Rc<TypedIdentifier>) {
     self
       .current_context
       .borrow_mut()
       .variable_declarations
-      .push(node.declaration.clone());
+      .push(declaration);
   }
 }

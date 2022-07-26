@@ -147,6 +147,7 @@ pub enum FunctionBodyStatement {
   Assignement(VariableAssignment),
   IfStatement(IfStatement),
   ForStatement(ForStatement),
+  ForInStatement(ForInStatement),
   WhileStatement(WhileStatement),
   DoWhileStatement(DoWhileStatement),
   SwitchStatement(SwitchStatement),
@@ -168,6 +169,7 @@ impl visitor::Visited for FunctionBodyStatement {
       FunctionBodyStatement::Delete(x) => x.accept(visitor),
       FunctionBodyStatement::Break => {}
       FunctionBodyStatement::Continue => {}
+      FunctionBodyStatement::ForInStatement(x) => x.accept(visitor),
     };
   }
 }
@@ -203,6 +205,10 @@ impl Codegen for FunctionBodyStatement {
       FunctionBodyStatement::ForStatement(x) => {
         x.emit(context, f)?;
         writeln!(f, "")?;
+      }
+      FunctionBodyStatement::ForInStatement(x) => {
+        x.emit(context, f)?;
+        write!(f, "")?;
       }
       FunctionBodyStatement::WhileStatement(x) => {
         x.emit(context, f)?;

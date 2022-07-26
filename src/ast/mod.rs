@@ -102,6 +102,7 @@ pub use variables::VariableDeclarationOrAssignment;
 // -----------------------------------------------------------------------------
 
 mod for_loops;
+pub use for_loops::ForInStatement;
 pub use for_loops::ForStatement;
 
 // -----------------------------------------------------------------------------
