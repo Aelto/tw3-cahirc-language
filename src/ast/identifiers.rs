@@ -18,14 +18,16 @@ impl Visited for IdentifierTerm {
 }
 
 impl Codegen for IdentifierTerm {
-  fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
+  fn emit(
+    &self, context: &Context, f: &mut Vec<u8>, data: &Option<EmitAdditionalData>,
+  ) -> Result<(), std::io::Error> {
     use std::io::Write as IoWrite;
 
     write!(f, "{}", self.text)?;
 
     for indexing in &self.indexing {
       write!(f, "[")?;
-      indexing.emit(context, f)?;
+      indexing.emit(context, f, data)?;
       write!(f, "]")?;
     }
 
@@ -40,11 +42,13 @@ pub struct TypedIdentifier {
 }
 
 impl Codegen for TypedIdentifier {
-  fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
+  fn emit(
+    &self, context: &Context, f: &mut Vec<u8>, data: &Option<EmitAdditionalData>,
+  ) -> Result<(), std::io::Error> {
     use std::io::Write as IoWrite;
 
     write!(f, "{}: ", self.names.join(", "))?;
-    self.type_declaration.emit(context, f)
+    self.type_declaration.emit(context, f, data)
   }
 }
 
@@ -93,7 +97,9 @@ impl Visited for TypeDeclaration {
 }
 
 impl Codegen for TypeDeclaration {
-  fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
+  fn emit(
+    &self, context: &Context, f: &mut Vec<u8>, data: &Option<EmitAdditionalData>,
+  ) -> Result<(), std::io::Error> {
     use std::io::Write as IoWrite;
 
     match self {
@@ -112,7 +118,7 @@ impl Codegen for TypeDeclaration {
           // special case: array is the only generic type supported by vanilla WS
           if type_name == "array" {
             write!(f, "<")?;
-            comma_separated_types.emit_join(context, f, ", ")?;
+            comma_separated_types.emit_join(context, f, ", ", data)?;
             write!(f, ">")?;
           } else {
             let stringified_types = match &generic_type_assignment {
@@ -138,7 +144,7 @@ impl Codegen for TypeDeclaration {
           }
         }
       }
-      TypeDeclaration::Lambda(x) => x.emit(context, f)?,
+      TypeDeclaration::Lambda(x) => x.emit(context, f, data)?,
     };
 
     Ok(())

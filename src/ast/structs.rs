@@ -16,13 +16,15 @@ impl Visited for StructDeclaration {
 }
 
 impl Codegen for StructDeclaration {
-  fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
+  fn emit(
+    &self, context: &Context, f: &mut Vec<u8>, data: &Option<EmitAdditionalData>,
+  ) -> Result<(), std::io::Error> {
     use std::io::Write as IoWrite;
 
     writeln!(f, "struct {} {{", self.name)?;
 
     for statement in &self.body_statements {
-      statement.emit(context, f)?;
+      statement.emit(context, f, data)?;
       writeln!(f, "")?;
     }
 
@@ -48,19 +50,20 @@ impl Visited for StructBodyStatement {
 }
 
 impl Codegen for StructBodyStatement {
-  fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
+  fn emit(
+    &self, context: &Context, f: &mut Vec<u8>, data: &Option<EmitAdditionalData>,
+  ) -> Result<(), std::io::Error> {
     use std::io::Write as IoWrite;
 
     match self {
       StructBodyStatement::Property(x) => {
-        x.emit(context, f)?;
-        write!(f, ";")?;
-      },
+        x.emit(context, f, data)?;
+      }
       StructBodyStatement::DefaultValue(x) => {
         write!(f, "default ")?;
-        x.emit(context, f)?;
+        x.emit(context, f, data)?;
         writeln!(f, ";")?;
-      },
+      }
     };
 
     Ok(())

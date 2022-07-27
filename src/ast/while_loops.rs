@@ -15,13 +15,15 @@ impl Visited for WhileStatement {
 }
 
 impl Codegen for WhileStatement {
-  fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
+  fn emit(
+    &self, context: &Context, f: &mut Vec<u8>, data: &Option<EmitAdditionalData>,
+  ) -> Result<(), std::io::Error> {
     use std::io::Write as IoWrite;
 
     write!(f, "while (")?;
-    self.condition.emit(context, f)?;
+    self.condition.emit(context, f, data)?;
     writeln!(f, ") {{")?;
-    self.body_statements.emit(context, f)?;
+    self.body_statements.emit(context, f, data)?;
     writeln!(f, "}}")?;
 
     Ok(())
@@ -42,17 +44,19 @@ impl Visited for DoWhileStatement {
 }
 
 impl Codegen for DoWhileStatement {
-  fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
+  fn emit(
+    &self, context: &Context, f: &mut Vec<u8>, data: &Option<EmitAdditionalData>,
+  ) -> Result<(), std::io::Error> {
     use std::io::Write as IoWrite;
 
     writeln!(f, "do {{")?;
 
     for statement in &self.body_statements {
-      statement.emit(context, f)?;
+      statement.emit(context, f, data)?;
     }
 
     write!(f, "}} while (")?;
-    self.condition.emit(context, f)?;
+    self.condition.emit(context, f, data)?;
     writeln!(f, ");")?;
 
     Ok(())

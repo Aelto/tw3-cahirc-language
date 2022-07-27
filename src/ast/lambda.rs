@@ -37,7 +37,8 @@ impl LambdaDeclaration {
   /// emits the base abstract class the lambdas will extend to finally implement
   /// the run method.
   pub fn emit_base_type(
-    &self, context: &mut Context, f: &mut Vec<u8>, emitted_types: &mut HashSet<String>,
+    &self, context: &mut Context, f: &mut Vec<u8>, data: &Option<EmitAdditionalData>,
+    emitted_types: &mut HashSet<String>,
   ) -> Result<(), std::io::Error> {
     let has_generic_context = context.generic_context.is_some();
     if has_generic_context {
@@ -56,10 +57,10 @@ impl LambdaDeclaration {
           }
         }
 
-        emit_lambda_declaration(self, &context, f, &variant, emitted_types)?;
+        emit_lambda_declaration(self, &context, f, data, &variant, emitted_types)?;
       }
     } else {
-      emit_lambda_declaration(self, &context, f, "", emitted_types)?;
+      emit_lambda_declaration(self, &context, f, data, "", emitted_types)?;
     }
 
     Ok(())
@@ -67,8 +68,8 @@ impl LambdaDeclaration {
 }
 
 fn emit_lambda_declaration(
-  this: &LambdaDeclaration, context: &Context, f: &mut Vec<u8>, _generic_variant_suffix: &str,
-  emitted_types: &mut HashSet<String>,
+  this: &LambdaDeclaration, context: &Context, f: &mut Vec<u8>, data: &Option<EmitAdditionalData>,
+  _generic_variant_suffix: &str, emitted_types: &mut HashSet<String>,
 ) -> Result<(), std::io::Error> {
   use std::io::Write as IoWrite;
 
@@ -108,12 +109,12 @@ fn emit_lambda_declaration(
 
   writeln!(f, "abstract class lambda_{this_generic_variant_suffix} {{")?;
   write!(f, "  function call(")?;
-  this.parameters.emit_join(context, f, ", ")?;
+  this.parameters.emit_join(context, f, ", ", data)?;
   write!(f, ")")?;
 
   if let Some(returntype) = &this.type_declaration {
     write!(f, ": ")?;
-    returntype.emit(context, f)?;
+    returntype.emit(context, f, data)?;
   }
 
   writeln!(f, " {{}}\n}}")?;
@@ -133,7 +134,9 @@ impl Visited for LambdaDeclaration {
 }
 
 impl Codegen for LambdaDeclaration {
-  fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
+  fn emit(
+    &self, context: &Context, f: &mut Vec<u8>, data: &Option<EmitAdditionalData>,
+  ) -> Result<(), std::io::Error> {
     use std::io::Write as IoWrite;
 
     let parameter_types = {
@@ -175,7 +178,7 @@ impl Lambda {
   /// emits the base abstract class the lambdas will extend to finally implement
   /// the run method.
   pub fn emit_base_type(
-    &self, context: &mut Context, f: &mut Vec<u8>,
+    &self, context: &mut Context, f: &mut Vec<u8>, data: &Option<EmitAdditionalData>,
   ) -> Result<(), std::io::Error> {
     let has_generic_context = context.generic_context.is_some();
     if has_generic_context {
@@ -194,10 +197,10 @@ impl Lambda {
           }
         }
 
-        emit_lambda(self, &context, f, &variant)?;
+        emit_lambda(self, &context, f, data, &variant)?;
       }
     } else {
-      emit_lambda(self, &context, f, "")?;
+      emit_lambda(self, &context, f, data, "")?;
     }
 
     Ok(())
@@ -205,7 +208,8 @@ impl Lambda {
 }
 
 fn emit_lambda(
-  this: &Lambda, context: &Context, f: &mut Vec<u8>, _generic_variant_suffix: &str,
+  this: &Lambda, context: &Context, f: &mut Vec<u8>, data: &Option<EmitAdditionalData>,
+  _generic_variant_suffix: &str,
 ) -> Result<(), std::io::Error> {
   use std::io::Write as IoWrite;
 
@@ -249,7 +253,7 @@ fn emit_lambda(
       "class lambda_{mangled_suffix} extends lambda_{this_generic_variant_suffix} {{"
     )?;
     write!(f, "function call(")?;
-    this.parameters.emit_join(context, f, ", ")?;
+    this.parameters.emit_join(context, f, ", ", data)?;
     write!(f, ")")?;
 
     if let Some(returntype) = &return_type {
@@ -260,9 +264,9 @@ fn emit_lambda(
     match this.lambda_type {
       LambdaType::SingleLine => {
         write!(f, "return ")?;
-        this.body_statements.emit(context, f)?;
+        this.body_statements.emit(context, f, data)?;
       }
-      LambdaType::MultiLine => this.body_statements.emit(context, f)?,
+      LambdaType::MultiLine => this.body_statements.emit(context, f, data)?,
     };
     writeln!(f, "}}")?;
     writeln!(f, "}}")?;
@@ -279,7 +283,9 @@ impl Visited for Lambda {
 }
 
 impl Codegen for Lambda {
-  fn emit(&self, _: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
+  fn emit(
+    &self, _: &Context, f: &mut Vec<u8>, data: &Option<EmitAdditionalData>,
+  ) -> Result<(), std::io::Error> {
     use std::io::Write as IoWrite;
 
     let suffix = format!("wss{}", uuid::Uuid::new_v4().to_string().replace("-", ""));

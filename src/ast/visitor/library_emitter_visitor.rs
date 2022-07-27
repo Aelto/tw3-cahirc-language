@@ -33,7 +33,11 @@ impl<'a> super::Visitor for LibraryEmitterVisitor<'a> {
       return;
     }
 
-    if let Err(err) = node.emit(&self.current_context.borrow(), &mut self.emitted_code) {
+    if let Err(err) = node.emit(
+      &self.current_context.borrow(),
+      &mut self.emitted_code,
+      &None,
+    ) {
       println!(
         "Error while emitting code for {}: {}",
         self.current_context.borrow().name,
@@ -52,7 +56,11 @@ impl<'a> super::Visitor for LibraryEmitterVisitor<'a> {
       return;
     }
 
-    if let Err(err) = node.emit(&self.current_context.borrow(), &mut self.emitted_code) {
+    if let Err(err) = node.emit(
+      &self.current_context.borrow(),
+      &mut self.emitted_code,
+      &None,
+    ) {
       println!(
         "Error while emitting code for {}: {}",
         self.current_context.borrow().name,

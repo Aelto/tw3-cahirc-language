@@ -45,6 +45,7 @@ impl super::Visitor for LambdaDeclarationVisitor<'_> {
     if let Err(err) = node.emit_base_type(
       &mut self.current_context.borrow_mut(),
       &mut self.emitted_code,
+      &None,
       &mut self.emitted_types,
     ) {
       println!(
@@ -59,6 +60,7 @@ impl super::Visitor for LambdaDeclarationVisitor<'_> {
     if let Err(err) = node.emit_base_type(
       &mut self.current_context.borrow_mut(),
       &mut self.emitted_code,
+      &None,
     ) {
       println!(
         "Error while emitting code for {}: {}",

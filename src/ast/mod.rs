@@ -10,6 +10,7 @@ pub mod visitor;
 
 pub use codegen::context::Context;
 pub use codegen::context::ContextType;
+pub use codegen::EmitAdditionalData;
 
 // -----------------------------------------------------------------------------
 
@@ -35,11 +36,13 @@ impl visitor::Visited for Program {
 }
 
 impl Codegen for Program {
-  fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
+  fn emit(
+    &self, context: &Context, f: &mut Vec<u8>, data: &Option<EmitAdditionalData>,
+  ) -> Result<(), std::io::Error> {
     use std::io::Write as IoWrite;
 
     for statement in &self.statements {
-      statement.emit(context, f)?;
+      statement.emit(context, f, data)?;
       writeln!(f, "")?;
       writeln!(f, "")?;
     }

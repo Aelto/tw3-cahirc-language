@@ -31,12 +31,14 @@ impl Visited for FunctionCall {
 }
 
 impl Codegen for FunctionCall {
-  fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
+  fn emit(
+    &self, context: &Context, f: &mut Vec<u8>, data: &Option<EmitAdditionalData>,
+  ) -> Result<(), std::io::Error> {
     use std::io::Write as IoWrite;
 
     if let Some(mangled_accessor) = &self.mangled_accessor.borrow().as_deref() {
       let mut accessor = Vec::new();
-      self.accessor.emit(context, &mut accessor)?;
+      self.accessor.emit(context, &mut accessor, data)?;
 
       if let Ok(accessor) = &std::str::from_utf8(&accessor) {
         write!(
@@ -46,7 +48,7 @@ impl Codegen for FunctionCall {
         )?;
       }
     } else {
-      self.accessor.emit(context, f)?;
+      self.accessor.emit(context, f, data)?;
     }
 
     if let Some(generic_types) = &self.generic_types {
@@ -64,7 +66,7 @@ impl Codegen for FunctionCall {
     }
 
     write!(f, "(")?;
-    self.parameters.emit(context, f)?;
+    self.parameters.emit(context, f, data)?;
     write!(f, ")")?;
 
     Ok(())

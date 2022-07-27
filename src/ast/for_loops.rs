@@ -22,18 +22,20 @@ impl Visited for ForStatement {
 }
 
 impl Codegen for ForStatement {
-  fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
+  fn emit(
+    &self, context: &Context, f: &mut Vec<u8>, data: &Option<EmitAdditionalData>,
+  ) -> Result<(), std::io::Error> {
     use std::io::Write as IoWrite;
 
     write!(f, "for (")?;
-    self.initialization.emit(context, f)?;
+    self.initialization.emit(context, f, data)?;
     write!(f, "; ")?;
-    self.condition.emit(context, f)?;
+    self.condition.emit(context, f, data)?;
     write!(f, "; ")?;
-    self.iteration.emit(context, f)?;
+    self.iteration.emit(context, f, data)?;
     writeln!(f, ") {{")?;
 
-    self.body_statements.emit_join(context, f, "\n")?;
+    self.body_statements.emit_join(context, f, "\n", data)?;
 
     writeln!(f, "}}")?;
 
@@ -80,7 +82,9 @@ impl Visited for ForInStatement {
 }
 
 impl Codegen for ForInStatement {
-  fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
+  fn emit(
+    &self, context: &Context, f: &mut Vec<u8>, data: &Option<EmitAdditionalData>,
+  ) -> Result<(), std::io::Error> {
     use std::io::Write as IoWrite;
 
     write!(
@@ -89,16 +93,16 @@ impl Codegen for ForInStatement {
       self.indexor_name.borrow(),
       self.indexor_name.borrow(),
     )?;
-    self.parent.emit(context, f)?;
+    self.parent.emit(context, f, data)?;
     writeln!(f, ".Size(); {} += 1) {{", self.indexor_name.borrow())?;
 
     if let Some(variable_name) = self.child.names.first() {
       write!(f, "{} = ", variable_name)?;
-      self.parent.emit(context, f)?;
+      self.parent.emit(context, f, data)?;
       writeln!(f, "[{}];", self.indexor_name.borrow())?;
     }
 
-    self.body_statements.emit_join(context, f, "\n")?;
+    self.body_statements.emit_join(context, f, "\n", data)?;
     writeln!(f, "}}")?;
 
     Ok(())

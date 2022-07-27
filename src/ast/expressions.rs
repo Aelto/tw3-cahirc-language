@@ -49,7 +49,9 @@ impl visitor::Visited for Expression {
 }
 
 impl Codegen for Expression {
-  fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
+  fn emit(
+    &self, context: &Context, f: &mut Vec<u8>, data: &Option<EmitAdditionalData>,
+  ) -> Result<(), std::io::Error> {
     use std::io::Write as IoWrite;
 
     match self {
@@ -58,29 +60,29 @@ impl Codegen for Expression {
       Expression::Name(x) => write!(f, "{}", x),
       Expression::Not(x) => {
         write!(f, "!")?;
-        x.emit(context, f)
+        x.emit(context, f, data)
       }
-      Expression::Identifier(x) => x.emit(context, f),
-      Expression::FunctionCall(x) => x.emit(context, f),
+      Expression::Identifier(x) => x.emit(context, f, data),
+      Expression::FunctionCall(x) => x.emit(context, f, data),
       Expression::Operation(left, op, right) => {
-        left.emit(context, f)?;
-        op.emit(context, f)?;
-        right.emit(context, f)
+        left.emit(context, f, data)?;
+        op.emit(context, f, data)?;
+        right.emit(context, f, data)
       }
       Expression::Error => todo!(),
-      Expression::Nesting(x) => x.emit(context, f),
+      Expression::Nesting(x) => x.emit(context, f, data),
       Expression::Cast(t, x) => {
         write!(f, "({t})(")?;
-        x.emit(context, f)?;
+        x.emit(context, f, data)?;
         write!(f, ")")
       }
-      Expression::ClassInstantiation(x) => x.emit(context, f),
+      Expression::ClassInstantiation(x) => x.emit(context, f, data),
       Expression::Group(x) => {
         write!(f, "(")?;
-        x.emit(context, f)?;
+        x.emit(context, f, data)?;
         write!(f, ")")
       }
-      Expression::Lambda(x) => x.emit(context, f),
+      Expression::Lambda(x) => x.emit(context, f, data),
     }
   }
 }
@@ -100,7 +102,9 @@ pub enum OperationCode {
 }
 
 impl Codegen for OperationCode {
-  fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
+  fn emit(
+    &self, context: &Context, f: &mut Vec<u8>, data: &Option<EmitAdditionalData>,
+  ) -> Result<(), std::io::Error> {
     use std::io::Write as IoWrite;
 
     match self {
@@ -110,8 +114,8 @@ impl Codegen for OperationCode {
       OperationCode::Add => write!(f, "+"),
       OperationCode::Sub => write!(f, "-"),
       OperationCode::Nesting => write!(f, "."),
-      OperationCode::Comparison(x) => x.emit(context, f),
-      OperationCode::BooleanJoin(x) => x.emit(context, f),
+      OperationCode::Comparison(x) => x.emit(context, f, data),
+      OperationCode::BooleanJoin(x) => x.emit(context, f, data),
       OperationCode::BitwiseOr => write!(f, "|"),
       OperationCode::BitwiseAnd => write!(f, "&"),
     }
@@ -128,7 +132,9 @@ pub enum AssignmentType {
 }
 
 impl Codegen for AssignmentType {
-  fn emit(&self, _: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
+  fn emit(
+    &self, _: &Context, f: &mut Vec<u8>, data: &Option<EmitAdditionalData>,
+  ) -> Result<(), std::io::Error> {
     use std::io::Write as IoWrite;
 
     match self {
@@ -152,7 +158,9 @@ pub enum ComparisonType {
 }
 
 impl Codegen for ComparisonType {
-  fn emit(&self, _: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
+  fn emit(
+    &self, _: &Context, f: &mut Vec<u8>, data: &Option<EmitAdditionalData>,
+  ) -> Result<(), std::io::Error> {
     use std::io::Write as IoWrite;
 
     match self {
@@ -173,7 +181,9 @@ pub enum BooleanJoinType {
 }
 
 impl Codegen for BooleanJoinType {
-  fn emit(&self, _: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
+  fn emit(
+    &self, _: &Context, f: &mut Vec<u8>, data: &Option<EmitAdditionalData>,
+  ) -> Result<(), std::io::Error> {
     use std::io::Write as IoWrite;
 
     match self {

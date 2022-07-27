@@ -228,7 +228,7 @@ fn compile_source_directory(config: &Config) -> std::io::Result<()> {
     let mut output_code = Vec::new();
     parsed_file
       .ast
-      .emit(&global_context.borrow(), &mut output_code)
+      .emit(&global_context.borrow(), &mut output_code, &None)
       .expect("failed to emit code");
 
     std::fs::create_dir_all(&new_path.parent().unwrap())
