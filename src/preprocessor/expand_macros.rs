@@ -68,7 +68,6 @@ pub fn expand_macros(
       .unwrap();
     let macro_end = macro_start + &cap[0].len();
 
-    new_content.replace_range(macro_start..macro_end + 1, "");
     new_content.replace_range(macro_start..macro_end, "");
   }
 
