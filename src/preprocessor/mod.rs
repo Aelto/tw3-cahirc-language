@@ -72,19 +72,10 @@ pub fn preprocess(
       for (_filename, content) in files.iter() {
         let mut new_content = content.content.borrow().to_string();
 
-        // filter_conditionals(
-        //   &mut registered_macros,
-        //   &mut new_content,
-        //   &regex_collection,
-        //   false,
-        // );
+        let file_still_contains_macro_calls =
+          expand_macros::expand_macros(&mut registered_macros, &mut new_content, &regex_collection);
 
-        contains_macro_call = contains_macro_call
-          || expand_macros::expand_macros(
-            &mut registered_macros,
-            &mut new_content,
-            &regex_collection,
-          );
+        contains_macro_call = contains_macro_call || file_still_contains_macro_calls;
 
         content.content.replace(new_content);
       }
@@ -93,19 +84,10 @@ pub fn preprocess(
     for (_filename, content) in output.source_files_content.iter() {
       let mut new_content = content.content.borrow().to_string();
 
-      // filter_conditionals(
-      //   &mut registered_macros,
-      //   &mut new_content,
-      //   &regex_collection,
-      //   false,
-      // );
+      let file_still_contains_macro_calls =
+        expand_macros::expand_macros(&mut registered_macros, &mut new_content, &regex_collection);
 
-      contains_macro_call = contains_macro_call
-        || expand_macros::expand_macros(
-          &mut registered_macros,
-          &mut new_content,
-          &regex_collection,
-        );
+      contains_macro_call = contains_macro_call || file_still_contains_macro_calls;
 
       content.content.replace(new_content);
     }
