@@ -40,6 +40,11 @@ impl super::Visitor for GenericCallsVisitor<'_> {
     self.current_context = node.context.clone();
   }
 
+  /// Update the current context with the latest context met in the AST
+  fn visit_struct_declaration(&mut self, node: &crate::ast::StructDeclaration) {
+    self.current_context = node.context.clone();
+  }
+
   fn visit_generic_function_call(&mut self, node: &crate::ast::FunctionCall) {
     let function_name = node.accessor.text.to_string();
     let function_context =

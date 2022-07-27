@@ -13,7 +13,7 @@ impl super::Visitor for ContextBuildingVisitor {
     Context::set_parent_context(&node.context, &self.current_context);
 
     // then make a new context building visitor for the context of the
-    // FunctionDelcaration node.
+    // FunctionDeclaration node.
     let mut new_context_visitor = Self {
       current_context: node.context.clone(),
     };
@@ -25,7 +25,19 @@ impl super::Visitor for ContextBuildingVisitor {
     Context::set_parent_context(&node.context, &self.current_context);
 
     // then make a new context building visitor for the context of the
-    // FunctionDelcaration node.
+    // ClassDeclaration node.
+    let mut new_context_visitor = Self {
+      current_context: node.context.clone(),
+    };
+
+    node.body_statements.accept(&mut new_context_visitor);
+  }
+
+  fn visit_struct_declaration(&mut self, node: &crate::ast::StructDeclaration) {
+    Context::set_parent_context(&node.context, &self.current_context);
+
+    // then make a new context building visitor for the context of the
+    // StructDeclaration node.
     let mut new_context_visitor = Self {
       current_context: node.context.clone(),
     };

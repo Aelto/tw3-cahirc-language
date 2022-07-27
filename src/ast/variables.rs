@@ -73,22 +73,33 @@ impl Codegen for VariableDeclaration {
       ContextType::Global | ContextType::ClassOrStruct => {
         write!(f, "var ")?;
         self.declaration.emit(context, f)?;
+        writeln!(f, ";")?;
+
+        if let Some(expr) = &self.following_expression {
+          if let Some(variable_name) = self.declaration.names.first() {
+            write!(f, "default {variable_name}")?;
+          }
+
+          write!(f, " = ")?;
+          expr.emit(context, f)?;
+          writeln!(f, ";")?;
+        }
       }
 
       // variables are emitted manually by the functions, it is part of the feature
       // allowing variable declarations anywhere in function bodies.
       //
-      ContextType::Function => {}
-    };
+      ContextType::Function => {
+        if let Some(expr) = &self.following_expression {
+          if let Some(variable_name) = self.declaration.names.first() {
+            write!(f, "{variable_name}")?;
+          }
 
-    if let Some(expr) = &self.following_expression {
-      if let Some(variable_name) = self.declaration.names.first() {
-        write!(f, "{variable_name}")?;
+          write!(f, " = ")?;
+          expr.emit(context, f)?;
+          writeln!(f, ";")?;
+        }
       }
-
-      write!(f, " = ")?;
-      expr.emit(context, f)?;
-      writeln!(f, ";")?;
     }
 
     Ok(())

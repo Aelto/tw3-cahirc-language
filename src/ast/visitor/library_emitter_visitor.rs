@@ -62,4 +62,9 @@ impl<'a> super::Visitor for LibraryEmitterVisitor<'a> {
 
     self.current_context = node.context.clone();
   }
+
+  /// Update the current context with the latest context met in the AST
+  fn visit_struct_declaration(&mut self, node: &crate::ast::StructDeclaration) {
+    self.current_context = node.context.clone();
+  }
 }

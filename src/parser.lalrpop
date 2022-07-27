@@ -110,10 +110,11 @@ EncapsulationType: EncapsulationType = {
 // -----------------------------------------------------------------------------
 
 StructDeclaration: StructDeclaration = {
-    KeywordStruct <name: Identifier> "{" <body_statements:(<StructBodyStatement>)*> "}"
+    KeywordStruct <name: Identifier> <generic_types:GenericTypesDeclaration?> "{" <body_statements:(<StructBodyStatement>)*> "}"
         => StructDeclaration {
+            context: Rc::new(RefCell::new(Context::new(&format!("struct: {}", &name), generic_types.clone(), ContextType::ClassOrStruct))),
             name,
-            body_statements
+            body_statements,
         }
 }
 
@@ -323,7 +324,7 @@ VariableDeclarationOrAssignment: VariableDeclarationOrAssignment = {
 
 ForInStatement: ForInStatement = {
     KeywordFor <child:TypedIdentifier> KeywordIn <parent:Expression>
-    "{" <mut body_statements:(<FunctionBodyStatement>)*> "}"
+    "{" <body_statements:(<FunctionBodyStatement>)*> "}"
         => ForInStatement {
             child: Rc::new(child),
             parent,

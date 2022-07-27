@@ -41,6 +41,11 @@ impl super::Visitor for LambdaDeclarationVisitor<'_> {
     self.current_context = node.context.clone();
   }
 
+  /// Update the current context with the latest context met in the AST
+  fn visit_struct_declaration(&mut self, node: &crate::ast::StructDeclaration) {
+    self.current_context = node.context.clone();
+  }
+
   fn visit_lambda_declaration(&mut self, node: &crate::ast::LambdaDeclaration) {
     if let Err(err) = node.emit_base_type(
       &mut self.current_context.borrow_mut(),

@@ -41,6 +41,11 @@ impl super::Visitor for VariableDeclarationVisitor<'_> {
     self.current_context = node.context.clone();
   }
 
+  /// Update the current context with the latest context met in the AST
+  fn visit_struct_declaration(&mut self, node: &crate::ast::StructDeclaration) {
+    self.current_context = node.context.clone();
+  }
+
   fn visit_variable_declaration(&mut self, node: &crate::ast::VariableDeclaration) {
     self.register_variable_declaration(node.declaration.clone());
   }
