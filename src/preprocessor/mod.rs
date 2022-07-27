@@ -49,7 +49,7 @@ pub fn preprocess(
       .dot_matches_new_line(true)
       .build()
       .unwrap(),
-    macro_const: Regex::new(r"#define const (\w+);").unwrap(),
+    macro_const: Regex::new(r"#define const (\w+).*;").unwrap(),
     macro_const_value: Regex::new(r"= (.*);").unwrap(),
     macro_ifdef: RegexBuilder::new(r"#ifdef (\w*) \{(.*?)\};")
       .multi_line(true)
