@@ -69,11 +69,17 @@ impl visitor::Visited for VariableDeclaration {
 impl Codegen for VariableDeclaration {
   fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
     use std::io::Write as IoWrite;
-    // variables are emitted manually by the functions, it is part of the feature
-    // allowing variable declarations anywhere in function bodies.
-    //
-    // write!(f, "var ")?;
-    // self.declaration.emit(context, f)?;
+    match context.context_type {
+      ContextType::Global | ContextType::ClassOrStruct => {
+        write!(f, "var ")?;
+        self.declaration.emit(context, f)?;
+      }
+
+      // variables are emitted manually by the functions, it is part of the feature
+      // allowing variable declarations anywhere in function bodies.
+      //
+      ContextType::Function => {}
+    };
 
     if let Some(expr) = &self.following_expression {
       if let Some(variable_name) = self.declaration.names.first() {

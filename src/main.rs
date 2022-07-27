@@ -19,6 +19,7 @@ use config::Config;
 use lalrpop_util::lalrpop_mod;
 
 use crate::ast::codegen::context::Context;
+use crate::ast::codegen::context::ContextType;
 use crate::ast::visitor::ContextBuildingVisitor;
 use crate::ast::visitor::FunctionVisitor;
 use crate::ast::visitor::LambdaDeclarationVisitor;
@@ -38,7 +39,11 @@ fn compile_source_directory(config: &Config) -> std::io::Result<()> {
   let preprocessed_content = preprocessor::preprocess(&config.package.src, &config.dependencies)?;
 
   let program_information = ProgramInformation::new();
-  let global_context = Rc::new(RefCell::new(Context::new("Program", None)));
+  let global_context = Rc::new(RefCell::new(Context::new(
+    "Program",
+    None,
+    ContextType::Global,
+  )));
 
   // 1.
   // Build the list of AST from the files
@@ -158,6 +163,7 @@ fn compile_source_directory(config: &Config) -> std::io::Result<()> {
     let file_context = Rc::new(RefCell::new(Context::new(
       &format!("file: {:#?}", parsed_file.file_path.file_name()),
       None,
+      ContextType::Global,
     )));
 
     file_context.borrow_mut().set_as_library();
@@ -185,6 +191,7 @@ fn compile_source_directory(config: &Config) -> std::io::Result<()> {
     let file_context = Rc::new(RefCell::new(Context::new(
       &format!("file: {:#?}", parsed_file.file_path.file_name()),
       None,
+      ContextType::Global,
     )));
     Context::set_parent_context(&file_context, &global_context);
 

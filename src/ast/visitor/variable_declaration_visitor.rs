@@ -2,6 +2,7 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use crate::ast::codegen::context::Context;
+use crate::ast::codegen::context::ContextType;
 use crate::ast::ProgramInformation;
 use crate::ast::TypedIdentifier;
 
@@ -16,7 +17,11 @@ impl<'a> VariableDeclarationVisitor<'a> {
   pub fn new(program_information: &'a ProgramInformation) -> Self {
     Self {
       program_information,
-      current_context: Rc::new(RefCell::new(Context::new("empty", None))),
+      current_context: Rc::new(RefCell::new(Context::new(
+        "empty",
+        None,
+        ContextType::Global,
+      ))),
     }
   }
 }

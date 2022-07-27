@@ -3,6 +3,7 @@ use std::collections::HashSet;
 use std::rc::Rc;
 
 use crate::ast::codegen::context::Context;
+use crate::ast::codegen::context::ContextType;
 
 /// Looks for generic calls and register them to the GenericCallRegister
 pub struct LambdaDeclarationVisitor<'a> {
@@ -14,7 +15,11 @@ pub struct LambdaDeclarationVisitor<'a> {
 impl<'a> LambdaDeclarationVisitor<'a> {
   pub fn new(emitted_code: &'a mut Vec<u8>) -> Self {
     Self {
-      current_context: Rc::new(RefCell::new(Context::new("empty", None))),
+      current_context: Rc::new(RefCell::new(Context::new(
+        "empty",
+        None,
+        ContextType::Global,
+      ))),
       emitted_code,
       emitted_types: HashSet::new(),
     }

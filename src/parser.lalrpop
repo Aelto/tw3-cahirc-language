@@ -43,6 +43,7 @@ use crate::ast::{
     Lambda,
     LambdaType,
     ForInStatement,
+    ContextType
 };
 
 use crate::ast::codegen::context::Context;
@@ -69,7 +70,7 @@ ClassDeclaration: ClassDeclaration = {
     <extended_class_name:(KeywordExtends <Identifier>)?>
     "{" <body_statements:(<ClassBodyStatement>)*> "}"
         => ClassDeclaration {
-            context: Rc::new(RefCell::new(Context::new(&format!("class: {}", &name), generic_types.clone()))),
+            context: Rc::new(RefCell::new(Context::new(&format!("class: {}", &name), generic_types.clone(), ContextType::ClassOrStruct))),
             class_type,
             name,
             parent_class_name,
@@ -148,7 +149,7 @@ GlobalFunctionDeclaration: Rc<FunctionDeclaration> = {
         => {
             let has_generic_types = generic_types.is_some();
             let declaration = Rc::new(FunctionDeclaration {
-                context: Rc::new(RefCell::new(Context::new(&format!("function: {}", &name), generic_types.clone()))),
+                context: Rc::new(RefCell::new(Context::new(&format!("function: {}", &name), generic_types.clone(), ContextType::Function))),
                 function_type,
                 name: name.clone(),
                 generic_types,
@@ -174,7 +175,7 @@ MethodDeclaration: Rc<FunctionDeclaration> = {
         => {
             let has_generic_types = generic_types.is_some();
             let declaration = Rc::new(FunctionDeclaration {
-                context: Rc::new(RefCell::new(Context::new(&format!("method: {}", &name), generic_types.clone()))),
+                context: Rc::new(RefCell::new(Context::new(&format!("method: {}", &name), generic_types.clone(), ContextType::Function))),
                 function_type,
                 name: name.clone(),
                 generic_types,

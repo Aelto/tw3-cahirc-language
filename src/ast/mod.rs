@@ -9,6 +9,7 @@ pub mod codegen;
 pub mod visitor;
 
 pub use codegen::context::Context;
+pub use codegen::context::ContextType;
 
 // -----------------------------------------------------------------------------
 

@@ -10,6 +10,8 @@ pub struct Context {
   /// Mostly for debugging purposes
   pub name: String,
 
+  pub context_type: ContextType,
+
   pub identifiers: HashMap<String, String>,
 
   pub children_contexts: Vec<Rc<RefCell<Context>>>,
@@ -28,9 +30,12 @@ pub struct Context {
 }
 
 impl Context {
-  pub fn new(name: &str, generic_types: Option<Vec<GenericType>>) -> Self {
+  pub fn new(
+    name: &str, generic_types: Option<Vec<GenericType>>, context_type: ContextType,
+  ) -> Self {
     Self {
       name: name.to_string(),
+      context_type,
       identifiers: HashMap::new(),
       children_contexts: Vec::new(),
       parent_context: None,
@@ -193,6 +198,13 @@ impl Context {
       (*child).borrow().print(depth + 1);
     }
   }
+}
+
+#[derive(Debug)]
+pub enum ContextType {
+  Global,
+  ClassOrStruct,
+  Function,
 }
 
 type GenericType = String;
