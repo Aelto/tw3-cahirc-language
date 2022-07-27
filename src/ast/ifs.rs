@@ -38,9 +38,7 @@ impl Visited for IfStatement {
 }
 
 impl Codegen for IfStatement {
-  fn emit(
-    &self, context: &Context, f: &mut Vec<u8>, data: &Option<EmitAdditionalData>,
-  ) -> Result<(), std::io::Error> {
+  fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
     use std::io::Write as IoWrite;
 
     match self {
@@ -50,11 +48,11 @@ impl Codegen for IfStatement {
         else_statements,
       } => {
         write!(f, "if (")?;
-        condition.emit(context, f, data)?;
+        condition.emit(context, f)?;
         writeln!(f, ") {{")?;
-        body_statements.emit(context, f, data)?;
+        body_statements.emit(context, f)?;
         writeln!(f, "}}")?;
-        else_statements.emit(context, f, data)?;
+        else_statements.emit(context, f)?;
       }
       IfStatement::Else {
         condition,
@@ -64,14 +62,14 @@ impl Codegen for IfStatement {
 
         if let Some(condition) = condition {
           write!(f, "if (")?;
-          condition.emit(context, f, data)?;
+          condition.emit(context, f)?;
           write!(f, ")")?;
         }
 
         writeln!(f, " {{")?;
 
         for statement in body_statements {
-          statement.emit(context, f, data)?;
+          statement.emit(context, f)?;
           writeln!(f, "")?;
         }
 

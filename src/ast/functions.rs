@@ -35,9 +35,7 @@ impl visitor::Visited for FunctionDeclaration {
 }
 
 impl Codegen for FunctionDeclaration {
-  fn emit(
-    &self, _: &Context, f: &mut Vec<u8>, data: &Option<EmitAdditionalData>,
-  ) -> Result<(), std::io::Error> {
+  fn emit(&self, _: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
     let has_generic_context = self.context.borrow().generic_context.is_some();
     if has_generic_context {
       let mut variants = Vec::new();
@@ -55,10 +53,10 @@ impl Codegen for FunctionDeclaration {
           }
         }
 
-        emit_function(self, &self.context.borrow(), f, data, &variant)?;
+        emit_function(self, &self.context.borrow(), f, &variant)?;
       }
     } else {
-      emit_function(self, &self.context.borrow(), f, data, "")?;
+      emit_function(self, &self.context.borrow(), f, "")?;
     }
 
     Ok(())
@@ -66,12 +64,11 @@ impl Codegen for FunctionDeclaration {
 }
 
 fn emit_function(
-  this: &FunctionDeclaration, context: &Context, f: &mut Vec<u8>,
-  data: &Option<EmitAdditionalData>, generic_variant_suffix: &str,
+  this: &FunctionDeclaration, context: &Context, f: &mut Vec<u8>, generic_variant_suffix: &str,
 ) -> Result<(), std::io::Error> {
   use std::io::Write as IoWrite;
 
-  this.function_type.emit(context, f, data)?;
+  this.function_type.emit(context, f)?;
 
   if let Some(mangled_accessor) = &context.mangled_accessor {
     write!(f, " {}{}(", mangled_accessor, generic_variant_suffix)?;
@@ -79,12 +76,12 @@ fn emit_function(
     write!(f, " {}{}(", this.name, generic_variant_suffix)?;
   }
 
-  this.parameters.emit_join(context, f, ", ", data)?;
+  this.parameters.emit_join(context, f, ", ")?;
   write!(f, ")")?;
 
   if let Some(t) = &this.type_declaration {
     write!(f, ": ")?;
-    t.emit(context, f, data)?;
+    t.emit(context, f)?;
   }
 
   writeln!(f, " {{")?;
@@ -98,7 +95,7 @@ fn emit_function(
       }
 
       write!(f, "var {name}: ")?;
-      declaration.type_declaration.emit(context, f, data)?;
+      declaration.type_declaration.emit(context, f)?;
       writeln!(f, ";")?;
 
       emitted_variable_names.insert(name.clone());
@@ -106,7 +103,7 @@ fn emit_function(
   }
 
   for statement in &this.body_statements {
-    statement.emit(context, f, data)?;
+    statement.emit(context, f)?;
     // writeln!(f, "");
   }
 
@@ -126,9 +123,7 @@ pub enum FunctionType {
 }
 
 impl Codegen for FunctionType {
-  fn emit(
-    &self, _: &Context, f: &mut Vec<u8>, data: &Option<EmitAdditionalData>,
-  ) -> Result<(), std::io::Error> {
+  fn emit(&self, _: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
     use std::io::Write as IoWrite;
 
     match self {
@@ -180,53 +175,51 @@ impl visitor::Visited for FunctionBodyStatement {
 }
 
 impl Codegen for FunctionBodyStatement {
-  fn emit(
-    &self, context: &Context, f: &mut Vec<u8>, data: &Option<EmitAdditionalData>,
-  ) -> Result<(), std::io::Error> {
+  fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
     use std::io::Write as IoWrite;
 
     match self {
       FunctionBodyStatement::VariableDeclaration(x) => {
-        x.emit(context, f, data)?;
+        x.emit(context, f)?;
         // the semicolon is added by the variable declaration itself as it does
         // not always need to be emitted.
         // writeln!(f, ";")?;
       }
       FunctionBodyStatement::Expression(x) => {
-        x.emit(context, f, data)?;
+        x.emit(context, f)?;
         writeln!(f, ";")?;
       }
       FunctionBodyStatement::Return(x) => {
         write!(f, "return ")?;
-        x.emit(context, f, data)?;
+        x.emit(context, f)?;
         writeln!(f, ";")?;
       }
       FunctionBodyStatement::Assignement(x) => {
-        x.emit(context, f, data)?;
+        x.emit(context, f)?;
         writeln!(f, ";")?;
       }
       FunctionBodyStatement::IfStatement(x) => {
-        x.emit(context, f, data)?;
+        x.emit(context, f)?;
         writeln!(f, "")?;
       }
       FunctionBodyStatement::ForStatement(x) => {
-        x.emit(context, f, data)?;
+        x.emit(context, f)?;
         writeln!(f, "")?;
       }
       FunctionBodyStatement::ForInStatement(x) => {
-        x.emit(context, f, data)?;
+        x.emit(context, f)?;
         write!(f, "")?;
       }
       FunctionBodyStatement::WhileStatement(x) => {
-        x.emit(context, f, data)?;
+        x.emit(context, f)?;
         writeln!(f, "")?;
       }
       FunctionBodyStatement::DoWhileStatement(x) => {
-        x.emit(context, f, data)?;
+        x.emit(context, f)?;
         writeln!(f, "")?;
       }
       FunctionBodyStatement::SwitchStatement(x) => {
-        x.emit(context, f, data)?;
+        x.emit(context, f)?;
         writeln!(f, "")?;
       }
       FunctionBodyStatement::Break => {
@@ -237,7 +230,7 @@ impl Codegen for FunctionBodyStatement {
       }
       FunctionBodyStatement::Delete(x) => {
         write!(f, "delete ")?;
-        x.emit(context, f, data)?;
+        x.emit(context, f)?;
         writeln!(f, ";")?;
       }
     };
@@ -256,10 +249,8 @@ impl Visited for FunctionCallParameters {
 }
 
 impl Codegen for FunctionCallParameters {
-  fn emit(
-    &self, context: &Context, f: &mut Vec<u8>, data: &Option<EmitAdditionalData>,
-  ) -> Result<(), std::io::Error> {
-    self.0.emit_join(context, f, ", ", data)
+  fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
+    self.0.emit_join(context, f, ", ")
   }
 }
 
@@ -270,11 +261,9 @@ pub struct FunctionDeclarationParameter {
 }
 
 impl Codegen for FunctionDeclarationParameter {
-  fn emit(
-    &self, context: &Context, f: &mut Vec<u8>, data: &Option<EmitAdditionalData>,
-  ) -> Result<(), std::io::Error> {
-    self.parameter_type.emit(context, f, data)?;
-    self.typed_identifier.emit(context, f, data)
+  fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
+    self.parameter_type.emit(context, f)?;
+    self.typed_identifier.emit(context, f)
   }
 }
 
@@ -292,9 +281,7 @@ pub enum ParameterType {
 }
 
 impl Codegen for ParameterType {
-  fn emit(
-    &self, _: &Context, f: &mut Vec<u8>, data: &Option<EmitAdditionalData>,
-  ) -> Result<(), std::io::Error> {
+  fn emit(&self, _: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
     use std::io::Write as IoWrite;
 
     match self {

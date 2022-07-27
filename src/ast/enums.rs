@@ -16,15 +16,13 @@ impl Visited for EnumDeclaration {
 }
 
 impl Codegen for EnumDeclaration {
-  fn emit(
-    &self, context: &Context, f: &mut Vec<u8>, data: &Option<EmitAdditionalData>,
-  ) -> Result<(), std::io::Error> {
+  fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
     use std::io::Write as IoWrite;
 
     writeln!(f, "enum {} {{", self.name)?;
 
     for statement in &self.body_statements {
-      statement.emit(context, f, data)?;
+      statement.emit(context, f)?;
       writeln!(f, ",")?;
     }
 
@@ -45,9 +43,7 @@ impl Visited for EnumBodyStatement {
 }
 
 impl Codegen for EnumBodyStatement {
-  fn emit(
-    &self, _context: &Context, f: &mut Vec<u8>, data: &Option<EmitAdditionalData>,
-  ) -> Result<(), std::io::Error> {
+  fn emit(&self, _context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
     use std::io::Write as IoWrite;
 
     write!(f, "{}", self.name)?;

@@ -14,16 +14,14 @@ impl Visited for SwitchStatement {
 }
 
 impl Codegen for SwitchStatement {
-  fn emit(
-    &self, context: &Context, f: &mut Vec<u8>, data: &Option<EmitAdditionalData>,
-  ) -> Result<(), std::io::Error> {
+  fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
     use std::io::Write as IoWrite;
 
     write!(f, "switch (")?;
-    self.compared.emit(context, f, data)?;
+    self.compared.emit(context, f)?;
     writeln!(f, ") {{")?;
 
-    self.cases.emit_join(context, f, "\n", data)?;
+    self.cases.emit_join(context, f, "\n")?;
     write!(f, "}}")
   }
 }
@@ -57,15 +55,13 @@ impl Visited for SwitchCaseStatement {
 }
 
 impl Codegen for SwitchCaseStatement {
-  fn emit(
-    &self, context: &Context, f: &mut Vec<u8>, data: &Option<EmitAdditionalData>,
-  ) -> Result<(), std::io::Error> {
+  fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
     use std::io::Write as IoWrite;
 
     match self {
       SwitchCaseStatement::Default { body_statements } => {
         writeln!(f, "default:")?;
-        body_statements.emit(context, f, data)?;
+        body_statements.emit(context, f)?;
       }
       SwitchCaseStatement::Case {
         cases,
@@ -73,11 +69,11 @@ impl Codegen for SwitchCaseStatement {
       } => {
         for case in cases {
           write!(f, "case ")?;
-          case.emit(context, f, data)?;
+          case.emit(context, f)?;
           writeln!(f, ":")?;
         }
 
-        body_statements.emit(context, f, data)?;
+        body_statements.emit(context, f)?;
       }
     };
 

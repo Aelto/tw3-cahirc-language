@@ -16,16 +16,14 @@ impl Visited for VariableAssignment {
 }
 
 impl Codegen for VariableAssignment {
-  fn emit(
-    &self, context: &Context, f: &mut Vec<u8>, data: &Option<EmitAdditionalData>,
-  ) -> Result<(), std::io::Error> {
+  fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
     use std::io::Write as IoWrite;
 
-    self.variable_name.emit(context, f, data)?;
+    self.variable_name.emit(context, f)?;
     write!(f, " ")?;
-    self.assignment_type.emit(context, f, data)?;
+    self.assignment_type.emit(context, f)?;
     write!(f, " ")?;
-    self.following_expression.emit(context, f, data)
+    self.following_expression.emit(context, f)
   }
 }
 
@@ -45,12 +43,10 @@ impl Visited for VariableDeclarationOrAssignment {
 }
 
 impl Codegen for VariableDeclarationOrAssignment {
-  fn emit(
-    &self, context: &Context, f: &mut Vec<u8>, data: &Option<EmitAdditionalData>,
-  ) -> Result<(), std::io::Error> {
+  fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
     match self {
-      VariableDeclarationOrAssignment::Declaration(x) => x.emit(context, f, data),
-      VariableDeclarationOrAssignment::Assignement(x) => x.emit(context, f, data),
+      VariableDeclarationOrAssignment::Declaration(x) => x.emit(context, f),
+      VariableDeclarationOrAssignment::Assignement(x) => x.emit(context, f),
     }
   }
 }
@@ -71,43 +67,29 @@ impl visitor::Visited for VariableDeclaration {
 }
 
 impl Codegen for VariableDeclaration {
-  fn emit(
-    &self, context: &Context, f: &mut Vec<u8>, data: &Option<EmitAdditionalData>,
-  ) -> Result<(), std::io::Error> {
+  fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
     use std::io::Write as IoWrite;
     match context.context_type {
       ContextType::Global | ContextType::ClassOrStruct => {
         write!(f, "var ")?;
-        self.declaration.emit(context, f, data)?;
-
-        writeln!(f, ";")?;
-
-        if let Some(expr) = &self.following_expression {
-          if let Some(variable_name) = self.declaration.names.first() {
-            write!(f, "default {variable_name}")?;
-          }
-
-          write!(f, " = ")?;
-          expr.emit(context, f, data)?;
-          writeln!(f, ";")?;
-        }
+        self.declaration.emit(context, f)?;
       }
 
       // variables are emitted manually by the functions, it is part of the feature
       // allowing variable declarations anywhere in function bodies.
       //
-      ContextType::Function => {
-        if let Some(expr) = &self.following_expression {
-          if let Some(variable_name) = self.declaration.names.first() {
-            write!(f, "{variable_name}")?;
-          }
-
-          write!(f, " = ")?;
-          expr.emit(context, f, data)?;
-          writeln!(f, ";")?;
-        }
-      }
+      ContextType::Function => {}
     };
+
+    if let Some(expr) = &self.following_expression {
+      if let Some(variable_name) = self.declaration.names.first() {
+        write!(f, "{variable_name}")?;
+      }
+
+      write!(f, " = ")?;
+      expr.emit(context, f)?;
+      writeln!(f, ";")?;
+    }
 
     Ok(())
   }

@@ -2,7 +2,6 @@ use std::collections::HashSet;
 use std::rc::Rc;
 
 use super::codegen::context::Context;
-use super::codegen::EmitAdditionalData;
 use super::visitor::Visited;
 use super::*;
 
@@ -36,9 +35,7 @@ impl Visited for ClassDeclaration {
 }
 
 impl Codegen for ClassDeclaration {
-  fn emit(
-    &self, context: &Context, f: &mut Vec<u8>, data: &Option<EmitAdditionalData>,
-  ) -> Result<(), std::io::Error> {
+  fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
     let has_generic_context = self.context.borrow().generic_context.is_some();
     if has_generic_context {
       let mut variants = Vec::new();
@@ -56,10 +53,10 @@ impl Codegen for ClassDeclaration {
           }
         }
 
-        emit_class(self, &self.context.borrow(), f, data, &variant)?;
+        emit_class(self, &self.context.borrow(), f, &variant)?;
       }
     } else {
-      emit_class(self, &context, f, data, "")?;
+      emit_class(self, &context, f, "")?;
     }
 
     Ok(())
@@ -67,8 +64,7 @@ impl Codegen for ClassDeclaration {
 }
 
 fn emit_class(
-  this: &ClassDeclaration, context: &Context, f: &mut Vec<u8>, data: &Option<EmitAdditionalData>,
-  generic_variant_suffix: &str,
+  this: &ClassDeclaration, context: &Context, f: &mut Vec<u8>, generic_variant_suffix: &str,
 ) -> Result<(), std::io::Error> {
   use std::io::Write as IoWrite;
 
@@ -105,7 +101,7 @@ fn emit_class(
       }
 
       write!(f, "var {name}: ")?;
-      declaration.type_declaration.emit(context, f, data)?;
+      declaration.type_declaration.emit(context, f)?;
       writeln!(f, ";")?;
 
       emitted_variable_names.insert(name.clone());
@@ -113,7 +109,7 @@ fn emit_class(
   }
 
   for statement in &this.body_statements {
-    statement.emit(context, f, data)?;
+    statement.emit(context, f)?;
     writeln!(f, "")?;
   }
 
@@ -153,9 +149,7 @@ pub enum ClassBodyStatement {
 }
 
 impl Codegen for ClassBodyStatement {
-  fn emit(
-    &self, context: &Context, f: &mut Vec<u8>, data: &Option<EmitAdditionalData>,
-  ) -> Result<(), std::io::Error> {
+  fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
     use std::io::Write as IoWrite;
 
     match self {
@@ -164,27 +158,27 @@ impl Codegen for ClassBodyStatement {
         function_declaration,
       } => {
         if let Some(encapsulation) = encapsulation {
-          encapsulation.emit(context, f, data)?;
+          encapsulation.emit(context, f)?;
           write!(f, " ")?;
         }
 
-        function_declaration.emit(context, f, data)?;
+        function_declaration.emit(context, f)?;
       }
       ClassBodyStatement::Property {
         encapsulation,
         property_declaration,
       } => {
         if let Some(encapsulation) = encapsulation {
-          encapsulation.emit(context, f, data)?;
+          encapsulation.emit(context, f)?;
           write!(f, " ")?;
         }
 
-        property_declaration.emit(context, f, data)?;
+        property_declaration.emit(context, f)?;
         // writeln!(f, ";")?;
       }
       ClassBodyStatement::DefaultValue(x) => {
         write!(f, "default ")?;
-        x.emit(context, f, data)?;
+        x.emit(context, f)?;
         writeln!(f, ";")?
       }
     };
@@ -217,9 +211,7 @@ impl visitor::Visited for ClassBodyStatement {
 }
 
 impl Codegen for EncapsulationType {
-  fn emit(
-    &self, _: &Context, f: &mut Vec<u8>, data: &Option<EmitAdditionalData>,
-  ) -> Result<(), std::io::Error> {
+  fn emit(&self, _: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
     use std::io::Write as IoWrite;
 
     match self {

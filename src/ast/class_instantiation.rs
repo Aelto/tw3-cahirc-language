@@ -1,6 +1,5 @@
 use crate::ast::codegen::context::GenericContext;
 
-use super::codegen::EmitAdditionalData;
 use super::visitor::Visited;
 use super::*;
 
@@ -38,9 +37,7 @@ impl Visited for ClassInstantiation {
 }
 
 impl Codegen for ClassInstantiation {
-  fn emit(
-    &self, context: &Context, f: &mut Vec<u8>, data: &Option<EmitAdditionalData>,
-  ) -> Result<(), std::io::Error> {
+  fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
     use std::io::Write as IoWrite;
 
     let stringified_types = match &self.generic_type_assignment {
