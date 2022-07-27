@@ -8,7 +8,7 @@ This allows the use of new features available to `wss` that get converted to val
  - [x] Generics, with mangled names to allow use of `wss` libraries
  - [x] Conditional compilation
  - [x] _unstable_: Macros, support for recursive macros (macros that generate calls to macros)
- - [ ] For..in loops
+ - [x] For..in loops
  - [x] Constant primitive variables in the global scope (macro constants)
  - [x] Lambdas, can be achieved with & without macros. Lambdas can be stored in variables as well
  - [ ] Closures
@@ -180,6 +180,21 @@ Lamba functions also work inside generic contexts:
   my_list_2 = map::<int, string>(my_list_1, |x: int| "the number is: " + x as string;);
   ```
 </details>
+
+## For .. in loops
+`for .. in` loops are a shorter way to get for loops to iterate on types that
+implement the `.Size()` method such as arrays.
+
+```js
+var items: array<ItemId> = thePlayer.inv.GetAllItems();
+
+for item: ItemId in items {
+  thePlayer.inv.RemoveItem(item);
+}
+```
+
+As you can see at the moment (until type inference is added into the compiler) you must explicitly type the variable as the compiler
+will create an intermediary variable that holds the items in the array.
 
 ### Generics
 To define a generic function/class you can use the `<T>` annotation right behind
