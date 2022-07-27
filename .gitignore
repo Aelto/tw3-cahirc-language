@@ -3,3 +3,4 @@
 *.ws
 specs/
 dist
+.vscode
