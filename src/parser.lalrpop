@@ -522,7 +522,7 @@ IdentifierTerm: Box<IdentifierTerm> = {
 
 Integer: String = {
     "+" <n:r"[0-9]+"> => <>.to_string(),
-    "-" <n:r"[0-9]+"> => <>.to_string(),
+    "-" <n:r"[0-9]+"> => format!("-{}", <>),
     r"[0-9]+" => <>.to_string()
 };
 
