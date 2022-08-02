@@ -14,6 +14,8 @@ extern crate lalrpop_util;
 use ariadne::Source;
 use ast::Program;
 use ast::ProgramInformation;
+use ast::codegen::type_inference::TypeInferenceStore;
+use ast::visitor::FunctionsInferenceVisitor;
 use config::read_config;
 use config::Config;
 use lalrpop_util::lalrpop_mod;
@@ -24,6 +26,7 @@ use crate::ast::visitor::ContextBuildingVisitor;
 use crate::ast::visitor::FunctionVisitor;
 use crate::ast::visitor::LambdaDeclarationVisitor;
 use crate::ast::visitor::LibraryEmitterVisitor;
+use crate::ast::visitor::CompoundTypesVisitor;
 use crate::ast::visitor::VariableDeclarationVisitor;
 use crate::utils::strip_pragmas;
 
@@ -153,6 +156,8 @@ fn compile_source_directory(config: &Config) -> std::io::Result<()> {
 
   // 2.
   // Traverse the AST to collect information about it
+  let mut inference_store = TypeInferenceStore::new();
+
   for parsed_file in &dependency_ast_list {
     let mut variable_declaration_visitor = VariableDeclarationVisitor::new(&program_information);
     let mut function_visitor = FunctionVisitor {
@@ -161,7 +166,7 @@ fn compile_source_directory(config: &Config) -> std::io::Result<()> {
 
     // create a context for this file, and register it into the global context
     let file_context = Rc::new(RefCell::new(Context::new(
-      &format!("file: {:#?}", parsed_file.file_path.file_name()),
+      &format!("file: {:#?}", parsed_file.file_path.file_name().unwrap()),
       None,
       ContextType::Global,
     )));
@@ -189,7 +194,7 @@ fn compile_source_directory(config: &Config) -> std::io::Result<()> {
 
     // create a context for this file, and register it into the global context
     let file_context = Rc::new(RefCell::new(Context::new(
-      &format!("file: {:#?}", parsed_file.file_path.file_name()),
+      &format!("file: {:#?}", parsed_file.file_path.file_name().unwrap()),
       None,
       ContextType::Global,
     )));
@@ -199,12 +204,30 @@ fn compile_source_directory(config: &Config) -> std::io::Result<()> {
       current_context: file_context.clone(),
     };
 
+    let mut compound_types_visitor = CompoundTypesVisitor::new(file_context.clone(), &mut inference_store);
+
     use ast::visitor::Visited;
 
     parsed_file.ast.accept(&mut context_builder);
     parsed_file.ast.accept(&mut function_visitor);
     parsed_file.ast.accept(&mut variable_declaration_visitor);
+    parsed_file.ast.accept(&mut compound_types_visitor);
   }
+
+  // 2.1
+  // do a second pass for the type inference in functions
+  for parsed_file in &ast_list {
+    let mut functions_inference_visitor = FunctionsInferenceVisitor::new(
+      global_context.clone(),
+      &mut inference_store
+    );
+
+    use ast::visitor::Visited;
+
+    parsed_file.ast.accept(&mut functions_inference_visitor);
+  }
+
+  global_context.borrow().print(0);
 
   // 3.
   // Emit code using the information we collected in the previous step

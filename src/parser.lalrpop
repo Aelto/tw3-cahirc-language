@@ -373,8 +373,12 @@ DoWhileStatement: DoWhileStatement = {
 // -----------------------------------------------------------------------------
 
 VariableDeclaration: VariableDeclaration = {
-    KeywordVar <typed_identifier: TypedIdentifier> <expression:("=" <Expression>)?> => VariableDeclaration {
+    KeywordVar <typed_identifier: TypedIdentifier> <expression:("=" <Expression>)?> => VariableDeclaration::Explicit {
         declaration: Rc::new(typed_identifier),
+        following_expression: expression
+    },
+    KeywordVar <names:SeparatedIdentifier> <expression:("=" <Expression>)> => VariableDeclaration::Implicit {
+        names,
         following_expression: expression
     }
 }
@@ -487,6 +491,7 @@ ComparisonType: ComparisonType = {
 
 Term: Rc<Expression> = {
     Integer => Rc::new(Expression::Integer(<>)),
+    Float => Rc::new(Expression::Float(<>)),
     Lambda => Rc::new(Expression::Lambda(<>)),
     "(" <Expression> ")" => Rc::new(Expression::Group(<>)),
     StringLiteral => Rc::new(Expression::String(String::from(<>))),
@@ -520,10 +525,14 @@ IdentifierTerm: Box<IdentifierTerm> = {
 
 // -----------------------------------------------------------------------------
 
+Float: String = {
+    <int:Integer> <n:r"\.[0-9]*"> => format!("{int}{n}")
+};
+
 Integer: String = {
     "+" <n:r"[0-9]+"> => <>.to_string(),
     "-" <n:r"[0-9]+"> => format!("-{}", <>),
-    r"[0-9]+" => <>.to_string()
+    r"[0-9]+" => <>.to_string(),
 };
 
 Boolean: bool = {

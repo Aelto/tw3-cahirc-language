@@ -18,6 +18,10 @@ pub use variable_declaration_visitor::VariableDeclarationVisitor;
 mod lambda_declaration_visitor;
 pub use lambda_declaration_visitor::LambdaDeclarationVisitor;
 
+mod type_inference_visitor;
+pub use type_inference_visitor::CompoundTypesVisitor;
+pub use type_inference_visitor::FunctionsInferenceVisitor;
+
 pub mod implementations;
 
 pub trait Visitor {
@@ -46,4 +50,5 @@ pub enum VisitorType {
   LibraryEmitterVisitor,
   VariableDeclarationVisitor,
   LambdaDeclarationVisitor,
+  TypeInferenceVisitor
 }

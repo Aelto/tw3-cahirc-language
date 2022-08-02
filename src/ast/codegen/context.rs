@@ -27,6 +27,16 @@ pub struct Context {
   /// Stores the variable declarations in the context. To be able to emit them
   /// at the start of the functions/classes/structs
   pub variable_declarations: Vec<Rc<TypedIdentifier>>,
+
+  /// Stores for the identifiers (used as the keys) the infered types (used as
+  /// values).
+  /// 
+  /// This map stores the variables used in the local context and their infered
+  /// types. For compound types, a lookup into the TypeInferenceStore may be
+  /// needed. The key is the name of the variable, the value is the way to
+  /// identify the infered type. If you'd pass the value to the TypeInferenceStore,
+  /// it would return you the actual object representation of the type.
+  pub local_variables_inference: HashMap<String, String>,
 }
 
 impl Context {
@@ -43,6 +53,7 @@ impl Context {
       is_library: false,
       mangled_accessor: None,
       variable_declarations: Vec::new(),
+      local_variables_inference: HashMap::new()
     }
   }
 
@@ -200,7 +211,7 @@ impl Context {
   }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub enum ContextType {
   Global,
   ClassOrStruct,

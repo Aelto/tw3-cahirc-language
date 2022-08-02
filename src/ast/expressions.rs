@@ -1,10 +1,11 @@
 use std::rc::Rc;
 
-use super::*;
+use super::{*, inference::ToType};
 
 #[derive(Debug)]
 pub enum Expression {
   Integer(String),
+  Float(String),
 
   String(String),
   Name(String),
@@ -30,7 +31,7 @@ pub enum Expression {
 impl visitor::Visited for Expression {
   fn accept<T: visitor::Visitor>(&self, visitor: &mut T) {
     match self {
-      Expression::Integer(_) | Expression::String(_) | Expression::Name(_) => {}
+      Expression::Integer(_) | Expression::Float(_) | Expression::String(_) | Expression::Name(_) => {}
       Expression::Cast(_, x) => x.accept(visitor),
       Expression::Identifier(x) => x.accept(visitor),
       Expression::FunctionCall(x) => x.accept(visitor),
@@ -54,6 +55,7 @@ impl Codegen for Expression {
 
     match self {
       Expression::Integer(x) => write!(f, "{x}"),
+      Expression::Float(x) => write!(f, "{x}"),
       Expression::String(x) => write!(f, "{}", x),
       Expression::Name(x) => write!(f, "{}", x),
       Expression::Not(x) => {
@@ -81,6 +83,53 @@ impl Codegen for Expression {
         write!(f, ")")
       }
       Expression::Lambda(x) => x.emit(context, f),
+    }
+  }
+}
+
+impl ToType for Expression {
+  fn resulting_type(
+    &self,
+      current_context: &Rc<RefCell<Context>>,
+      inference_store: &codegen::type_inference::TypeInferenceStore
+    ) -> inference::Type {
+      match self {
+        Expression::Integer(_) => inference::Type::Int,
+        Expression::Float(_) => inference::Type::Float,
+        Expression::String(_) => inference::Type::String,
+        Expression::Name(_) => inference::Type::Name,
+        Expression::Identifier(identifier) => {
+          match current_context.borrow_mut().local_variables_inference.get(&identifier.text) {
+            Some(t) => inference::Type::Identifier(t.clone()),
+            None => inference::Type::Unknown
+          }
+        },
+        Expression::FunctionCall(function) => {
+          let function_return_type = match inference_store.types.get(&function.accessor.text) {
+              Some(infered_type) => match infered_type {
+                crate::ast::codegen::type_inference::InferedType::Function { parameters: _, return_type } => match return_type {
+                  Some(s) => inference::Type::Identifier(s.clone()),
+                  None => inference::Type::Void
+                },
+                _ => {
+                  println!("function call {}(), but {} is not a function", &function.accessor.text, &function.accessor.text);
+
+                  inference::Type::Unknown
+                },
+              },
+              None => todo!(),
+          };
+
+          function_return_type
+        },
+        Expression::ClassInstantiation(instantiation) => inference::Type::Identifier(instantiation.class_name.clone()),
+        Expression::Lambda(_) => inference::Type::Unknown,
+        Expression::Operation(_, _, _) => todo!(),
+        Expression::Not(_) => inference::Type::Bool,
+        Expression::Nesting(_) => todo!(),
+        Expression::Cast(type_name, _) => inference::Type::Identifier(type_name.clone()),
+        Expression::Group(_) => todo!(),
+        Expression::Error => inference::Type::Unknown,
     }
   }
 }

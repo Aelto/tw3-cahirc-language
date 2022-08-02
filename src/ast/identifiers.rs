@@ -165,7 +165,15 @@ impl TypeDeclaration {
           type_name.clone()
         }
       }
-      TypeDeclaration::Lambda(_) => todo!(),
+      TypeDeclaration::Lambda(lambda) => {
+        let flattened_types = lambda.flat_type_names().join(",");
+        let return_type = match &lambda.type_declaration {
+            Some(decl) => Some(decl.to_string()),
+            None => None,
+        };
+
+        format!("fn({flattened_types}): {:?}", return_type)
+      },
     }
   }
 

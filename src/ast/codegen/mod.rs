@@ -1,5 +1,6 @@
 use std::ops::Deref;
 
+pub mod type_inference;
 pub mod context;
 
 pub trait Codegen {
