@@ -211,7 +211,7 @@ impl Context {
 
   pub fn get_ref(context: &Rc<RefCell<Context>>) -> Ref<Context> {
     let context: &RefCell<Context> = context.borrow();
-    
+
     context.borrow()
   }
 

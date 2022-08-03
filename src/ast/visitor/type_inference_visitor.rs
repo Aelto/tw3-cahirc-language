@@ -60,8 +60,6 @@ impl super::Visitor for CompoundTypesVisitor<'_> {
       ContextType::ClassOrStruct => {
         if let Some(parent_context) = parent_context {
           let parent_context = Context::get_ref(&parent_context);
-  
-          dbg!(&parent_context.name);
           let compound_parent_name = parent_context.get_class_name()
             .expect("could not get the name of the parent compound type while analysing a method definition");
   

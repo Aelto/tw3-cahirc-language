@@ -1,4 +1,4 @@
-use std::{rc::Rc, borrow::{Borrow, BorrowMut}};
+use std::{rc::Rc, borrow::Borrow};
 
 use super::{*, inference::ToType};
 
@@ -189,26 +189,7 @@ impl ToType for Expression {
           }
         },
         Expression::Not(_) => inference::Type::Bool,
-        Expression::Nesting(identifiers) => {
-          for (index, identifier) in identifiers.iter().enumerate() {
-            match identifier {
-              Expression::Identifier(identifier) => {
-                // if it's the first identifier and it is a `this`, find the
-                // type of the parent class.
-                let identifier_type = if index <= 0 && (*identifier).text == "this" {
-                  Self::get_type_for_this(current_context, inference_map)
-                } else {
-                  inference::Type::Unknown
-                };
-              },
-              _ => {
-                println!("incorrect nesting, {:?} is not a compound type", identifier);
-              }
-            }
-          }
-
-          inference::Type::Unknown
-        },
+        Expression::Nesting(_) => unreachable!(),
         Expression::Cast(type_name, _) => inference::Type::Identifier(type_name.clone()),
         Expression::Group(_) => todo!(),
         Expression::Error => inference::Type::Unknown,
@@ -234,7 +215,7 @@ impl Expression {
             let class_name = match context.get_class_name() {
               Some(n) => n,
               None => {
-                println!("Cannot use `this`outside of a class or a state");
+                println!("Cannot use `this` outside of a class or a state");
 
                 return inference::Type::Unknown;
               }
