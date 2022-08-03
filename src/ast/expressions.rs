@@ -1,4 +1,4 @@
-use std::rc::Rc;
+use std::{rc::Rc, borrow::{Borrow, BorrowMut}};
 
 use super::{*, inference::ToType};
 
@@ -91,7 +91,7 @@ impl ToType for Expression {
   fn resulting_type(
     &self,
       current_context: &Rc<RefCell<Context>>,
-      inference_store: &codegen::type_inference::TypeInferenceStore
+      inference_map: &codegen::type_inference::TypeInferenceMap
     ) -> inference::Type {
       match self {
         Expression::Integer(_) => inference::Type::Int,
@@ -99,13 +99,22 @@ impl ToType for Expression {
         Expression::String(_) => inference::Type::String,
         Expression::Name(_) => inference::Type::Name,
         Expression::Identifier(identifier) => {
-          match current_context.borrow_mut().local_variables_inference.get(&identifier.text) {
-            Some(t) => inference::Type::Identifier(t.clone()),
-            None => inference::Type::Unknown
+          let a: &IdentifierTerm = &identifier.borrow();
+
+          if a.text == "this" {
+            Self::get_type_for_this(current_context, inference_map)
+          }
+          else {
+            let a: &RefCell<Context> = current_context.borrow();
+
+            match a.borrow().local_variables_inference.get(&identifier.text) {
+              Some(t) => inference::Type::Identifier(t.clone()),
+              None => inference::Type::Unknown
+            }
           }
         },
         Expression::FunctionCall(function) => {
-          let function_return_type = match inference_store.types.get(&function.accessor.text) {
+          let function_return_type = match inference_map.get(&function.accessor.text) {
               Some(infered_type) => match infered_type {
                 crate::ast::codegen::type_inference::InferedType::Function { parameters: _, return_type } => match return_type {
                   Some(s) => inference::Type::Identifier(s.clone()),
@@ -117,20 +126,142 @@ impl ToType for Expression {
                   inference::Type::Unknown
                 },
               },
-              None => todo!(),
+              None => {
+                todo!()
+              },
           };
 
           function_return_type
         },
         Expression::ClassInstantiation(instantiation) => inference::Type::Identifier(instantiation.class_name.clone()),
         Expression::Lambda(_) => inference::Type::Unknown,
-        Expression::Operation(_, _, _) => todo!(),
+        Expression::Operation(left, operation, right) => {
+          match &left.borrow() {
+            // when it starts with a string, it can only be a string
+            // concatenation
+            Expression::String(_) => inference::Type::String,
+            Expression::Float(_) => inference::Type::Float,
+            Expression::Integer(_) => inference::Type::Int,
+            _ => {
+              match &operation {
+                OperationCode::Nesting => {
+                  let left_type = left.resulting_type(current_context, inference_map);
+                  let left_type_identifier = match left_type {
+                    inference::Type::Identifier(s) => s,
+                    _ => {
+                      return inference::Type::Unknown;
+                    },
+                  };
+
+                  let infered_type = inference_map.get(&left_type_identifier).expect("unknown compound type in nesting");
+
+                  match infered_type {
+                    codegen::type_inference::InferedType::Compound(sub_inference_map) => {
+                      let top_most_context = &Context::get_top_most_context(&current_context);
+                      let top_most_context: &RefCell<Context> = &top_most_context.borrow();
+                      let top_most_context: &Context = &top_most_context.borrow();
+
+                      for file_context in &top_most_context.children_contexts {
+                        let context = Context::get_ref(&file_context);
+                        for global_type_context in &context.children_contexts {
+
+                          let context = Context::get_ref(&global_type_context);
+                          match context.get_class_name() {
+                            Some(class_name) => {
+                              if class_name == left_type_identifier {
+                                println!("sub context name = {}", context.name);
+                                return right.resulting_type(&global_type_context, sub_inference_map);
+                              }
+                            },
+                            None => {}
+                          };
+                        }
+                      };
+
+                      inference::Type::Unknown
+                    },
+                    _ => inference::Type::Unknown
+                  }
+                },
+                _ => inference::Type::Unknown
+            }
+            }
+          }
+        },
         Expression::Not(_) => inference::Type::Bool,
-        Expression::Nesting(_) => todo!(),
+        Expression::Nesting(identifiers) => {
+          for (index, identifier) in identifiers.iter().enumerate() {
+            match identifier {
+              Expression::Identifier(identifier) => {
+                // if it's the first identifier and it is a `this`, find the
+                // type of the parent class.
+                let identifier_type = if index <= 0 && (*identifier).text == "this" {
+                  Self::get_type_for_this(current_context, inference_map)
+                } else {
+                  inference::Type::Unknown
+                };
+              },
+              _ => {
+                println!("incorrect nesting, {:?} is not a compound type", identifier);
+              }
+            }
+          }
+
+          inference::Type::Unknown
+        },
         Expression::Cast(type_name, _) => inference::Type::Identifier(type_name.clone()),
         Expression::Group(_) => todo!(),
         Expression::Error => inference::Type::Unknown,
     }
+  }
+}
+
+impl Expression {
+  pub fn get_type_for_this(
+    current_context: &Rc<RefCell<Context>>,
+    inference_map: &codegen::type_inference::TypeInferenceMap
+  ) -> inference::Type {
+    let a: &RefCell<Context> = &current_context.borrow();
+    let parent_context = &a.borrow().parent_context;
+
+    match parent_context {
+      Some(context) => {
+        let a: &RefCell<Context> = &context.borrow();
+        let context = &a.borrow();
+
+        match &context.context_type {
+          ContextType::ClassOrStruct => {
+            let class_name = match context.get_class_name() {
+              Some(n) => n,
+              None => {
+                println!("Cannot use `this`outside of a class or a state");
+
+                return inference::Type::Unknown;
+              }
+            };
+
+            if inference_map.contains_key(&class_name) {
+              return inference::Type::Identifier(class_name);
+            }
+            else {
+              println!("Cannot use `this` as {class_name} is not a known compound type");
+
+              return inference::Type::Unknown;
+            }
+          },
+          _ => {
+            println!("Cannot use `this` outside of a class or a state");
+
+            return inference::Type::Unknown;
+          }
+        }
+      },
+      None => {
+        println!("Cannot use `this` outside of a class or a state");
+
+        return inference::Type::Unknown;
+      }
+    };
   }
 }
 

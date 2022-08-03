@@ -8,7 +8,7 @@ use std::collections::{HashMap};
 /// they have are either unknown or correct.
 #[derive(Debug)]
 pub struct TypeInferenceStore {
-  pub types: HashMap<String, InferedType>,
+  pub types: TypeInferenceMap,
 }
 
 impl TypeInferenceStore {

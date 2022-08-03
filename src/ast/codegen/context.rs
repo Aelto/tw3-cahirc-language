@@ -1,3 +1,5 @@
+use std::borrow::Borrow;
+use std::cell::Ref;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::collections::HashSet;
@@ -65,22 +67,30 @@ impl Context {
     ));
   }
 
+  pub fn get_class_name(&self) -> Option<String> {
+    if self.name.starts_with("class: ") {
+      Some(self.name.replacen("class: ", "", 1))
+    }
+    else {
+      None
+    }
+  }
+
   pub fn set_parent_context(this: &Rc<RefCell<Context>>, parent: &Rc<RefCell<Context>>) {
-    if let Some(parent_context) = &(*this).borrow().parent_context {
+    if let Some(parent_context) = &Self::get_ref(this).parent_context {
       Self::remove_child(parent_context, &this);
     }
 
     (*parent).borrow_mut().children_contexts.push(this.clone());
     (*this).borrow_mut().parent_context = Some(parent.clone());
 
-    if (*parent).borrow().is_library {
+    if Self::get_ref(parent).is_library {
       (*this).borrow_mut().set_as_library();
     }
   }
 
   pub fn remove_child(this: &Rc<RefCell<Context>>, child: &Rc<RefCell<Context>>) {
-    let index = (*this)
-      .borrow()
+    let index = Self::get_ref(this)
       .children_contexts
       .iter()
       .position(|c| std::ptr::eq(child.as_ptr(), c.as_ptr()));
@@ -93,7 +103,7 @@ impl Context {
   /// Return the top most context, the higher context in the tree with no
   /// parents.
   pub fn get_top_most_context(this: &Rc<RefCell<Context>>) -> Rc<RefCell<Context>> {
-    if let Some(context) = &this.borrow().parent_context {
+    if let Some(context) = &Self::get_ref(&this).parent_context {
       return Self::get_top_most_context(&context);
     }
 
@@ -106,12 +116,11 @@ impl Context {
     let program = Self::get_top_most_context(this);
     let context_name = format!("function: {}", name);
 
-    for file_context in &program.borrow().children_contexts {
-      let result = file_context
-        .borrow()
+    for file_context in &Self::get_ref(&program).children_contexts {
+      let result = Self::get_ref(&file_context)
         .children_contexts
         .iter()
-        .find(|context| context.borrow().name == context_name)
+        .find(|context| Self::get_ref(context).name == context_name)
         .and_then(|c| Some(c.clone()));
 
       if result.is_some() {
@@ -128,12 +137,11 @@ impl Context {
     let program = Self::get_top_most_context(this);
     let context_name = format!("class: {}", name);
 
-    for file_context in &program.borrow().children_contexts {
-      let result = file_context
-        .borrow()
+    for file_context in &Self::get_ref(&program).children_contexts {
+      let result = Self::get_ref(&file_context)
         .children_contexts
         .iter()
-        .find(|context| context.borrow().name == context_name)
+        .find(|context| Self::get_ref(&context).name == context_name)
         .and_then(|c| Some(c.clone()));
 
       if result.is_some() {
@@ -191,8 +199,7 @@ impl Context {
     }
 
     match &self.parent_context {
-      Some(parent) => (*parent)
-        .borrow()
+      Some(parent) => Self::get_ref(parent)
         .transform_if_generic_type(f, identifier)?,
       None => {
         write!(f, "{identifier}")?;
@@ -202,11 +209,17 @@ impl Context {
     Ok(())
   }
 
+  pub fn get_ref(context: &Rc<RefCell<Context>>) -> Ref<Context> {
+    let context: &RefCell<Context> = context.borrow();
+    
+    context.borrow()
+  }
+
   pub fn print(&self, depth: usize) {
     println!("{}{}", "  ".repeat(depth), self.name);
 
     for child in &self.children_contexts {
-      (*child).borrow().print(depth + 1);
+      Self::get_ref(&child).print(depth + 1);
     }
   }
 }

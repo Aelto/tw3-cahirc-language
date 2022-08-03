@@ -1,8 +1,9 @@
 use std::{rc::Rc, cell::RefCell};
 
-use crate::ast::{Context, codegen::type_inference::TypeInferenceStore};
+use crate::ast::{Context, codegen::type_inference::{TypeInferenceStore, TypeInferenceMap}};
 
 
+#[derive(Debug)]
 pub enum Type {
   String,
   Name,
@@ -33,7 +34,7 @@ pub trait ToType {
   fn resulting_type(
     &self,
     _: &Rc<RefCell<Context>>,
-    _: &TypeInferenceStore
+    _: &TypeInferenceMap
   ) -> Type {
     Type::Unknown
   }

@@ -100,7 +100,9 @@ impl Codegen for VariableDeclaration {
                 writeln!(f, ";")?;
               }
             },
-            VariableDeclaration::Implicit { names: _, following_expression: _ } => unreachable!(),
+            VariableDeclaration::Implicit { names: _, following_expression: _ } => {
+              panic!("The compiler does not support implicit types for class attributes, please write the types of your attributes explicitly.");
+            },
         };
       }
 

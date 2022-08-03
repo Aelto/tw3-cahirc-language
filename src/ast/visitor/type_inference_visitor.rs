@@ -39,7 +39,15 @@ impl super::Visitor for CompoundTypesVisitor<'_> {
 
   /// Update the current context with the latest context met in the AST
   fn visit_function_declaration(&mut self, node: &crate::ast::FunctionDeclaration) {
-    let parent_context_type: ContextType = self.current_context.borrow_mut().context_type;
+    self.current_context = node.context.clone();
+
+    let parent_context = &Context::get_ref(&node.context).parent_context;
+    let parent_context_type = if let Some(parent_context) = parent_context {
+      Context::get_ref(&parent_context).context_type
+    }
+    else {
+      ContextType::Global
+    };
 
     let parameters: Vec<String> = node.parameters
       .iter()
@@ -50,19 +58,22 @@ impl super::Visitor for CompoundTypesVisitor<'_> {
     // it is a global function.
     match parent_context_type {
       ContextType::ClassOrStruct => {
-        // TODO:
-        // this is obviously a temporary solution while implementing the thing.
-        // It is time i clean up this name with `format!` calls in it.
-        let compound_parent_name = self.current_context.borrow_mut().name.replacen("class: ", "", 1);
-
-        self.inference_store.register_method(
-          compound_parent_name, node.name.clone(),
-          parameters,
-          match &node.type_declaration {
-            Some(decl) => Some(decl.to_string()),
-            None => None,
-          }
-        );
+        if let Some(parent_context) = parent_context {
+          let parent_context = Context::get_ref(&parent_context);
+  
+          dbg!(&parent_context.name);
+          let compound_parent_name = parent_context.get_class_name()
+            .expect("could not get the name of the parent compound type while analysing a method definition");
+  
+          self.inference_store.register_method(
+            compound_parent_name, node.name.clone(),
+            parameters,
+            match &node.type_declaration {
+              Some(decl) => Some(decl.to_string()),
+              None => None,
+            }
+          );
+        }
       },
       _ => {
         self.inference_store.register_function(
@@ -75,8 +86,6 @@ impl super::Visitor for CompoundTypesVisitor<'_> {
         );
       },
     };
-
-    self.current_context = node.context.clone();
   }
 
   /// Update the current context with the latest context met in the AST
@@ -140,10 +149,8 @@ impl super::Visitor for FunctionsInferenceVisitor<'_> {
         crate::ast::VariableDeclaration::Implicit { names, following_expression } => {
           println!("implicit variable declaration");
 
-
-
           let expression: &Expression = &following_expression.borrow();
-          let the_type = expression.resulting_type(&self.current_context, &self.inference_store);
+          let the_type = expression.resulting_type(&self.current_context, &self.inference_store.types);
 
           match the_type {
             crate::ast::inference::Type::Void => {
@@ -152,7 +159,7 @@ impl super::Visitor for FunctionsInferenceVisitor<'_> {
               return;
             },
             crate::ast::inference::Type::Unknown => {
-              println!("implicit variable declaration but resulting type is unkown, probably from an invalid expression");
+              println!("implicit variable declaration but resulting type is unkown at the time. Prefer an explicit type annotation here");
 
               return;
             },
