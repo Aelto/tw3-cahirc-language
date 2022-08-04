@@ -224,10 +224,13 @@ impl Context {
   }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub enum ContextType {
   Global,
   ClassOrStruct,
+  State {
+    parent_class_name: String
+  },
   Function,
 }
 

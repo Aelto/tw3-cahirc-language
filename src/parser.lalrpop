@@ -70,7 +70,15 @@ ClassDeclaration: ClassDeclaration = {
     <extended_class_name:(KeywordExtends <Identifier>)?>
     "{" <body_statements:(<ClassBodyStatement>)*> "}"
         => ClassDeclaration {
-            context: Rc::new(RefCell::new(Context::new(&format!("class: {}", &name), generic_types.clone(), ContextType::ClassOrStruct))),
+            context: Rc::new(
+                RefCell::new(Context::new(&format!("class: {}", &name),
+                generic_types.clone(),
+                match &parent_class_name {
+                    None => ContextType::ClassOrStruct,
+                    Some(parent_class_name) => ContextType::State { parent_class_name: parent_class_name.clone() }
+                }
+                
+            ))),
             class_type,
             name,
             parent_class_name,

@@ -83,7 +83,7 @@ impl Codegen for VariableDeclaration {
   fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
     use std::io::Write as IoWrite;
     match context.context_type {
-      ContextType::Global | ContextType::ClassOrStruct => {
+      ContextType::Global | ContextType::ClassOrStruct | ContextType::State { parent_class_name: _ } => {
         match &self {
             VariableDeclaration::Explicit { declaration, following_expression } => {
               write!(f, "var ")?;

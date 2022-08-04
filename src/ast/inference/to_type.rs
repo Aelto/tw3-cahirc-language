@@ -1,6 +1,6 @@
 use std::{rc::Rc, cell::RefCell};
 
-use crate::ast::{Context, codegen::type_inference::{TypeInferenceStore, TypeInferenceMap}};
+use crate::ast::{Context, codegen::type_inference::TypeInferenceMap};
 
 
 #[derive(Debug)]

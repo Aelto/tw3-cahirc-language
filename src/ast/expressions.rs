@@ -104,6 +104,9 @@ impl ToType for Expression {
           if a.text == "this" {
             Self::get_type_for_this(current_context, inference_map)
           }
+          else if a.text == "parent" {
+            Self::get_type_for_parent(current_context, inference_map)
+          }
           else {
             let a: &RefCell<Context> = current_context.borrow();
 
@@ -211,7 +214,7 @@ impl Expression {
         let context = &a.borrow();
 
         match &context.context_type {
-          ContextType::ClassOrStruct => {
+          ContextType::ClassOrStruct | ContextType::State { parent_class_name: _ } => {
             let class_name = match context.get_class_name() {
               Some(n) => n,
               None => {
@@ -242,6 +245,36 @@ impl Expression {
 
         return inference::Type::Unknown;
       }
+    };
+  }
+
+  pub fn get_type_for_parent(
+    current_context: &Rc<RefCell<Context>>,
+    inference_map: &codegen::type_inference::TypeInferenceMap
+  ) -> inference::Type {
+
+    let context = Context::get_ref(&current_context);
+    let parent_context = match &context.parent_context {
+      Some(p) => Context::get_ref(p),
+      None => return inference::Type::Unknown
+    };
+
+    match &parent_context.context_type {
+        ContextType::State { parent_class_name } => {
+          if inference_map.contains_key(parent_class_name) {
+            return inference::Type::Identifier(parent_class_name.clone());
+          }
+          else {
+            println!("Cannot use `this` as {parent_class_name} is not a known compound type");
+
+            return inference::Type::Unknown;
+          }
+        },
+        _ => {
+          println!("Cannot get `parent`'s type as it was used outside a state.");
+
+          return inference::Type::Unknown;
+        }
     };
   }
 }
