@@ -161,6 +161,7 @@ pub struct Lambda {
   pub lambda_type: LambdaType,
   pub parameters: Vec<FunctionDeclarationParameter>,
   pub body_statements: Vec<FunctionBodyStatement>,
+  pub span: Span,
 
   pub mangled_accessor: RefCell<Option<String>>,
 }

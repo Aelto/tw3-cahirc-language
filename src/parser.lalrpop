@@ -262,16 +262,18 @@ LambdaDeclaration: LambdaDeclaration = {
 
 
 Lambda: Lambda = {
-    "|" <parameters:TrailingComma<FunctionDeclarationParameter>> "|" "{" <body_statements:(<FunctionBodyStatement>)*> "}" => Lambda {
+    <l: @L> "|" <parameters:TrailingComma<FunctionDeclarationParameter>> "|" "{" <body_statements:(<FunctionBodyStatement>)*> "}" <r: @R> => Lambda {
         lambda_type: LambdaType::MultiLine,
         parameters,
         body_statements,
+        span: span_maker.span(l, r),
         mangled_accessor: RefCell::new(None)
     },
-    "|" <parameters:TrailingComma<FunctionDeclarationParameter>> "|" <body_statement:(<FunctionBodyStatement>)> => Lambda {
+    <l: @L> "|" <parameters:TrailingComma<FunctionDeclarationParameter>> "|" <body_statement:(<FunctionBodyStatement>)> <r: @R> => Lambda {
         lambda_type: LambdaType::SingleLine,
         parameters,
         body_statements: vec![body_statement],
+        span: span_maker.span(l, r),
         mangled_accessor: RefCell::new(None)
     }
 }
