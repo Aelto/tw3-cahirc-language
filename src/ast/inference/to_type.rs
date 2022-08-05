@@ -2,7 +2,6 @@ use std::{rc::Rc, cell::RefCell};
 
 use crate::ast::{Context, codegen::type_inference::TypeInferenceMap};
 
-
 #[derive(Debug)]
 pub enum Type {
   String,
@@ -27,7 +26,7 @@ impl ToString for Type {
         Type::Void => "void".to_string(),
         Type::Unknown => "unknown".to_string(),
     }
-    }
+  }
 }
 
 pub trait ToType {

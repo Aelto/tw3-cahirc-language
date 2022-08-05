@@ -2,6 +2,7 @@ use std::rc::Rc;
 
 use crate::ast::codegen::context::GenericContext;
 
+use super::span_manager::Span;
 use super::visitor::Visited;
 use super::*;
 
@@ -9,6 +10,7 @@ use super::*;
 pub struct IdentifierTerm {
   pub text: String,
   pub indexing: Vec<Rc<Expression>>,
+  pub span: Span
 }
 
 impl Visited for IdentifierTerm {

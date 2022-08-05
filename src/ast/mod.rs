@@ -8,6 +8,7 @@ use self::codegen::Codegen;
 pub mod codegen;
 pub mod visitor;
 pub mod inference;
+pub mod span_manager;
 
 pub use codegen::context::Context;
 pub use codegen::context::ContextType;

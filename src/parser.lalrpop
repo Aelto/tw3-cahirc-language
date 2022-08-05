@@ -3,6 +3,7 @@ use std::rc::Rc;
 
 use crate::ast::{
     ProgramInformation,
+    span_manager::{SpanMaker},
 
     Program,
     Expression,
@@ -48,7 +49,7 @@ use crate::ast::{
 
 use crate::ast::codegen::context::Context;
 
-grammar(information: &ProgramInformation);
+grammar(information: &ProgramInformation, span_maker: &mut SpanMaker<'input>);
 
 pub Program: Program = {
     <statements:(<Statement>)*> => Program { statements }
@@ -525,9 +526,10 @@ Indexing: Rc<Expression> = {
 }
 
 IdentifierTerm: Box<IdentifierTerm> = {
-    <text:Identifier> <indexing:Indexing*> => Box::new(IdentifierTerm {
+    <l: @L> <text:Identifier> <indexing:Indexing*> <r: @R> => Box::new(IdentifierTerm {
         text,
-        indexing
+        indexing,
+        span: span_maker.span(l, r)
     })
 }
 

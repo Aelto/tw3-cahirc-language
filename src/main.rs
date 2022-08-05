@@ -15,6 +15,7 @@ use ariadne::Source;
 use ast::Program;
 use ast::ProgramInformation;
 use ast::codegen::type_inference::TypeInferenceStore;
+use ast::span_manager::SpanManager;
 use ast::visitor::FunctionsInferenceVisitor;
 use config::read_config;
 use config::Config;
@@ -50,13 +51,15 @@ fn compile_source_directory(config: &Config) -> std::io::Result<()> {
 
   // 1.
   // Build the list of AST from the files
+  let mut sources_span_manager = SpanManager::new();
   let mut dependency_ast_list = Vec::new();
   let mut ast_list = Vec::new();
 
   // starting with the dependencies
   for (_name, value) in preprocessed_content.dependencies_files_content.iter() {
-    for (_filename, file) in value.iter() {
+    for (filename, file) in value.iter() {
       let content = strip_pragmas(&file.content.borrow());
+      let mut span_maker = sources_span_manager.add_source(filename.clone());
 
       if file
         .content
@@ -67,7 +70,7 @@ fn compile_source_directory(config: &Config) -> std::io::Result<()> {
       }
 
       let expr = parser::ProgramParser::new()
-        .parse(&program_information, &content)
+        .parse(&program_information, &mut span_maker, &content)
         .unwrap();
 
       dependency_ast_list.push(ParsedFile {
@@ -79,7 +82,9 @@ fn compile_source_directory(config: &Config) -> std::io::Result<()> {
 
   for (filename, file) in preprocessed_content.source_files_content.iter() {
     use ariadne::{ColorGenerator, Label, Report, ReportKind};
+
     let content = strip_pragmas(&file.content.borrow());
+    let mut span_maker = sources_span_manager.add_source(filename.clone());
 
     if file
       .content
@@ -89,7 +94,7 @@ fn compile_source_directory(config: &Config) -> std::io::Result<()> {
       println!("{}", &file.content.borrow());
     }
 
-    let expr = parser::ProgramParser::new().parse(&program_information, &content);
+    let expr = parser::ProgramParser::new().parse(&program_information, &mut span_maker, &content);
     let expr = match expr {
       Ok(expr) => expr,
       Err(error) => {
