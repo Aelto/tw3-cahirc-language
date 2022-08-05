@@ -4,7 +4,7 @@ use super::{*, inference::ToType};
 
 #[derive(Debug)]
 pub enum Expression {
-  Integer(String),
+  Integer(Spanned<String>),
   Float(String),
 
   String(String),
@@ -23,6 +23,7 @@ pub enum Expression {
   Nesting(Vec<Expression>),
   Cast(String, Rc<Expression>),
 
+  /// Expressions surrounded by parenthesis
   Group(Rc<Expression>),
 
   Error,
@@ -54,7 +55,7 @@ impl Codegen for Expression {
     use std::io::Write as IoWrite;
 
     match self {
-      Expression::Integer(x) => write!(f, "{x}"),
+      Expression::Integer(x) => x.emit(context, f),
       Expression::Float(x) => write!(f, "{x}"),
       Expression::String(x) => write!(f, "{}", x),
       Expression::Name(x) => write!(f, "{}", x),

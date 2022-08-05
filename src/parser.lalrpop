@@ -3,7 +3,7 @@ use std::rc::Rc;
 
 use crate::ast::{
     ProgramInformation,
-    span_manager::{SpanMaker},
+    span_manager::{SpanMaker, Spanned as SpannedNode},
 
     Program,
     Expression,
@@ -502,7 +502,7 @@ ComparisonType: ComparisonType = {
 }
 
 Term: Rc<Expression> = {
-    Integer => Rc::new(Expression::Integer(<>)),
+    Spanned<Integer> => Rc::new(Expression::Integer(<>)),
     Float => Rc::new(Expression::Float(<>)),
     Lambda => Rc::new(Expression::Lambda(<>)),
     "(" <Expression> ")" => Rc::new(Expression::Group(<>)),
@@ -622,10 +622,6 @@ ElAndCommas<T>: Vec<Option<T>> = {
     }
 }
 
-Spanned<T>: spans::Spanned<T> = {
-    <l: @L> <val: T> <r: @R> => (val, ctx.span(l, r))
-};
-
 /// A comma separated list of `T` with the possibility of a trailing comma
 TrailingComma<T>: Vec<T> = {
     <mut v:(<T> ",")*> <e:T?> => match e {
@@ -652,6 +648,10 @@ DotSeparated<T>: Vec<T> = {
 Tier<Op,NextTier>: Rc<Expression> = {
     Tier<Op,NextTier> Op NextTier => Rc::new(Expression::Operation(<>)),
     NextTier
+};
+
+Spanned<T>: SpannedNode<T> = {
+    <l: @L> <val: T> <r: @R> => SpannedNode::new(val, span_maker.span(l, r))
 };
 
 StringLiteral = {

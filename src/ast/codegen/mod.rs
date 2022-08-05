@@ -1,4 +1,4 @@
-use std::ops::Deref;
+use std::{ops::Deref, fmt::Display};
 
 pub mod type_inference;
 pub mod context;
@@ -78,5 +78,14 @@ where
     }
 
     Ok(())
+  }
+}
+
+impl Codegen for String
+{
+  fn emit(&self, context: &context::Context, output: &mut Vec<u8>) -> Result<(), std::io::Error> {
+    use std::io::Write as IoWrite;
+
+    write!(output, "{}", self)
   }
 }
