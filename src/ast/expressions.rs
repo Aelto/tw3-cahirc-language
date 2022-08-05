@@ -7,8 +7,8 @@ pub enum Expression {
   Integer(Spanned<String>),
   Float(Spanned<String>),
 
-  String(String),
-  Name(String),
+  String(Spanned<String>),
+  Name(Spanned<String>),
 
   Identifier(Box<IdentifierTerm>),
 
@@ -57,8 +57,8 @@ impl Codegen for Expression {
     match self {
       Expression::Integer(x) => x.emit(context, f),
       Expression::Float(x) => x.emit(context, f),
-      Expression::String(x) => write!(f, "{}", x),
-      Expression::Name(x) => write!(f, "{}", x),
+      Expression::String(x) => x.emit(context, f),
+      Expression::Name(x) => x.emit(context, f),
       Expression::Not(x) => {
         write!(f, "!")?;
         x.emit(context, f)

@@ -506,8 +506,8 @@ Term: Rc<Expression> = {
     Spanned<Float> => Rc::new(Expression::Float(<>)),
     Lambda => Rc::new(Expression::Lambda(<>)),
     "(" <Expression> ")" => Rc::new(Expression::Group(<>)),
-    StringLiteral => Rc::new(Expression::String(String::from(<>))),
-    CharLiteral => Rc::new(Expression::Name(String::from(<>))),
+    <l: @L> <s:StringLiteral> <r: @R> => Rc::new(Expression::String(SpannedNode::new(String::from(s), span_maker.span(l, r)))),
+    <l: @L> <c:CharLiteral> <r: @R> => Rc::new(Expression::Name(SpannedNode::new(String::from(c), span_maker.span(l, r)))),
 
     IdentifierTerm => Rc::new(Expression::Identifier(<>)),
     ClassInstantiation => Rc::new(Expression::ClassInstantiation(<>)),
