@@ -290,10 +290,11 @@ VariableAssignment: VariableAssignment = {
 // -----------------------------------------------------------------------------
 
 ClassInstantiation: ClassInstantiation = {
-    KeywordNew <class_name:Identifier> <generic_type_assignment:("<" <TrailingComma<Type>> ">")?> KeywordIn <lifetime:Identifier> => ClassInstantiation {
+    <l: @L> KeywordNew <class_name:Identifier> <generic_type_assignment:("<" <TrailingComma<Type>> ">")?> KeywordIn <lifetime:Identifier> <r: @R> => ClassInstantiation {
         class_name,
         generic_type_assignment,
-        lifetime
+        lifetime,
+        span: span_maker.span(l, r)
     }
 }
 
@@ -618,6 +619,10 @@ ElAndCommas<T>: Vec<Option<T>> = {
         output
     }
 }
+
+Spanned<T>: spans::Spanned<T> = {
+    <l: @L> <val: T> <r: @R> => (val, ctx.span(l, r))
+};
 
 /// A comma separated list of `T` with the possibility of a trailing comma
 TrailingComma<T>: Vec<T> = {
