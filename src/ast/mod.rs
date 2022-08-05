@@ -13,6 +13,8 @@ pub mod span_manager;
 pub use codegen::context::Context;
 pub use codegen::context::ContextType;
 
+pub use span_manager::*;
+
 // -----------------------------------------------------------------------------
 
 pub struct ProgramInformation {}

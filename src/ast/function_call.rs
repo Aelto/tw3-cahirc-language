@@ -9,6 +9,7 @@ pub struct FunctionCall {
   pub accessor: Box<IdentifierTerm>,
   pub generic_types: Option<Vec<String>>,
   pub parameters: FunctionCallParameters,
+  pub span: Span,
 
   pub mangled_accessor: RefCell<Option<String>>,
 }

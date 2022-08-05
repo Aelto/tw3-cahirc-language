@@ -508,12 +508,13 @@ Term: Rc<Expression> = {
 
     IdentifierTerm => Rc::new(Expression::Identifier(<>)),
     ClassInstantiation => Rc::new(Expression::ClassInstantiation(<>)),
-    <accessor:IdentifierTerm> <generic_types:("::" <GenericTypesDeclaration>)?> <parameters:FunctionCallParameters>
+    <l: @L> <accessor:IdentifierTerm> <generic_types:("::" <GenericTypesDeclaration>)?> <parameters:FunctionCallParameters> <r: @R>
         => {
             let function_call = Rc::new(Expression::FunctionCall(FunctionCall {
                 accessor,
                 generic_types,
                 parameters,
+                span: span_maker.span(l, r),
                 mangled_accessor: RefCell::new(None)
             }));
 
