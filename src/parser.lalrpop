@@ -503,7 +503,7 @@ ComparisonType: ComparisonType = {
 
 Term: Rc<Expression> = {
     Spanned<Integer> => Rc::new(Expression::Integer(<>)),
-    Float => Rc::new(Expression::Float(<>)),
+    Spanned<Float> => Rc::new(Expression::Float(<>)),
     Lambda => Rc::new(Expression::Lambda(<>)),
     "(" <Expression> ")" => Rc::new(Expression::Group(<>)),
     StringLiteral => Rc::new(Expression::String(String::from(<>))),

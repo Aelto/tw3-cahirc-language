@@ -5,7 +5,7 @@ use super::{*, inference::ToType};
 #[derive(Debug)]
 pub enum Expression {
   Integer(Spanned<String>),
-  Float(String),
+  Float(Spanned<String>),
 
   String(String),
   Name(String),
@@ -56,7 +56,7 @@ impl Codegen for Expression {
 
     match self {
       Expression::Integer(x) => x.emit(context, f),
-      Expression::Float(x) => write!(f, "{x}"),
+      Expression::Float(x) => x.emit(context, f),
       Expression::String(x) => write!(f, "{}", x),
       Expression::Name(x) => write!(f, "{}", x),
       Expression::Not(x) => {
