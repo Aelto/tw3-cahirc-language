@@ -194,6 +194,7 @@ fn compile_source_directory(config: &Config) -> std::io::Result<()> {
     parsed_file.ast.accept(&mut variable_declaration_visitor);
   }
 
+  let mut report_manager = ReportManager::new();
   for parsed_file in &ast_list {
     let mut variable_declaration_visitor = VariableDeclarationVisitor::new(&program_information);
     let mut function_visitor = FunctionVisitor {
@@ -212,19 +213,28 @@ fn compile_source_directory(config: &Config) -> std::io::Result<()> {
       current_context: file_context.clone(),
     };
 
-    let mut compound_types_visitor = CompoundTypesVisitor::new(file_context.clone(), &mut inference_store);
+    let mut compound_types_visitor = CompoundTypesVisitor::new(
+      file_context.clone(),
+      &mut inference_store,
+      &mut report_manager,
+      &mut sources_span_manager
+    );
 
     use ast::visitor::Visited;
 
     parsed_file.ast.accept(&mut context_builder);
     parsed_file.ast.accept(&mut function_visitor);
     parsed_file.ast.accept(&mut variable_declaration_visitor);
+
     parsed_file.ast.accept(&mut compound_types_visitor);
+    let file = preprocessed_content.source_files_content.get(&parsed_file.filename);
+    if let Some(file) = file {
+      report_manager.consume(&file.content.borrow());
+    }
   }
 
   // 2.1
   // do a second pass for the type inference in functions
-  let mut report_manager = ReportManager::new();
   for parsed_file in &ast_list {
     let mut functions_inference_visitor = FunctionsInferenceVisitor::new(
       global_context.clone(),
@@ -238,8 +248,6 @@ fn compile_source_directory(config: &Config) -> std::io::Result<()> {
     parsed_file.ast.accept(&mut functions_inference_visitor);
 
     let file = preprocessed_content.source_files_content.get(&parsed_file.filename);
-
-    
     if let Some(file) = file {
       report_manager.consume(&file.content.borrow());
     }

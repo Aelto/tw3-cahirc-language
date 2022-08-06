@@ -6,6 +6,8 @@ pub struct StructDeclaration {
   pub name: String,
   pub body_statements: Vec<StructBodyStatement>,
 
+  pub span_name: Span,
+
   pub context: Rc<RefCell<Context>>,
 }
 

@@ -20,15 +20,18 @@ use crate::ast::inference::ToType;
 pub struct CompoundTypesVisitor<'a> {
   pub current_context: Rc<RefCell<Context>>,
   pub inference_store: &'a mut TypeInferenceStore,
-  pub report_manager: ReportManager
+  pub report_manager: &'a mut ReportManager,
+  pub span_manager: &'a mut SpanManager
 }
 
 impl<'a> CompoundTypesVisitor<'a> {
-  pub fn new(current_context: Rc<RefCell<Context>>, inference_store: &'a mut TypeInferenceStore) -> Self {
+  pub fn new(current_context: Rc<RefCell<Context>>, inference_store: &'a mut TypeInferenceStore,
+  report_manager: &'a mut ReportManager, span_manager: &'a mut SpanManager) -> Self {
     Self {
       current_context,
       inference_store,
-      report_manager: ReportManager::new()
+      report_manager,
+      span_manager
     }
   }
 }
@@ -40,7 +43,21 @@ impl super::Visitor for CompoundTypesVisitor<'_> {
 
   /// Update the current context with the latest context met in the AST
   fn visit_class_declaration(&mut self, node: &crate::ast::ClassDeclaration) {
-    self.inference_store.register_compound(node.name.clone());
+    let result = self.inference_store.register_compound(node.name.clone());
+
+    if let Err(reason) = result {
+      let span = node.span_name;
+
+      self.report_manager.push(
+        Report::build(ReportKind::Error, (), self.span_manager.get_left(span))
+        .with_message(&"Invalid class definition")
+        .with_label(
+          Label::new(self.span_manager.get_range(span))
+          .with_message(reason)
+        )
+        .finish()
+      );
+    }
 
     self.current_context = node.context.clone();
   }
@@ -71,7 +88,7 @@ impl super::Visitor for CompoundTypesVisitor<'_> {
           let compound_parent_name = parent_context.get_class_name()
             .expect("could not get the name of the parent compound type while analysing a method definition");
   
-          self.inference_store.register_method(
+          let result = self.inference_store.register_method(
             compound_parent_name, node.name.clone(),
             parameters,
             match &node.type_declaration {
@@ -79,10 +96,24 @@ impl super::Visitor for CompoundTypesVisitor<'_> {
               None => None,
             }
           );
+
+          if let Err(reason) = result {
+            let span = node.span_name;
+
+            self.report_manager.push(
+              Report::build(ReportKind::Error, (), self.span_manager.get_left(span))
+              .with_message(&"Invalid method definition")
+              .with_label(
+                Label::new(self.span_manager.get_range(span))
+                .with_message(reason)
+              )
+              .finish()
+            );
+          }
         }
       },
       _ => {
-        self.inference_store.register_function(
+        let result = self.inference_store.register_function(
           node.name.clone(),
           parameters,
           match &node.type_declaration {
@@ -90,13 +121,41 @@ impl super::Visitor for CompoundTypesVisitor<'_> {
             None => None,
           }
         );
+
+        if let Err(reason) = result {
+          let span = node.span_name;
+
+          self.report_manager.push(
+            Report::build(ReportKind::Error, (), self.span_manager.get_left(span))
+            .with_message(&"Invalid function definition")
+            .with_label(
+              Label::new(self.span_manager.get_range(span))
+              .with_message(reason)
+            )
+            .finish()
+          );
+        }
       },
     };
   }
 
   /// Update the current context with the latest context met in the AST
   fn visit_struct_declaration(&mut self, node: &crate::ast::StructDeclaration) {
-    self.inference_store.register_compound(node.name.clone());
+    let result = self.inference_store.register_compound(node.name.clone());
+
+    if let Err(reason) = result {
+      let span = node.span_name;
+
+      self.report_manager.push(
+        Report::build(ReportKind::Error, (), self.span_manager.get_left(span))
+        .with_message(&"Invalid struct definition")
+        .with_label(
+          Label::new(self.span_manager.get_range(span))
+          .with_message(reason)
+        )
+        .finish()
+      );
+    }
 
     self.current_context = node.context.clone();
   }

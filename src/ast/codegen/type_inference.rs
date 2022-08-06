@@ -26,43 +26,43 @@ impl TypeInferenceStore {
     }
   }
 
-  pub fn register_compound(&mut self, name: String) {
-    println!("registering compound type {}", &name);
-
+  pub fn register_compound(&mut self, name: String) -> Result<(), String> {
     if self.types.contains_key(&name) {
-      println!("warning: compound type {} was registered twice", &name);
+      return Err(format!("compound type {} was registered twice", &name));
     }
 
     self.types.insert(name, InferedType::Compound(HashMap::new()));
+
+    Ok(())
   }
 
-  pub fn register_function(&mut self, name: String, parameters: Vec<String>, return_type: Option<String>) {
-    println!("registering function type {}({:?}): {:?}", &name, &parameters, &return_type);
-
+  pub fn register_function(&mut self, name: String, parameters: Vec<String>, return_type: Option<String>) -> Result<(), String> {
     if self.types.contains_key(&name) {
-      println!("warning: function {} was registered twice", &name);
+      return Err(format!("function {} was registered twice", &name));
     }
 
-    // TODO: store the return type
     self.types.insert(name, InferedType::Function { parameters, return_type });
+
+    Ok(())
   }
 
-  pub fn register_method(&mut self, parent_compound_name: String, name: String, parameters: Vec<String>, return_type: Option<String>) {
-    println!("registering method {parent_compound_name}::{name}({:?}): {:?}", &parameters, &return_type);
+  pub fn register_method(&mut self, parent_compound_name: String, name: String, parameters: Vec<String>, return_type: Option<String>) -> Result<(), String> {
+    let mut result = Ok(());
 
     self.types.entry(parent_compound_name).and_modify(|class_type| {
         match class_type {
           InferedType::Compound(ref mut class) => {
             if class.contains_key(&name) {
-              println!("warning: method {name} was registered twice");
+              result = Err(format!("method {name} was registered twice"));
             }
             
-            // TODO: store the return type
             class.insert(name, InferedType::Function { parameters, return_type });
           },
           _ => {}
         };
     });
+
+    result
   }
 }
 

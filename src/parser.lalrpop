@@ -66,7 +66,7 @@ Statement: Statement = {
 // -----------------------------------------------------------------------------
 
 ClassDeclaration: ClassDeclaration = {
-    <class_type:ClassType> <name: Identifier> <generic_types:GenericTypesDeclaration?>
+    <class_type:ClassType> <namel: @L> <name: Identifier> <namer: @R> <generic_types:GenericTypesDeclaration?>
     <parent_class_name:(KeywordIn <Identifier>)?>
     <extended_class_name:(KeywordExtends <Identifier>)?>
     "{" <body_statements:(<ClassBodyStatement>)*> "}"
@@ -85,7 +85,8 @@ ClassDeclaration: ClassDeclaration = {
             parent_class_name,
             extended_class_name,
             body_statements,
-            generic_types
+            generic_types,
+            span_name: span_maker.span(namel, namer, "class declaration")
         }
 }
 
@@ -119,11 +120,12 @@ EncapsulationType: EncapsulationType = {
 // -----------------------------------------------------------------------------
 
 StructDeclaration: StructDeclaration = {
-    KeywordStruct <name: Identifier> <generic_types:GenericTypesDeclaration?> "{" <body_statements:(<StructBodyStatement>)*> "}"
+    KeywordStruct <namel: @L> <name: Identifier> <namer: @R> <generic_types:GenericTypesDeclaration?> "{" <body_statements:(<StructBodyStatement>)*> "}"
         => StructDeclaration {
             context: Rc::new(RefCell::new(Context::new(&format!("struct: {}", &name), generic_types.clone(), ContextType::ClassOrStruct))),
             name,
             body_statements,
+            span_name: span_maker.span(namel, namer, "struct declaration")
         }
 }
 

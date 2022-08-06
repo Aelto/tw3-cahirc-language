@@ -16,6 +16,8 @@ pub struct ClassDeclaration {
   pub generic_types: Option<Vec<String>>,
   pub body_statements: Vec<ClassBodyStatement>,
 
+  pub span_name: Span,
+
   pub context: Rc<RefCell<Context>>,
 }
 

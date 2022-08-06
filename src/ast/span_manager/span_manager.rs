@@ -11,7 +11,9 @@ pub type FilePathRef = usize;
 
 
 pub struct SpanRange {
+  #[allow(dead_code)]
   source_ref: FilePathRef,
+
   left: usize,
   right: usize
 }
