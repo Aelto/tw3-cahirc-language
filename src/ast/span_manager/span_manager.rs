@@ -1,4 +1,4 @@
-use std::{collections::HashMap};
+use std::{collections::HashMap, ops::Range};
 
 use super::SpanMaker;
 
@@ -65,5 +65,17 @@ impl SpanManager {
       source_ref,
       pool: HashMap::new()
     }
+  }
+
+  pub fn get_left(&self, source_ref: Span) -> usize {
+    self.spans[source_ref.0].left
+  }
+
+  pub fn get_right(&self, source_ref: Span) -> usize {
+    self.spans[source_ref.0].right
+  }
+
+  pub fn get_range(&self, source_ref: Span) -> Range<usize> {
+    self.get_left(source_ref)..self.get_right(source_ref)
   }
 }

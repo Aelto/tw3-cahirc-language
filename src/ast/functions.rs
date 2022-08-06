@@ -15,6 +15,8 @@ pub struct FunctionDeclaration {
   pub type_declaration: Option<TypeDeclaration>,
   pub body_statements: Vec<FunctionBodyStatement>,
 
+  pub span_name: Span,
+
   pub context: Rc<RefCell<Context>>,
 }
 

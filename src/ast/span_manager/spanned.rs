@@ -4,7 +4,7 @@ use super::*;
 
 #[derive(Debug)]
 pub struct Spanned<T> {
-  span: Span,
+  pub span: Span,
   value: T
 }
 

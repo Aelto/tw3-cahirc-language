@@ -2,7 +2,13 @@ use std::borrow::Borrow;
 use std::cell::RefCell;
 use std::rc::Rc;
 
+use ariadne::Label;
+use ariadne::Report;
+use ariadne::ReportKind;
+
 use crate::ast::Expression;
+use crate::ast::ReportManager;
+use crate::ast::SpanManager;
 use crate::ast::TypeDeclaration;
 use crate::ast::TypedIdentifier;
 use crate::ast::codegen::context::Context;
@@ -13,14 +19,16 @@ use crate::ast::inference::ToType;
 /// Registers all the compound types from the program
 pub struct CompoundTypesVisitor<'a> {
   pub current_context: Rc<RefCell<Context>>,
-  pub inference_store: &'a mut TypeInferenceStore
+  pub inference_store: &'a mut TypeInferenceStore,
+  pub report_manager: ReportManager
 }
 
 impl<'a> CompoundTypesVisitor<'a> {
   pub fn new(current_context: Rc<RefCell<Context>>, inference_store: &'a mut TypeInferenceStore) -> Self {
     Self {
       current_context,
-      inference_store
+      inference_store,
+      report_manager: ReportManager::new()
     }
   }
 }
@@ -97,18 +105,22 @@ impl super::Visitor for CompoundTypesVisitor<'_> {
 /// Does type inference for the local variables in the functions
 pub struct FunctionsInferenceVisitor<'a> {
   pub current_context: Rc<RefCell<Context>>,
-  pub inference_store: &'a mut TypeInferenceStore
+  pub inference_store: &'a mut TypeInferenceStore,
+  pub report_manager: &'a mut ReportManager,
+  pub span_manager: &'a mut SpanManager
 }
 
 impl<'a> FunctionsInferenceVisitor<'a> {
-  pub fn new(current_context: Rc<RefCell<Context>>, inference_store: &'a mut TypeInferenceStore) -> Self {
+  pub fn new(current_context: Rc<RefCell<Context>>, inference_store: &'a mut TypeInferenceStore,
+  report_manager: &'a mut ReportManager, span_manager: &'a mut SpanManager) -> Self {
     Self {
       current_context,
-      inference_store
+      inference_store,
+      report_manager,
+      span_manager
     }
   }
 }
-
 
 impl super::Visitor for FunctionsInferenceVisitor<'_> {
   fn visitor_type(&self) -> super::VisitorType {
@@ -146,16 +158,44 @@ impl super::Visitor for FunctionsInferenceVisitor<'_> {
         },
         crate::ast::VariableDeclaration::Implicit { names, following_expression } => {
           let expression: &Expression = &following_expression.borrow();
-          let the_type = expression.resulting_type(&self.current_context, &self.inference_store.types);
+          let the_type = match expression.resulting_type(&self.current_context, &self.inference_store.types, &self.span_manager) {
+            Ok(t) => t,
+            Err(reports) => {
+              self.report_manager.push_many(reports);
+
+              return;
+            }
+          };
 
           match the_type {
             crate::ast::inference::Type::Void => {
-              println!("implicit variable declaration but resulting type is void, probably from a function call whose returning type is void");
+              let span = following_expression.get_span();
+
+              self.report_manager.push(
+                Report::build(ReportKind::Error, (), self.span_manager.get_left(span))
+                .with_message(&"Cannot infer variable type")
+                .with_label(
+                  Label::new(self.span_manager.get_range(span))
+                  .with_message(&"Implicit variable declaration but resulting type is void")
+                )
+                .finish()
+              );
 
               return;
             },
             crate::ast::inference::Type::Unknown => {
-              println!("implicit variable declaration but resulting type is unkown at the time. Prefer an explicit type annotation here");
+              let span = following_expression.get_span();
+
+              self.report_manager.push(
+                Report::build(ReportKind::Error, (), self.span_manager.get_left(span))
+                .with_message(&"Cannot infer variable type")
+                .with_label(
+                  Label::new(self.span_manager.get_range(span))
+                  .with_message(&"Implicit variable declaration but resulting type is unknown at the time")
+                )
+                .with_help(&"Prefer an explicit type annotation here")
+                .finish()
+              );
 
               return;
             },

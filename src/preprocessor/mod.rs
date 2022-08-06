@@ -10,7 +10,7 @@ mod expand_macros;
 mod pragma_replace;
 mod types;
 
-use crate::utils;
+use crate::utils::convert_line_endings;
 
 use self::conditionals::filter_conditionals;
 use self::types::*;
@@ -156,9 +156,11 @@ fn get_wss_files_content_for_directory(
 
   let mut output = Vec::new();
   for filename in files {
-    let content = RefCell::new(utils::strip_comments(std::fs::read_to_string(
-      filename.path(),
-    )?));
+    let content = RefCell::new(convert_line_endings(
+      std::fs::read_to_string(
+        filename.path(),
+      )?
+    ));
 
     output.push((
       filename.path().to_str().unwrap().to_string(),

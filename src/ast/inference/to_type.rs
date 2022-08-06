@@ -1,6 +1,8 @@
 use std::{rc::Rc, cell::RefCell};
 
-use crate::ast::{Context, codegen::type_inference::TypeInferenceMap};
+use ariadne::Report;
+
+use crate::ast::{Context, codegen::type_inference::TypeInferenceMap, SpanManager};
 
 #[derive(Debug)]
 pub enum Type {
@@ -33,8 +35,9 @@ pub trait ToType {
   fn resulting_type(
     &self,
     _: &Rc<RefCell<Context>>,
-    _: &TypeInferenceMap
-  ) -> Type {
-    Type::Unknown
+    _: &TypeInferenceMap,
+    _: &SpanManager
+  ) -> Result<Type, Vec<Report>> {
+    Ok(Type::Unknown)
   }
 }

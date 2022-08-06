@@ -21,4 +21,4 @@ ariadne = "0.1.5" # error display
 dunce = "1.0.2" # better windows path display
 
 [build-dependencies]
-lalrpop = "0.19.7"
+lalrpop = "0.19.8"

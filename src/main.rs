@@ -14,6 +14,7 @@ extern crate lalrpop_util;
 use ariadne::Source;
 use ast::Program;
 use ast::ProgramInformation;
+use ast::ReportManager;
 use ast::codegen::type_inference::TypeInferenceStore;
 use ast::span_manager::SpanManager;
 use ast::visitor::FunctionsInferenceVisitor;
@@ -76,6 +77,7 @@ fn compile_source_directory(config: &Config) -> std::io::Result<()> {
       dependency_ast_list.push(ParsedFile {
         ast: expr,
         file_path: file.path.clone(),
+        filename: filename.clone()
       });
     }
   }
@@ -156,6 +158,7 @@ fn compile_source_directory(config: &Config) -> std::io::Result<()> {
     ast_list.push(ParsedFile {
       ast: expr,
       file_path: file.path.clone(),
+      filename: filename.clone()
     });
   }
 
@@ -221,15 +224,25 @@ fn compile_source_directory(config: &Config) -> std::io::Result<()> {
 
   // 2.1
   // do a second pass for the type inference in functions
+  let mut report_manager = ReportManager::new();
   for parsed_file in &ast_list {
     let mut functions_inference_visitor = FunctionsInferenceVisitor::new(
       global_context.clone(),
-      &mut inference_store
+      &mut inference_store,
+      &mut report_manager,
+      &mut sources_span_manager
     );
 
     use ast::visitor::Visited;
 
     parsed_file.ast.accept(&mut functions_inference_visitor);
+
+    let file = preprocessed_content.source_files_content.get(&parsed_file.filename);
+
+    
+    if let Some(file) = file {
+      report_manager.consume(&file.content.borrow());
+    }
   }
 
   global_context.borrow().print(0);
@@ -338,4 +351,5 @@ fn format_code(origin: &str) -> String {
 struct ParsedFile {
   file_path: PathBuf,
   ast: Program,
+  filename: String
 }

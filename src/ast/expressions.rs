@@ -1,5 +1,7 @@
 use std::{rc::Rc, borrow::Borrow};
 
+use ariadne::{Report, Label};
+
 use super::{*, inference::ToType};
 
 #[derive(Debug)]
@@ -92,28 +94,59 @@ impl ToType for Expression {
   fn resulting_type(
     &self,
       current_context: &Rc<RefCell<Context>>,
-      inference_map: &codegen::type_inference::TypeInferenceMap
-    ) -> inference::Type {
+      inference_map: &codegen::type_inference::TypeInferenceMap,
+      span_manager: &SpanManager
+    ) -> Result<inference::Type, Vec<Report>> {
       match self {
-        Expression::Integer(_) => inference::Type::Int,
-        Expression::Float(_) => inference::Type::Float,
-        Expression::String(_) => inference::Type::String,
-        Expression::Name(_) => inference::Type::Name,
+        Expression::Integer(_) => Ok(inference::Type::Int),
+        Expression::Float(_) => Ok(inference::Type::Float),
+        Expression::String(_) => Ok(inference::Type::String),
+        Expression::Name(_) => Ok(inference::Type::Name),
         Expression::Identifier(identifier) => {
           let a: &IdentifierTerm = &identifier.borrow();
 
           if a.text == "this" {
-            Self::get_type_for_this(current_context, inference_map)
+            match Self::get_type_for_this(current_context, inference_map) {
+              Ok(t) => Ok(t),
+              Err(message) => Err(vec![
+                Report::build(ariadne::ReportKind::Error, (), span_manager.get_left(identifier.span))
+                  .with_message(&"Could not infer type for `this`")
+                  .with_label(
+                    Label::new(span_manager.get_range(identifier.span))
+                    .with_message(&message)
+                  )
+                  .finish()
+              ])
+            }
           }
           else if a.text == "parent" {
-            Self::get_type_for_parent(current_context, inference_map)
+            match Self::get_type_for_parent(current_context, inference_map) {
+              Ok(t) => Ok(t),
+              Err(message) => Err(vec![
+                Report::build(ariadne::ReportKind::Error, (), span_manager.get_left(identifier.span))
+                  .with_message(&"Could not infer type for `parent`")
+                  .with_label(
+                    Label::new(span_manager.get_range(identifier.span))
+                    .with_message(&message)
+                  )
+                  .finish()
+              ])
+            }
           }
           else {
             let a: &RefCell<Context> = current_context.borrow();
 
             match a.borrow().local_variables_inference.get(&identifier.text) {
-              Some(t) => inference::Type::Identifier(t.clone()),
-              None => inference::Type::Unknown
+              Some(t) => Ok(inference::Type::Identifier(t.clone())),
+              None => Err(vec![
+                Report::build(ariadne::ReportKind::Error, (), span_manager.get_left(identifier.span))
+                  .with_message(&"Unknown local variable")
+                  .with_label(
+                    Label::new(span_manager.get_range(identifier.span))
+                    .with_message(&"No variable or property exists with such name")
+                  )
+                  .finish()
+              ])
             }
           }
         },
@@ -121,43 +154,63 @@ impl ToType for Expression {
           let function_return_type = match inference_map.get(&function.accessor.text) {
               Some(infered_type) => match infered_type {
                 crate::ast::codegen::type_inference::InferedType::Function { parameters: _, return_type } => match return_type {
-                  Some(s) => inference::Type::Identifier(s.clone()),
-                  None => inference::Type::Void
+                  Some(s) => Ok(inference::Type::Identifier(s.clone())),
+                  None => Ok(inference::Type::Void)
                 },
                 _ => {
-                  println!("function call {}(), but {} is not a function", &function.accessor.text, &function.accessor.text);
-
-                  inference::Type::Unknown
+                  Err(vec![
+                    Report::build(ariadne::ReportKind::Error, (), span_manager.get_left(function.accessor.span))
+                      .with_message(&"Invalid function call")
+                      .with_label(
+                        Label::new(span_manager.get_range(function.accessor.span))
+                        .with_message(&format!("{} is not a function.", &function.accessor.text))
+                      )
+                      .finish()
+                  ])
                 },
               },
               None => {
-                todo!()
+                Err(vec![
+                  Report::build(ariadne::ReportKind::Error, (), span_manager.get_left(function.accessor.span))
+                    .with_message(&"Invalid function call")
+                    .with_label(
+                      Label::new(span_manager.get_range(function.accessor.span))
+                      .with_message(&format!("{} is not a function.", &function.accessor.text))
+                    )
+                    .finish()
+                ])
               },
           };
 
           function_return_type
         },
-        Expression::ClassInstantiation(instantiation) => inference::Type::Identifier(instantiation.class_name.clone()),
-        Expression::Lambda(_) => inference::Type::Unknown,
+        Expression::ClassInstantiation(instantiation) => Ok(inference::Type::Identifier(instantiation.class_name.clone())),
+        Expression::Lambda(_) => Ok(inference::Type::Unknown),
         Expression::Operation(left, operation, right) => {
           match &left.borrow() {
             // when it starts with a string, it can only be a string
             // concatenation
-            Expression::String(_) => inference::Type::String,
-            Expression::Float(_) => inference::Type::Float,
-            Expression::Integer(_) => inference::Type::Int,
+            Expression::String(_) => Ok(inference::Type::String),
+            Expression::Float(_) => Ok(inference::Type::Float),
+            Expression::Integer(_) => Ok(inference::Type::Int),
             _ => {
               match &operation {
                 OperationCode::Nesting => {
-                  let left_type = left.resulting_type(current_context, inference_map);
+                  let left_type = left.resulting_type(current_context, inference_map, span_manager)?;
                   let left_type_identifier = match left_type {
                     inference::Type::Identifier(s) => s,
                     _ => {
-                      return inference::Type::Unknown;
+                      // report in case of invalid nesting, for example with numbers?
+                      return Err(vec![]);
                     },
                   };
 
-                  let infered_type = inference_map.get(&left_type_identifier).expect("unknown compound type in nesting");
+                  let infered_type = match inference_map.get(&left_type_identifier) {
+                    Some(x) => x,
+                    None => {
+                      return Ok(inference::Type::Unknown);
+                    }
+                  };
 
                   match infered_type {
                     codegen::type_inference::InferedType::Compound(sub_inference_map) => {
@@ -173,8 +226,7 @@ impl ToType for Expression {
                           match context.get_class_name() {
                             Some(class_name) => {
                               if class_name == left_type_identifier {
-                                println!("sub context name = {}", context.name);
-                                return right.resulting_type(&global_type_context, sub_inference_map);
+                                return right.resulting_type(&global_type_context, sub_inference_map, span_manager);
                               }
                             },
                             None => {}
@@ -182,21 +234,21 @@ impl ToType for Expression {
                         }
                       };
 
-                      inference::Type::Unknown
+                      Ok(inference::Type::Unknown)
                     },
-                    _ => inference::Type::Unknown
+                    _ => Ok(inference::Type::Unknown)
                   }
                 },
-                _ => inference::Type::Unknown
+                _ => Ok(inference::Type::Unknown)
             }
             }
           }
         },
-        Expression::Not(_) => inference::Type::Bool,
+        Expression::Not(_) => Ok(inference::Type::Bool),
         Expression::Nesting(_) => unreachable!(),
-        Expression::Cast(type_name, _) => inference::Type::Identifier(type_name.clone()),
-        Expression::Group(_) => todo!(),
-        Expression::Error => inference::Type::Unknown,
+        Expression::Cast(type_name, _) => Ok(inference::Type::Identifier(type_name.clone())),
+        Expression::Group(expr) => expr.resulting_type(current_context, inference_map, span_manager),
+        Expression::Error => Ok(inference::Type::Unknown),
     }
   }
 }
@@ -204,8 +256,8 @@ impl ToType for Expression {
 impl Expression {
   pub fn get_type_for_this(
     current_context: &Rc<RefCell<Context>>,
-    inference_map: &codegen::type_inference::TypeInferenceMap
-  ) -> inference::Type {
+    inference_map: &codegen::type_inference::TypeInferenceMap,
+  ) -> Result<inference::Type, String> {
     let a: &RefCell<Context> = &current_context.borrow();
     let parent_context = &a.borrow().parent_context;
 
@@ -219,64 +271,71 @@ impl Expression {
             let class_name = match context.get_class_name() {
               Some(n) => n,
               None => {
-                println!("Cannot use `this` outside of a class or a state");
-
-                return inference::Type::Unknown;
+                return Err(String::from("Cannot use `this` outside of a class or a state"));
               }
             };
 
             if inference_map.contains_key(&class_name) {
-              return inference::Type::Identifier(class_name);
+              return Ok(inference::Type::Identifier(class_name));
             }
             else {
-              println!("Cannot use `this` as {class_name} is not a known compound type");
-
-              return inference::Type::Unknown;
+              return Err(format!("Cannot use `this` as {class_name} is not a known compound type"));
             }
           },
           _ => {
-            println!("Cannot use `this` outside of a class or a state");
-
-            return inference::Type::Unknown;
+            return Err(String::from("Cannot use `this` outside of a class or a state"));
           }
         }
       },
       None => {
-        println!("Cannot use `this` outside of a class or a state");
-
-        return inference::Type::Unknown;
+        return Err(String::from("Cannot use `this` outside of a class or a state"));
       }
     };
   }
 
   pub fn get_type_for_parent(
     current_context: &Rc<RefCell<Context>>,
-    inference_map: &codegen::type_inference::TypeInferenceMap
-  ) -> inference::Type {
+    inference_map: &codegen::type_inference::TypeInferenceMap,
+  ) -> Result<inference::Type, String> {
 
     let context = Context::get_ref(&current_context);
     let parent_context = match &context.parent_context {
       Some(p) => Context::get_ref(p),
-      None => return inference::Type::Unknown
+      None => return Err(String::from("Cannot get `parent`'s type as it was used outside a state."))
     };
 
     match &parent_context.context_type {
         ContextType::State { parent_class_name } => {
           if inference_map.contains_key(parent_class_name) {
-            return inference::Type::Identifier(parent_class_name.clone());
+            return Ok(inference::Type::Identifier(parent_class_name.clone()));
           }
           else {
-            println!("Cannot use `this` as {parent_class_name} is not a known compound type");
-
-            return inference::Type::Unknown;
+            return Err(format!("Cannot use `this` as {parent_class_name} is not a known compound type"));
           }
         },
         _ => {
-          println!("Cannot get `parent`'s type as it was used outside a state.");
-
-          return inference::Type::Unknown;
+          return Err(String::from("Cannot get `parent`'s type as it was used outside a state."));
         }
     };
+  }
+
+  pub fn get_span(&self) -> Span {
+    match &self {
+        Expression::Integer(x) => x.span,
+        Expression::Float(x) => x.span,
+        Expression::String(x) => x.span,
+        Expression::Name(x) => x.span,
+        Expression::Identifier(x) => x.span,
+        Expression::FunctionCall(x) => x.span,
+        Expression::ClassInstantiation(x) => x.span,
+        Expression::Lambda(x) => x.span,
+        Expression::Operation(x, _, _) => x.get_span(),
+        Expression::Not(x) => x.get_span(),
+        Expression::Nesting(x) => x[0].get_span(),
+        Expression::Cast(_, x) => x.get_span(),
+        Expression::Group(x) => x.get_span(),
+        Expression::Error => todo!(),
+    } 
   }
 }
 

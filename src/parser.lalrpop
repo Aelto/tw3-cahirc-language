@@ -153,7 +153,7 @@ GenericTypesDeclaration: Vec<String> = {
 }
 
 GlobalFunctionDeclaration: Rc<FunctionDeclaration> = {
-    <function_type:GlobalFunctionType> <name: Identifier> <generic_types:GenericTypesDeclaration?>
+    <function_type:GlobalFunctionType> <namel: @L> <name: Identifier> <namer: @R> <generic_types:GenericTypesDeclaration?>
     "(" <parameters:TrailingComma<FunctionDeclarationParameter>> ")" <type_declaration:TypeDeclaration?>
     "{" <body_statements:(<FunctionBodyStatement>)*> "}"
         => {
@@ -166,6 +166,7 @@ GlobalFunctionDeclaration: Rc<FunctionDeclaration> = {
                 parameters,
                 type_declaration: type_declaration,
                 body_statements,
+                span_name: span_maker.span(namel, namer, "function declaration")
             });
 
             /*if has_generic_types {
@@ -179,7 +180,7 @@ GlobalFunctionDeclaration: Rc<FunctionDeclaration> = {
 };
 
 MethodDeclaration: Rc<FunctionDeclaration> = {
-    <function_type:FunctionType> <name: Identifier> <generic_types:GenericTypesDeclaration?>
+    <function_type:FunctionType> <namel: @L> <name: Identifier> <namer: @R> <generic_types:GenericTypesDeclaration?>
     "(" <parameters:TrailingComma<FunctionDeclarationParameter>> ")" <type_declaration:TypeDeclaration?>
     "{" <body_statements:(<FunctionBodyStatement>)*> "}"
         => {
@@ -192,6 +193,7 @@ MethodDeclaration: Rc<FunctionDeclaration> = {
                 parameters,
                 type_declaration: type_declaration,
                 body_statements,
+                span_name: span_maker.span(namel, namer, "method declaration")
             });
 
             /*if has_generic_types {
@@ -266,14 +268,14 @@ Lambda: Lambda = {
         lambda_type: LambdaType::MultiLine,
         parameters,
         body_statements,
-        span: span_maker.span(l, r),
+        span: span_maker.span(l, r, "lambda"),
         mangled_accessor: RefCell::new(None)
     },
     <l: @L> "|" <parameters:TrailingComma<FunctionDeclarationParameter>> "|" <body_statement:(<FunctionBodyStatement>)> <r: @R> => Lambda {
         lambda_type: LambdaType::SingleLine,
         parameters,
         body_statements: vec![body_statement],
-        span: span_maker.span(l, r),
+        span: span_maker.span(l, r, "lambda"),
         mangled_accessor: RefCell::new(None)
     }
 }
@@ -296,7 +298,7 @@ ClassInstantiation: ClassInstantiation = {
         class_name,
         generic_type_assignment,
         lifetime,
-        span: span_maker.span(l, r)
+        span: span_maker.span(l, r, "class instantiation")
     }
 }
 
@@ -506,8 +508,8 @@ Term: Rc<Expression> = {
     Spanned<Float> => Rc::new(Expression::Float(<>)),
     Lambda => Rc::new(Expression::Lambda(<>)),
     "(" <Expression> ")" => Rc::new(Expression::Group(<>)),
-    <l: @L> <s:StringLiteral> <r: @R> => Rc::new(Expression::String(SpannedNode::new(String::from(s), span_maker.span(l, r)))),
-    <l: @L> <c:CharLiteral> <r: @R> => Rc::new(Expression::Name(SpannedNode::new(String::from(c), span_maker.span(l, r)))),
+    <l: @L> <s:StringLiteral> <r: @R> => Rc::new(Expression::String(SpannedNode::new(String::from(s), span_maker.span(l, r, "string literal")))),
+    <l: @L> <c:CharLiteral> <r: @R> => Rc::new(Expression::Name(SpannedNode::new(String::from(c), span_maker.span(l, r, "char literal")))),
 
     IdentifierTerm => Rc::new(Expression::Identifier(<>)),
     ClassInstantiation => Rc::new(Expression::ClassInstantiation(<>)),
@@ -517,7 +519,7 @@ Term: Rc<Expression> = {
                 accessor,
                 generic_types,
                 parameters,
-                span: span_maker.span(l, r),
+                span: span_maker.span(l, r, "function call"),
                 mangled_accessor: RefCell::new(None)
             }));
 
@@ -530,10 +532,10 @@ Indexing: Rc<Expression> = {
 }
 
 IdentifierTerm: Box<IdentifierTerm> = {
-    <l: @L> <text:Identifier> <indexing:Indexing*> <r: @R> => Box::new(IdentifierTerm {
+    <l: @L> <text:Identifier> <r: @R> <indexing:Indexing*> => Box::new(IdentifierTerm {
         text,
         indexing,
-        span: span_maker.span(l, r)
+        span: span_maker.span(l, r, "identifier term")
     })
 }
 
@@ -651,7 +653,7 @@ Tier<Op,NextTier>: Rc<Expression> = {
 };
 
 Spanned<T>: SpannedNode<T> = {
-    <l: @L> <val: T> <r: @R> => SpannedNode::new(val, span_maker.span(l, r))
+    <l: @L> <val: T> <r: @R> => SpannedNode::new(val, span_maker.span(l, r, "spanned"))
 };
 
 StringLiteral = {
@@ -666,6 +668,10 @@ CharLiteral = {
 // relative to one another when synthesizing
 // the lexer
 match {
+    // Ignore C++-style comments
+    r"//[^\n\r]*[\n\r]*" => {},
+    r"/\*[^\*/]*[\*/]" => {},
+
     // These items have highest precedence.
     r"[0-9]+",
 
@@ -714,6 +720,10 @@ match {
     // Here, we also renamed the regex to the name `ID`, which we can
     // use in the grammar itself.
     r"\w+" => IdentifierRegex,
+
+    // Ignore whitespace
+    // You probably want this to have low precedence
+    r"\s*" => {},
 
     // This `_` means "add in all the other strings and
     // regular expressions in the grammer here" (e.g.,

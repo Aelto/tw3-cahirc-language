@@ -9,7 +9,7 @@ pub struct SpanMaker<'a> {
 }
 
 impl<'a> SpanMaker<'a> {
-  pub fn span(&mut self, left: usize, right: usize) -> Span {
+  pub fn span(&mut self, left: usize, right: usize, origin: &'static str) -> Span {
     *self.pool.entry((left, right)).or_insert_with(|| self.parent.new_span(self.source_ref, left, right))
   }
 }
