@@ -171,11 +171,11 @@ impl ToType for Expression {
               },
               None => {
                 Err(vec![
-                  Report::build(ariadne::ReportKind::Error, (), span_manager.get_left(function.accessor.span))
-                    .with_message(&"Invalid function call")
+                  Report::build(ariadne::ReportKind::Warning, (), span_manager.get_left(function.accessor.span))
+                    .with_message(&"Call to unknown function")
                     .with_label(
                       Label::new(span_manager.get_range(function.accessor.span))
-                      .with_message(&format!("{} is not a function.", &function.accessor.text))
+                      .with_message(&format!("{} is not a known function.", &function.accessor.text))
                     )
                     .finish()
                 ])

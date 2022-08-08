@@ -253,8 +253,6 @@ fn compile_source_directory(config: &Config) -> std::io::Result<()> {
     }
   }
 
-  global_context.borrow().print(0);
-
   // 3.
   // Emit code using the information we collected in the previous step
   if let Err(_) = std::fs::remove_dir_all(&config.package.dist) {}
