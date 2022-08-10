@@ -343,10 +343,9 @@ impl super::Visitor for FunctionsCallsCheckerVisitor<'_> {
 
     if let Some(infered_function_type) = some_infered_function_type {
       let infered_function_type = &*infered_function_type;
-
       let parameter_pairs = infered_function_type.parameters.iter().zip(node.parameters.0.iter());
-
       let mut count = 0;
+
       for (expected, some_supplied) in parameter_pairs {
         count += 1;
 
@@ -379,6 +378,9 @@ impl super::Visitor for FunctionsCallsCheckerVisitor<'_> {
         };
         
         // now compare the types from the expected and the supplied
+        // some types are also automatically casted, such as
+        //  int -> float
+        //  name -> string
         todo!();
       }
     }
