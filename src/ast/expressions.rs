@@ -2,10 +2,38 @@ use std::{rc::Rc, borrow::Borrow};
 
 use ariadne::{Report, Label};
 
-use super::{*, inference::ToType};
+use super::{*, inference::ToType, codegen::type_inference::InferedType};
 
 #[derive(Debug)]
-pub enum Expression {
+pub struct Expression {
+  pub infered_type: InferedType,
+  pub body: ExpressionBody
+}
+
+impl Expression {
+  pub fn new(body: ExpressionBody) -> Self {
+    Self {
+      infered_type: InferedType::Unknown,
+      body
+    }
+  }
+}
+
+impl visitor::Visited for Expression {
+  fn accept<T: visitor::Visitor>(&self, visitor: &mut T) {
+    self.body.accept(visitor);
+  }
+}
+
+impl Codegen for Expression {
+  fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
+    self.body.emit(context, f)
+  }
+}
+
+
+#[derive(Debug)]
+pub enum ExpressionBody {
   Integer(Spanned<String>),
   Float(Spanned<String>),
 
@@ -31,66 +59,66 @@ pub enum Expression {
   Error,
 }
 
-impl visitor::Visited for Expression {
+impl visitor::Visited for ExpressionBody {
   fn accept<T: visitor::Visitor>(&self, visitor: &mut T) {
     match self {
-      Expression::Integer(_) | Expression::Float(_) | Expression::String(_) | Expression::Name(_) => {}
-      Expression::Cast(_, x) => x.accept(visitor),
-      Expression::Identifier(x) => x.accept(visitor),
-      Expression::FunctionCall(x) => x.accept(visitor),
-      Expression::Operation(x, _, y) => {
+      ExpressionBody::Integer(_) | ExpressionBody::Float(_) | ExpressionBody::String(_) | ExpressionBody::Name(_) => {}
+      ExpressionBody::Cast(_, x) => x.accept(visitor),
+      ExpressionBody::Identifier(x) => x.accept(visitor),
+      ExpressionBody::FunctionCall(x) => x.accept(visitor),
+      ExpressionBody::Operation(x, _, y) => {
         x.accept(visitor);
         y.accept(visitor);
       }
-      Expression::Nesting(x) => x.accept(visitor),
-      Expression::Error => todo!(),
-      Expression::Group(x) => x.accept(visitor),
-      Expression::ClassInstantiation(x) => x.accept(visitor),
-      Expression::Not(x) => x.accept(visitor),
-      Expression::Lambda(x) => x.accept(visitor),
+      ExpressionBody::Nesting(x) => x.accept(visitor),
+      ExpressionBody::Error => todo!(),
+      ExpressionBody::Group(x) => x.accept(visitor),
+      ExpressionBody::ClassInstantiation(x) => x.accept(visitor),
+      ExpressionBody::Not(x) => x.accept(visitor),
+      ExpressionBody::Lambda(x) => x.accept(visitor),
     }
   }
 }
 
-impl Codegen for Expression {
+impl Codegen for ExpressionBody {
   fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
     use std::io::Write as IoWrite;
 
     match self {
-      Expression::Integer(x) => x.emit(context, f),
-      Expression::Float(x) => x.emit(context, f),
-      Expression::String(x) => x.emit(context, f),
-      Expression::Name(x) => x.emit(context, f),
-      Expression::Not(x) => {
+      ExpressionBody::Integer(x) => x.emit(context, f),
+      ExpressionBody::Float(x) => x.emit(context, f),
+      ExpressionBody::String(x) => x.emit(context, f),
+      ExpressionBody::Name(x) => x.emit(context, f),
+      ExpressionBody::Not(x) => {
         write!(f, "!")?;
         x.emit(context, f)
       }
-      Expression::Identifier(x) => x.emit(context, f),
-      Expression::FunctionCall(x) => x.emit(context, f),
-      Expression::Operation(left, op, right) => {
+      ExpressionBody::Identifier(x) => x.emit(context, f),
+      ExpressionBody::FunctionCall(x) => x.emit(context, f),
+      ExpressionBody::Operation(left, op, right) => {
         left.emit(context, f)?;
         op.emit(context, f)?;
         right.emit(context, f)
       }
-      Expression::Error => todo!(),
-      Expression::Nesting(x) => x.emit(context, f),
-      Expression::Cast(t, x) => {
+      ExpressionBody::Error => todo!(),
+      ExpressionBody::Nesting(x) => x.emit(context, f),
+      ExpressionBody::Cast(t, x) => {
         write!(f, "({t})(")?;
         x.emit(context, f)?;
         write!(f, ")")
       }
-      Expression::ClassInstantiation(x) => x.emit(context, f),
-      Expression::Group(x) => {
+      ExpressionBody::ClassInstantiation(x) => x.emit(context, f),
+      ExpressionBody::Group(x) => {
         write!(f, "(")?;
         x.emit(context, f)?;
         write!(f, ")")
       }
-      Expression::Lambda(x) => x.emit(context, f),
+      ExpressionBody::Lambda(x) => x.emit(context, f),
     }
   }
 }
 
-impl ToType for Expression {
+impl ToType for ExpressionBody {
   /// Warning: this function mutates some of the nodes if the inference succeeded.
   /// Ideally move the mutating to another function to make it cleaner. Though it
   /// wouldn't change much in terms of functionnality, but it would also make
@@ -102,11 +130,11 @@ impl ToType for Expression {
       span_manager: &SpanManager
     ) -> Result<inference::Type, Vec<Report>> {
       match self {
-        Expression::Integer(_) => Ok(inference::Type::Int),
-        Expression::Float(_) => Ok(inference::Type::Float),
-        Expression::String(_) => Ok(inference::Type::String),
-        Expression::Name(_) => Ok(inference::Type::Name),
-        Expression::Identifier(identifier) => {
+        ExpressionBody::Integer(_) => Ok(inference::Type::Int),
+        ExpressionBody::Float(_) => Ok(inference::Type::Float),
+        ExpressionBody::String(_) => Ok(inference::Type::String),
+        ExpressionBody::Name(_) => Ok(inference::Type::Name),
+        ExpressionBody::Identifier(identifier) => {
           let a: &IdentifierTerm = &identifier.borrow();
 
           if a.text == "this" {
@@ -154,7 +182,7 @@ impl ToType for Expression {
             }
           }
         },
-        Expression::FunctionCall(function) => {
+        ExpressionBody::FunctionCall(function) => {
           let function_return_type = match inference_map.get(&function.accessor.text) {
               Some(infered_type) => match infered_type {
                 crate::ast::codegen::type_inference::InferedType::Function(rc_function) => {
@@ -192,19 +220,19 @@ impl ToType for Expression {
 
           function_return_type
         },
-        Expression::ClassInstantiation(instantiation) => Ok(inference::Type::Identifier(instantiation.class_name.clone())),
-        Expression::Lambda(_) => Ok(inference::Type::Unknown),
-        Expression::Operation(left, operation, right) => {
-          match &left.borrow() {
+        ExpressionBody::ClassInstantiation(instantiation) => Ok(inference::Type::Identifier(instantiation.class_name.clone())),
+        ExpressionBody::Lambda(_) => Ok(inference::Type::Unknown),
+        ExpressionBody::Operation(left, operation, right) => {
+          match &left.body.borrow() {
             // when it starts with a string, it can only be a string
             // concatenation
-            Expression::String(_) => Ok(inference::Type::String),
-            Expression::Float(_) => Ok(inference::Type::Float),
-            Expression::Integer(_) => Ok(inference::Type::Int),
+            ExpressionBody::String(_) => Ok(inference::Type::String),
+            ExpressionBody::Float(_) => Ok(inference::Type::Float),
+            ExpressionBody::Integer(_) => Ok(inference::Type::Int),
             _ => {
               match &operation {
                 OperationCode::Nesting => {
-                  let left_type = left.resulting_type(current_context, inference_map, span_manager)?;
+                  let left_type = left.body.resulting_type(current_context, inference_map, span_manager)?;
                   let left_type_identifier = match left_type {
                     inference::Type::Identifier(s) => s,
                     _ => {
@@ -234,7 +262,7 @@ impl ToType for Expression {
                           match context.get_class_name() {
                             Some(class_name) => {
                               if class_name == left_type_identifier {
-                                return right.resulting_type(&global_type_context, sub_inference_map, span_manager);
+                                return right.body.resulting_type(&global_type_context, sub_inference_map, span_manager);
                               }
                             },
                             None => {}
@@ -252,16 +280,16 @@ impl ToType for Expression {
             }
           }
         },
-        Expression::Not(_) => Ok(inference::Type::Bool),
-        Expression::Nesting(_) => unreachable!(),
-        Expression::Cast(type_name, _) => Ok(inference::Type::Identifier(type_name.clone())),
-        Expression::Group(expr) => expr.resulting_type(current_context, inference_map, span_manager),
-        Expression::Error => Ok(inference::Type::Unknown),
+        ExpressionBody::Not(_) => Ok(inference::Type::Bool),
+        ExpressionBody::Nesting(_) => unreachable!(),
+        ExpressionBody::Cast(type_name, _) => Ok(inference::Type::Identifier(type_name.clone())),
+        ExpressionBody::Group(expr) => expr.body.resulting_type(current_context, inference_map, span_manager),
+        ExpressionBody::Error => Ok(inference::Type::Unknown),
     }
   }
 }
 
-impl Expression {
+impl ExpressionBody {
   pub fn get_type_for_this(
     current_context: &Rc<RefCell<Context>>,
     inference_map: &codegen::type_inference::TypeInferenceMap,
@@ -329,20 +357,20 @@ impl Expression {
 
   pub fn get_span(&self) -> Span {
     match &self {
-        Expression::Integer(x) => x.span,
-        Expression::Float(x) => x.span,
-        Expression::String(x) => x.span,
-        Expression::Name(x) => x.span,
-        Expression::Identifier(x) => x.span,
-        Expression::FunctionCall(x) => x.span,
-        Expression::ClassInstantiation(x) => x.span,
-        Expression::Lambda(x) => x.span,
-        Expression::Operation(x, _, _) => x.get_span(),
-        Expression::Not(x) => x.get_span(),
-        Expression::Nesting(x) => x[0].get_span(),
-        Expression::Cast(_, x) => x.get_span(),
-        Expression::Group(x) => x.get_span(),
-        Expression::Error => todo!(),
+        ExpressionBody::Integer(x) => x.span,
+        ExpressionBody::Float(x) => x.span,
+        ExpressionBody::String(x) => x.span,
+        ExpressionBody::Name(x) => x.span,
+        ExpressionBody::Identifier(x) => x.span,
+        ExpressionBody::FunctionCall(x) => x.span,
+        ExpressionBody::ClassInstantiation(x) => x.span,
+        ExpressionBody::Lambda(x) => x.span,
+        ExpressionBody::Operation(x, _, _) => x.body.get_span(),
+        ExpressionBody::Not(x) => x.body.get_span(),
+        ExpressionBody::Nesting(x) => x[0].body.get_span(),
+        ExpressionBody::Cast(_, x) => x.body.get_span(),
+        ExpressionBody::Group(x) => x.body.get_span(),
+        ExpressionBody::Error => todo!(),
     } 
   }
 }

@@ -134,11 +134,7 @@ pub use identifiers::TypedIdentifier;
 // -----------------------------------------------------------------------------
 
 mod expressions;
-pub use expressions::AssignmentType;
-pub use expressions::BooleanJoinType;
-pub use expressions::ComparisonType;
-pub use expressions::Expression;
-pub use expressions::OperationCode;
+pub use expressions::*;
 
 // -----------------------------------------------------------------------------
 

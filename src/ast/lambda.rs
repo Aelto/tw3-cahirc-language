@@ -229,17 +229,21 @@ fn emit_lambda(
   // get the return type from the last body statement, if it is a type cast then
   // we use it as the return type, otherwise it defaults to void (None).
   let return_type = match this.body_statements.last().unwrap() {
-    FunctionBodyStatement::Expression(expression) => match expression.borrow() {
-      Expression::Cast(cast_type, _) => Some(cast_type),
-      _ => None,
+    FunctionBodyStatement::Expression(expression) => {
+      let body = &expression.body;
+
+      match body {
+        ExpressionBody::Cast(cast_type, _) => Some(cast_type),
+        _ => None,
+      }
     },
     FunctionBodyStatement::Return(x) => match x {
-      Some(expression) => match expression.borrow() {
-        Expression::Cast(cast_type, _) => Some(cast_type),
+      Some(expression) => match &expression.body {
+        ExpressionBody::Cast(cast_type, _) => Some(cast_type),
         _ => None,
       },
       None => None,
-    },
+    }
 
     _ => None,
   };

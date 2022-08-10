@@ -7,6 +7,7 @@ use crate::ast::{
 
     Program,
     Expression,
+    ExpressionBody,
     OperationCode,
     TypedIdentifier,
     Statement,
@@ -56,7 +57,6 @@ pub Program: Program = {
 }
 
 Statement: Statement = {
-    // Expression => Statement::Expression(<>),
     GlobalFunctionDeclaration => Statement::FunctionDeclaration(<>),
     ClassDeclaration => Statement::ClassDeclaration(<>),
     StructDeclaration => Statement::StructDeclaration(<>),
@@ -436,27 +436,27 @@ pub Expression: Rc<Expression> = {
 }
 
 CastExpression: Rc<Expression> = {
-    <expr:BooleanExpression> KeywordAs <cast:Identifier>  => Rc::new(Expression::Cast(cast, expr)),
+    <expr:BooleanExpression> KeywordAs <cast:Identifier>  => Rc::new(Expression::new(ExpressionBody::Cast(cast, expr))),
     BooleanExpression,
 }
 
 BooleanExpression: Rc<Expression> = {
-    BooleanExpression BooleanOperation SubExpression => Rc::new(Expression::Operation(<>)),
+    BooleanExpression BooleanOperation SubExpression => Rc::new(Expression::new(ExpressionBody::Operation(<>))),
     SubExpression,
 }
 
 SubExpression: Rc<Expression> = {
-    SubExpression ExprOperation NestedExpression => Rc::new(Expression::Operation(<>)),
+    SubExpression ExprOperation NestedExpression => Rc::new(Expression::new(ExpressionBody::Operation(<>))),
     NestedExpression,
 };
 
 NestedExpression: Rc<Expression> = {
-    NestedExpression ExprNesting NotExpression => Rc::new(Expression::Operation(<>)),
+    NestedExpression ExprNesting NotExpression => Rc::new(Expression::new(ExpressionBody::Operation(<>))),
     NotExpression,
 }
 
 NotExpression: Rc<Expression> = {
-    "!" <Factor> => Rc::new(Expression::Not(<>)),
+    "!" <Factor> => Rc::new(Expression::new(ExpressionBody::Not(<>))),
     Factor,
 };
 
@@ -477,7 +477,7 @@ BooleanOperation: OperationCode = {
 }
 
 Factor: Rc<Expression> = {
-    Factor FactorOp Term => Rc::new(Expression::Operation(<>)),
+    Factor FactorOp Term => Rc::new(Expression::new(ExpressionBody::Operation(<>))),
     Term,
 };
 
@@ -507,25 +507,25 @@ ComparisonType: ComparisonType = {
 }
 
 Term: Rc<Expression> = {
-    Spanned<Integer> => Rc::new(Expression::Integer(<>)),
-    Spanned<Float> => Rc::new(Expression::Float(<>)),
-    Lambda => Rc::new(Expression::Lambda(<>)),
-    "(" <Expression> ")" => Rc::new(Expression::Group(<>)),
-    <l: @L> <s:StringLiteral> <r: @R> => Rc::new(Expression::String(SpannedNode::new(String::from(s), span_maker.span(l, r, "string literal")))),
-    <l: @L> <c:CharLiteral> <r: @R> => Rc::new(Expression::Name(SpannedNode::new(String::from(c), span_maker.span(l, r, "char literal")))),
+    Spanned<Integer> => Rc::new(Expression::new(ExpressionBody::Integer(<>))),
+    Spanned<Float> => Rc::new(Expression::new(ExpressionBody::Float(<>))),
+    Lambda => Rc::new(Expression::new(ExpressionBody::Lambda(<>))),
+    "(" <Expression> ")" => Rc::new(Expression::new(ExpressionBody::Group(<>))),
+    <l: @L> <s:StringLiteral> <r: @R> => Rc::new(Expression::new(ExpressionBody::String(SpannedNode::new(String::from(s), span_maker.span(l, r, "string literal"))))),
+    <l: @L> <c:CharLiteral> <r: @R> => Rc::new(Expression::new(ExpressionBody::Name(SpannedNode::new(String::from(c), span_maker.span(l, r, "char literal"))))),
 
-    IdentifierTerm => Rc::new(Expression::Identifier(<>)),
-    ClassInstantiation => Rc::new(Expression::ClassInstantiation(<>)),
+    IdentifierTerm => Rc::new(Expression::new(ExpressionBody::Identifier(<>))),
+    ClassInstantiation => Rc::new(Expression::new(ExpressionBody::ClassInstantiation(<>))),
     <l: @L> <accessor:IdentifierTerm> <generic_types:("::" <GenericTypesDeclaration>)?> <parameters:FunctionCallParameters> <r: @R>
         => {
-            let function_call = Rc::new(Expression::FunctionCall(FunctionCall {
+            let function_call = Rc::new(Expression::new(ExpressionBody::FunctionCall(FunctionCall {
                 accessor,
                 generic_types,
                 parameters,
                 span: span_maker.span(l, r, "function call"),
                 mangled_accessor: RefCell::new(None),
                 infered_function_type: RefCell::new(None)
-            }));
+            })));
 
             function_call
         },
@@ -652,7 +652,7 @@ DotSeparated<T>: Vec<T> = {
 /// 
 ///
 Tier<Op,NextTier>: Rc<Expression> = {
-    Tier<Op,NextTier> Op NextTier => Rc::new(Expression::Operation(<>)),
+    Tier<Op,NextTier> Op NextTier => Rc::new(Expression::new(ExpressionBody::Operation(<>))),
     NextTier
 };
 

@@ -224,7 +224,7 @@ impl super::Visitor for FunctionsInferenceVisitor<'_> {
         },
         crate::ast::VariableDeclaration::Implicit { names, following_expression } => {
           let expression: &Expression = &following_expression.borrow();
-          let the_type = match expression.resulting_type(&self.current_context, &self.inference_store.types, &self.span_manager) {
+          let the_type = match expression.body.resulting_type(&self.current_context, &self.inference_store.types, &self.span_manager) {
             Ok(t) => t,
             Err(reports) => {
               self.report_manager.push_many(reports);
@@ -235,7 +235,7 @@ impl super::Visitor for FunctionsInferenceVisitor<'_> {
 
           match the_type {
             crate::ast::inference::Type::Void => {
-              let span = following_expression.get_span();
+              let span = following_expression.body.get_span();
 
               self.report_manager.push(
                 Report::build(ReportKind::Error, (), self.span_manager.get_left(span))
@@ -250,7 +250,7 @@ impl super::Visitor for FunctionsInferenceVisitor<'_> {
               return;
             },
             crate::ast::inference::Type::Unknown => {
-              let span = following_expression.get_span();
+              let span = following_expression.body.get_span();
 
               self.report_manager.push(
                 Report::build(ReportKind::Error, (), self.span_manager.get_left(span))
