@@ -29,6 +29,7 @@ pub trait Visitor {
   fn visit_class_declaration(&mut self, _: &ClassDeclaration) {}
   fn visit_struct_declaration(&mut self, _: &StructDeclaration) {}
   fn visit_generic_function_call(&mut self, _: &FunctionCall) {}
+  fn visit_function_call(&mut self, _: &FunctionCall) {}
   fn visit_generic_variable_declaration(&mut self, _: &TypeDeclaration) {}
   fn visit_variable_declaration(&mut self, _: &VariableDeclaration) {}
   fn visit_generic_class_instantiation(&mut self, _: &ClassInstantiation) {}

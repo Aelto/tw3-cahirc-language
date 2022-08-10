@@ -260,6 +260,7 @@ impl Codegen for FunctionCallParameters {
 pub struct FunctionDeclarationParameter {
   pub parameter_type: ParameterType,
   pub typed_identifier: TypedIdentifier,
+  pub span: Span,
 }
 
 impl Codegen for FunctionDeclarationParameter {
@@ -275,7 +276,7 @@ impl Visited for FunctionDeclarationParameter {
   }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub enum ParameterType {
   Copy,
   Optional,

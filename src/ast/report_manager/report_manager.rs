@@ -36,4 +36,16 @@ impl ReportManager {
     
     self.flush_reports();
   }
+
+  pub fn consume_multiple_sources(&mut self) {
+    for report in &self.reports {
+      // todo: get the corresponding source from the span
+      // todo: give the span with the reports.
+      let source: String = todo!();
+
+      if let Err(err) = report.print(Source::from(&source)) {
+        panic!("{}", err);
+      }
+    }
+  }
 }

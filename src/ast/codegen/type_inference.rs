@@ -1,4 +1,6 @@
-use std::collections::{HashMap};
+use std::{collections::{HashMap}, rc::Rc};
+
+use crate::ast::{ParameterType, Span};
 
 /// TODO: the store only holds Strings, this means a lot of allocations since
 /// the no&des also hold the strings. Ideally the store would only store
@@ -36,17 +38,17 @@ impl TypeInferenceStore {
     Ok(())
   }
 
-  pub fn register_function(&mut self, name: String, parameters: Vec<String>, return_type: Option<String>) -> Result<(), String> {
+  pub fn register_function(&mut self, name: String, parameters: Vec<FunctionInferedParameterType>, return_type: Option<String>, span: Span) -> Result<(), String> {
     if self.types.contains_key(&name) {
       return Err(format!("function {} was registered twice", &name));
     }
 
-    self.types.insert(name, InferedType::Function { parameters, return_type });
+    self.types.insert(name, InferedType::Function(Rc::new(FunctionInferedType { parameters, return_type, span })));
 
     Ok(())
   }
 
-  pub fn register_method(&mut self, parent_compound_name: String, name: String, parameters: Vec<String>, return_type: Option<String>) -> Result<(), String> {
+  pub fn register_method(&mut self, parent_compound_name: String, name: String, parameters: Vec<FunctionInferedParameterType>, return_type: Option<String>, span: Span) -> Result<(), String> {
     let mut result = Ok(());
 
     self.types.entry(parent_compound_name).and_modify(|class_type| {
@@ -56,7 +58,7 @@ impl TypeInferenceStore {
               result = Err(format!("method {name} was registered twice"));
             }
             
-            class.insert(name, InferedType::Function { parameters, return_type });
+            class.insert(name, InferedType::Function(Rc::new(FunctionInferedType { parameters, return_type, span })));
           },
           _ => {}
         };
@@ -80,16 +82,27 @@ pub enum InferedType {
 
   /// The vector of string it holds is for the parameters
   /// of the function. It is the string representation of
-  /// this types. Can be obtained using
+  /// the types. Can be obtained using
   /// ```
   /// TypedDeclaration::to_string()
   /// ```
-  Function{
-    parameters: Vec<String>,
-    return_type: Option<String>
-  },
+  Function(Rc<FunctionInferedType>),
 
   /// For unknown types, coming from a different source,
   /// such as the game sources.
   Unknown,
+}
+
+#[derive(Debug)]
+pub struct FunctionInferedType {
+  pub parameters: Vec<FunctionInferedParameterType>,
+  pub return_type: Option<String>,
+  pub span: Span,
+}
+
+#[derive(Debug)]
+pub struct FunctionInferedParameterType {
+  pub parameter_type: ParameterType,
+  pub infered_type: String,
+  pub span: Span
 }

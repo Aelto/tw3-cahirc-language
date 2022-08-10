@@ -91,6 +91,10 @@ impl Codegen for Expression {
 }
 
 impl ToType for Expression {
+  /// Warning: this function mutates some of the nodes if the inference succeeded.
+  /// Ideally move the mutating to another function to make it cleaner. Though it
+  /// wouldn't change much in terms of functionnality, but it would also make
+  /// performances worse.
   fn resulting_type(
     &self,
       current_context: &Rc<RefCell<Context>>,
@@ -153,9 +157,13 @@ impl ToType for Expression {
         Expression::FunctionCall(function) => {
           let function_return_type = match inference_map.get(&function.accessor.text) {
               Some(infered_type) => match infered_type {
-                crate::ast::codegen::type_inference::InferedType::Function { parameters: _, return_type } => match return_type {
-                  Some(s) => Ok(inference::Type::Identifier(s.clone())),
-                  None => Ok(inference::Type::Void)
+                crate::ast::codegen::type_inference::InferedType::Function(rc_function) => {
+                  function.infered_function_type.replace(Some(rc_function.clone()));
+
+                  match &(*rc_function).return_type {
+                    Some(s) => Ok(inference::Type::Identifier(s.clone())),
+                    None => Ok(inference::Type::Void)
+                  }
                 },
                 _ => {
                   Err(vec![

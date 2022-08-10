@@ -13,6 +13,7 @@ use crate::ast::TypeDeclaration;
 use crate::ast::TypedIdentifier;
 use crate::ast::codegen::context::Context;
 use crate::ast::codegen::context::ContextType;
+use crate::ast::codegen::type_inference::FunctionInferedParameterType;
 use crate::ast::codegen::type_inference::TypeInferenceStore;
 use crate::ast::inference::ToType;
 
@@ -74,9 +75,13 @@ impl super::Visitor for CompoundTypesVisitor<'_> {
       ContextType::Global
     };
 
-    let parameters: Vec<String> = node.parameters
+    let parameters: Vec<FunctionInferedParameterType> = node.parameters
       .iter()
-      .map(|param| param.typed_identifier.type_declaration.to_string())
+      .map(|param| FunctionInferedParameterType {
+        infered_type: param.typed_identifier.type_declaration.to_string(),
+        parameter_type: param.parameter_type,
+        span: param.span
+      })
       .collect();
 
     // we try to see if the function is inside a struct or class or if
@@ -94,7 +99,8 @@ impl super::Visitor for CompoundTypesVisitor<'_> {
             match &node.type_declaration {
               Some(decl) => Some(decl.to_string()),
               None => None,
-            }
+            },
+            node.span_name
           );
 
           if let Err(reason) = result {
@@ -119,7 +125,8 @@ impl super::Visitor for CompoundTypesVisitor<'_> {
           match &node.type_declaration {
             Some(decl) => Some(decl.to_string()),
             None => None,
-          }
+          },
+          node.span_name
         );
 
         if let Err(reason) = result {
@@ -290,3 +297,91 @@ impl super::Visitor for FunctionsInferenceVisitor<'_> {
       .push(declaration);
   }
 }
+
+/// Typechecks the function calls
+pub struct FunctionsCallsCheckerVisitor<'a> {
+  pub current_context: Rc<RefCell<Context>>,
+  pub inference_store: &'a mut TypeInferenceStore,
+  pub report_manager: &'a mut ReportManager,
+  pub span_manager: &'a mut SpanManager
+}
+
+impl<'a> FunctionsCallsCheckerVisitor<'a> {
+  pub fn new(current_context: Rc<RefCell<Context>>, inference_store: &'a mut TypeInferenceStore,
+  report_manager: &'a mut ReportManager, span_manager: &'a mut SpanManager) -> Self {
+    Self {
+      current_context,
+      inference_store,
+      report_manager,
+      span_manager
+    }
+  }
+}
+
+impl super::Visitor for FunctionsCallsCheckerVisitor<'_> {
+  fn visitor_type(&self) -> super::VisitorType {
+    super::VisitorType::TypeInferenceVisitor
+  }
+
+  /// Update the current context with the latest context met in the AST
+  fn visit_class_declaration(&mut self, node: &crate::ast::ClassDeclaration) {
+    self.current_context = node.context.clone();
+  }
+
+  /// Update the current context with the latest context met in the AST
+  fn visit_function_declaration(&mut self, node: &crate::ast::FunctionDeclaration) {
+    self.current_context = node.context.clone();
+  }
+
+  /// Update the current context with the latest context met in the AST
+  fn visit_struct_declaration(&mut self, node: &crate::ast::StructDeclaration) {
+    self.current_context = node.context.clone();
+  }
+
+  fn visit_function_call(&mut self, node: &crate::ast::FunctionCall) {
+    let some_infered_function_type = &*node.infered_function_type.borrow();
+
+    if let Some(infered_function_type) = some_infered_function_type {
+      let infered_function_type = &*infered_function_type;
+
+      let parameter_pairs = infered_function_type.parameters.iter().zip(node.parameters.0.iter());
+
+      let mut count = 0;
+      for (expected, some_supplied) in parameter_pairs {
+        count += 1;
+
+        // start by checking the optional parameters
+        match expected.parameter_type {
+          crate::ast::ParameterType::Optional => {}
+          _ => {
+            // the parameter is not optional but None was passed
+            if some_supplied.is_none() {
+              self.report_manager.push(
+                Report::build(ariadne::ReportKind::Error, (), self.span_manager.get_left(node.accessor.span))
+                .with_message(&"Missing required parameter")
+                .with_label(
+                  Label::new(self.span_manager.get_range(node.accessor.span))
+                  .with_message(&format!("Parameter n° {count} is required but is missing from function call"))
+                )
+                .finish()
+              );
+
+              self.report_manager.push(
+                Report::build(ariadne::ReportKind::Advice, (), self.span_manager.get_left(expected.span))
+                .with_label(
+                  Label::new(self.span_manager.get_range(expected.span))
+                  .with_message("Try passing a parameter of the following type")
+                )
+                .finish()
+              )
+            }
+          }
+        };
+        
+        // now compare the types from the expected and the supplied
+        todo!();
+      }
+    }
+  }
+}
+

@@ -209,9 +209,10 @@ MethodDeclaration: Rc<FunctionDeclaration> = {
 };
 
 FunctionDeclarationParameter: FunctionDeclarationParameter = {
-    <param_type:ParameterType?> <typed_identifier:TypedIdentifier> => FunctionDeclarationParameter {
+    <l: @L> <param_type:ParameterType?> <typed_identifier:TypedIdentifier> <r: @R> => FunctionDeclarationParameter {
         parameter_type: param_type.unwrap_or(ParameterType::Copy),
-        typed_identifier
+        typed_identifier,
+        span: span_maker.span(l, r, "function declaration parameter")
     }
 }
 
@@ -522,7 +523,8 @@ Term: Rc<Expression> = {
                 generic_types,
                 parameters,
                 span: span_maker.span(l, r, "function call"),
-                mangled_accessor: RefCell::new(None)
+                mangled_accessor: RefCell::new(None),
+                infered_function_type: RefCell::new(None)
             }));
 
             function_call

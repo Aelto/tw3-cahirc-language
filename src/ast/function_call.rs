@@ -1,3 +1,4 @@
+use super::codegen::type_inference::FunctionInferedType;
 use super::visitor::Visited;
 use super::*;
 
@@ -12,6 +13,7 @@ pub struct FunctionCall {
   pub span: Span,
 
   pub mangled_accessor: RefCell<Option<String>>,
+  pub infered_function_type: RefCell<Option<Rc<FunctionInferedType>>>
 }
 
 impl FunctionCall {
