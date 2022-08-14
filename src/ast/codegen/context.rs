@@ -76,6 +76,19 @@ impl Context {
     }
   }
 
+  pub fn get_struct_name(&self) -> Option<String> {
+    if self.name.starts_with("struct: ") {
+      Some(self.name.replacen("struct: ", "", 1))
+    }
+    else {
+      None
+    }
+  }
+
+  pub fn get_compound_name(&self) -> Option<String> {
+    self.get_class_name().or(self.get_struct_name())
+  }
+
   pub fn set_parent_context(this: &Rc<RefCell<Context>>, parent: &Rc<RefCell<Context>>) {
     if let Some(parent_context) = &Self::get_ref(this).parent_context {
       Self::remove_child(parent_context, &this);

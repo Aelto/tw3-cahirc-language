@@ -25,6 +25,7 @@ use lalrpop_util::lalrpop_mod;
 use crate::ast::codegen::context::Context;
 use crate::ast::codegen::context::ContextType;
 use crate::ast::visitor::ContextBuildingVisitor;
+use crate::ast::visitor::ExpressionTypeInferenceVisitor;
 use crate::ast::visitor::FunctionVisitor;
 use crate::ast::visitor::LambdaDeclarationVisitor;
 use crate::ast::visitor::LibraryEmitterVisitor;
@@ -234,16 +235,30 @@ fn compile_source_directory(config: &Config) -> std::io::Result<()> {
   }
 
   // 2.1
-  // do a second pass for the type inference in functions
+  // do a second pass for the type inference
   for parsed_file in &ast_list {
-    let mut functions_inference_visitor = FunctionsInferenceVisitor::new(
+    use ast::visitor::Visited;
+
+    let mut expression_inference_visitor = ExpressionTypeInferenceVisitor::new(
       global_context.clone(),
       &mut inference_store,
       &mut report_manager,
       &mut sources_span_manager
     );
 
-    use ast::visitor::Visited;
+    parsed_file.ast.accept(&mut expression_inference_visitor);
+
+    let file = preprocessed_content.source_files_content.get(&parsed_file.filename);
+    if let Some(file) = file {
+      report_manager.consume(&file.content.borrow());
+    }
+
+    let mut functions_inference_visitor = FunctionsInferenceVisitor::new(
+      global_context.clone(),
+      &mut inference_store,
+      &mut report_manager,
+      &mut sources_span_manager
+    );
 
     parsed_file.ast.accept(&mut functions_inference_visitor);
 

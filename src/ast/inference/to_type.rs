@@ -4,7 +4,7 @@ use ariadne::Report;
 
 use crate::ast::{Context, codegen::type_inference::TypeInferenceMap, SpanManager};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Type {
   String,
   Name,
@@ -28,16 +28,5 @@ impl ToString for Type {
         Type::Void => "void".to_string(),
         Type::Unknown => "unknown".to_string(),
     }
-  }
-}
-
-pub trait ToType {
-  fn resulting_type(
-    &self,
-    _: &Rc<RefCell<Context>>,
-    _: &TypeInferenceMap,
-    _: &SpanManager
-  ) -> Result<Type, Vec<Report>> {
-    Ok(Type::Unknown)
   }
 }

@@ -15,8 +15,9 @@ use crate::ast::codegen::context::Context;
 use crate::ast::codegen::context::ContextType;
 use crate::ast::codegen::type_inference::FunctionInferedParameterType;
 use crate::ast::codegen::type_inference::TypeInferenceStore;
-use crate::ast::inference::ToType;
+use crate::ast::inference::Type;
 
+/// 1.
 /// Registers all the compound types from the program
 pub struct CompoundTypesVisitor<'a> {
   pub current_context: Rc<RefCell<Context>>,
@@ -168,6 +169,55 @@ impl super::Visitor for CompoundTypesVisitor<'_> {
   }
 }
 
+/// 2.
+/// Visits every expression in the program and deduce their types
+/// for other visitors.
+pub struct ExpressionTypeInferenceVisitor<'a> {
+  pub current_context: Rc<RefCell<Context>>,
+  pub inference_store: &'a mut TypeInferenceStore,
+  pub report_manager: &'a mut ReportManager,
+  pub span_manager: &'a mut SpanManager
+}
+
+impl<'a> ExpressionTypeInferenceVisitor<'a> {
+  pub fn new(current_context: Rc<RefCell<Context>>, inference_store: &'a mut TypeInferenceStore,
+  report_manager: &'a mut ReportManager, span_manager: &'a mut SpanManager) -> Self {
+    Self {
+      current_context,
+      inference_store,
+      report_manager,
+      span_manager
+    }
+  }
+}
+
+
+impl super::Visitor for ExpressionTypeInferenceVisitor<'_> {
+  fn visitor_type(&self) -> super::VisitorType {
+    super::VisitorType::TypeInferenceVisitor
+  }
+
+  /// Update the current context with the latest context met in the AST
+  fn visit_class_declaration(&mut self, node: &crate::ast::ClassDeclaration) {
+    self.current_context = node.context.clone();
+  }
+
+  /// Update the current context with the latest context met in the AST
+  fn visit_function_declaration(&mut self, node: &crate::ast::FunctionDeclaration) {
+    self.current_context = node.context.clone();
+  }
+
+  /// Update the current context with the latest context met in the AST
+  fn visit_struct_declaration(&mut self, node: &crate::ast::StructDeclaration) {
+    self.current_context = node.context.clone();
+  }
+
+  fn visit_expression(&mut self, node: &Expression) {
+    node.deduce_type(&self.current_context, &self.inference_store.types, &self.inference_store.types, self.span_manager);
+  }
+}
+
+
 /// Does type inference for the local variables in the functions
 pub struct FunctionsInferenceVisitor<'a> {
   pub current_context: Rc<RefCell<Context>>,
@@ -224,14 +274,7 @@ impl super::Visitor for FunctionsInferenceVisitor<'_> {
         },
         crate::ast::VariableDeclaration::Implicit { names, following_expression } => {
           let expression: &Expression = &following_expression.borrow();
-          let the_type = match expression.body.resulting_type(&self.current_context, &self.inference_store.types, &self.span_manager) {
-            Ok(t) => t,
-            Err(reports) => {
-              self.report_manager.push_many(reports);
-
-              return;
-            }
-          };
+          let the_type: &Type = &expression.infered_type_name.borrow();
 
           match the_type {
             crate::ast::inference::Type::Void => {
