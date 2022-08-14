@@ -39,6 +39,8 @@ pub struct Context {
   /// identify the infered type. If you'd pass the value to the TypeInferenceStore,
   /// it would return you the actual object representation of the type.
   pub local_variables_inference: HashMap<String, String>,
+
+  pub local_parameters_inference: HashMap<String, String>,
 }
 
 impl Context {
@@ -55,7 +57,8 @@ impl Context {
       is_library: false,
       mangled_accessor: None,
       variable_declarations: Vec::new(),
-      local_variables_inference: HashMap::new()
+      local_variables_inference: HashMap::new(),
+      local_parameters_inference: HashMap::new()
     }
   }
 
@@ -87,6 +90,10 @@ impl Context {
 
   pub fn get_compound_name(&self) -> Option<String> {
     self.get_class_name().or(self.get_struct_name())
+  }
+
+  pub fn get_variable_type_string(&self, variable_name: &str) -> Option<&String> {
+    self.local_parameters_inference.get(variable_name).or_else(|| self.local_variables_inference.get(variable_name))
   }
 
   pub fn set_parent_context(this: &Rc<RefCell<Context>>, parent: &Rc<RefCell<Context>>) {

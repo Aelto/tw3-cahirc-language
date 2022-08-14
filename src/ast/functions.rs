@@ -272,6 +272,7 @@ impl Codegen for FunctionDeclarationParameter {
 
 impl Visited for FunctionDeclarationParameter {
   fn accept<T: visitor::Visitor>(&self, visitor: &mut T) {
+    visitor.visit_function_declaration_parameter(self);
     self.typed_identifier.accept(visitor);
   }
 }

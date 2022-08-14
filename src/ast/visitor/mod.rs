@@ -35,6 +35,7 @@ pub trait Visitor {
   fn visit_lambda_declaration(&mut self, _: &LambdaDeclaration) {}
   fn visit_lambda(&mut self, _: &Lambda) {}
   fn visit_expression(&mut self, _: &Expression) {}
+  fn visit_function_declaration_parameter(&mut self, _: &FunctionDeclarationParameter) {}
   fn register_variable_declaration(&mut self, _: Rc<TypedIdentifier>) {}
 
   fn visitor_type(&self) -> VisitorType;

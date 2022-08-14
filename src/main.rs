@@ -27,6 +27,7 @@ use crate::ast::codegen::context::ContextType;
 use crate::ast::visitor::ContextBuildingVisitor;
 use crate::ast::visitor::ExpressionTypeInferenceVisitor;
 use crate::ast::visitor::FunctionVisitor;
+use crate::ast::visitor::FunctionsCallsCheckerVisitor;
 use crate::ast::visitor::LambdaDeclarationVisitor;
 use crate::ast::visitor::LibraryEmitterVisitor;
 use crate::ast::visitor::CompoundTypesVisitor;
@@ -169,9 +170,6 @@ fn compile_source_directory(config: &Config) -> std::io::Result<()> {
 
   for parsed_file in &dependency_ast_list {
     let mut variable_declaration_visitor = VariableDeclarationVisitor::new(&program_information);
-    let mut function_visitor = FunctionVisitor {
-      program_information: &program_information,
-    };
 
     // create a context for this file, and register it into the global context
     let file_context = Rc::new(RefCell::new(Context::new(
@@ -188,6 +186,11 @@ fn compile_source_directory(config: &Config) -> std::io::Result<()> {
       current_context: file_context.clone(),
     };
 
+    let mut function_visitor = FunctionVisitor {
+      program_information: &program_information,
+      current_context: file_context.clone()
+    };
+
     use ast::visitor::Visited;
 
     parsed_file.ast.accept(&mut context_builder);
@@ -198,9 +201,6 @@ fn compile_source_directory(config: &Config) -> std::io::Result<()> {
   let mut report_manager = ReportManager::new();
   for parsed_file in &ast_list {
     let mut variable_declaration_visitor = VariableDeclarationVisitor::new(&program_information);
-    let mut function_visitor = FunctionVisitor {
-      program_information: &program_information,
-    };
 
     // create a context for this file, and register it into the global context
     let file_context = Rc::new(RefCell::new(Context::new(
@@ -212,6 +212,11 @@ fn compile_source_directory(config: &Config) -> std::io::Result<()> {
 
     let mut context_builder = ContextBuildingVisitor {
       current_context: file_context.clone(),
+    };
+
+    let mut function_visitor = FunctionVisitor {
+      program_information: &program_information,
+      current_context: file_context.clone()
     };
 
     let mut compound_types_visitor = CompoundTypesVisitor::new(
@@ -261,6 +266,20 @@ fn compile_source_directory(config: &Config) -> std::io::Result<()> {
     );
 
     parsed_file.ast.accept(&mut functions_inference_visitor);
+
+    let file = preprocessed_content.source_files_content.get(&parsed_file.filename);
+    if let Some(file) = file {
+      report_manager.consume(&file.content.borrow());
+    }
+
+    let mut function_call_checker_visitor = FunctionsCallsCheckerVisitor::new(
+      global_context.clone(),
+      &mut inference_store,
+      &mut report_manager,
+      &mut sources_span_manager
+    );
+
+    parsed_file.ast.accept(&mut function_call_checker_visitor);
 
     let file = preprocessed_content.source_files_content.get(&parsed_file.filename);
     if let Some(file) = file {

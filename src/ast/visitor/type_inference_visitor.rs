@@ -213,7 +213,11 @@ impl super::Visitor for ExpressionTypeInferenceVisitor<'_> {
   }
 
   fn visit_expression(&mut self, node: &Expression) {
-    node.deduce_type(&self.current_context, &self.inference_store.types, &self.inference_store.types, self.span_manager);
+    let result = node.deduce_type(&self.current_context, &self.inference_store.types, &self.inference_store.types, self.span_manager);
+
+    if let Err(errors) = result {
+      self.report_manager.push_many(errors);
+    }
   }
 }
 

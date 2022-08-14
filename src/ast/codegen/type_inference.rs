@@ -3,11 +3,8 @@ use std::{collections::{HashMap}, rc::Rc, cell::RefCell};
 use crate::ast::{ParameterType, Span};
 
 /// TODO: the store only holds Strings, this means a lot of allocations since
-/// the no&des also hold the strings. Ideally the store would only store
+/// the nodes also hold the strings. Ideally the store would only store
 //&/ references as we know its lifetime is shorter than the AST itself.
-/// 
-/// TODO 2: do a final pass over all the variables and verify the types
-/// they have are either unknown or correct.
 #[derive(Debug)]
 pub struct TypeInferenceStore {
   pub types: TypeInferenceMap,

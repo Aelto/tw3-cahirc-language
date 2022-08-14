@@ -113,7 +113,7 @@ impl Expression {
         else {
           let a: &RefCell<Context> = current_context.borrow();
 
-          match a.borrow().local_variables_inference.get(&identifier.text) {
+          match a.borrow().get_variable_type_string(&identifier.text) {
             Some(t) => {
               if let Some(infered_type) = inference_map.get(t) {
                 self.set_infered_type(Type::Identifier(t.clone()), infered_type.clone());
