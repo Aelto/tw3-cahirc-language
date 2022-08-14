@@ -28,6 +28,8 @@ impl Visited for FunctionCall {
       visitor.visit_generic_function_call(self);
     }
 
+    visitor.visit_function_call(self);
+
     self.accessor.accept(visitor);
     self.parameters.accept(visitor);
   }

@@ -30,3 +30,27 @@ impl ToString for Type {
     }
   }
 }
+
+impl Type {
+  pub fn equals_string(&self, other: &str) -> bool {
+    match self {
+      Type::String => other == "string",
+      Type::Name => other == "name",
+      Type::Bool => other == "bool",
+      Type::Int => other == "int",
+      Type::Float => other == "float",
+      Type::Identifier(x) => x == other,
+      Type::Void => other == "void",
+      Type::Unknown => false,
+    }
+  }
+
+  pub fn can_auto_cast(&self, other: &str) -> bool {
+    match (self, other) {
+      (Type::Name, "string") => true,
+      (Type::Float, "int") => true,
+      (Type::Int, "float") => true,
+      _ => false
+    }
+  }
+}

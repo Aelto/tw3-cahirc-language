@@ -363,6 +363,14 @@ impl<'a> FunctionsCallsCheckerVisitor<'a> {
       span_manager
     }
   }
+
+  pub fn can_auto_cast(origin: &str, target: &str) -> bool {
+    match (origin, target) {
+      ("int", "float") => true,
+      ("name", "string") => true,
+      _ => false
+    }
+  }
 }
 
 impl super::Visitor for FunctionsCallsCheckerVisitor<'_> {
@@ -388,6 +396,8 @@ impl super::Visitor for FunctionsCallsCheckerVisitor<'_> {
   fn visit_function_call(&mut self, node: &crate::ast::FunctionCall) {
     let some_infered_function_type = &*node.infered_function_type.borrow();
 
+    println!("function call checker");
+
     if let Some(infered_function_type) = some_infered_function_type {
       let infered_function_type = &*infered_function_type;
       let parameter_pairs = infered_function_type.parameters.iter().zip(node.parameters.0.iter());
@@ -398,7 +408,12 @@ impl super::Visitor for FunctionsCallsCheckerVisitor<'_> {
 
         // start by checking the optional parameters
         match expected.parameter_type {
-          crate::ast::ParameterType::Optional => {}
+          crate::ast::ParameterType::Optional => {
+            // parameter is optional and none was passed, go to next parameter
+            if some_supplied.is_none() {
+              continue;
+            }
+          }
           _ => {
             // the parameter is not optional but None was passed
             if some_supplied.is_none() {
@@ -419,16 +434,44 @@ impl super::Visitor for FunctionsCallsCheckerVisitor<'_> {
                   .with_message("Try passing a parameter of the following type")
                 )
                 .finish()
-              )
+              );
+
+              continue;
+            }
+
+            // now compare the types from the expected and the supplied
+            // some types are also automatically casted, such as
+            //  int -> float
+            //  name -> string
+            if let Some(supplied) = &some_supplied {
+              let supplied_type = supplied.infered_type_name.borrow();
+              if !supplied_type.equals_string(&expected.infered_type) && !supplied_type.can_auto_cast(&expected.infered_type) {
+                let span = supplied.body.get_span();
+
+                self.report_manager.push(
+                  Report::build(ariadne::ReportKind::Error, (), self.span_manager.get_left(span))
+                  .with_message(&"Parameter type mismatch")
+                  .with_label(
+                    Label::new(self.span_manager.get_range(span))
+                    .with_message(&format!("Parameter n°{count} is expected to be a {} but a {} was passed", &expected.infered_type, supplied_type.to_string()))
+                  )
+                  .finish()
+                );
+
+                self.report_manager.push(
+                  Report::build(ariadne::ReportKind::Advice, (), self.span_manager.get_left(expected.span))
+                  .with_label(
+                    Label::new(self.span_manager.get_range(expected.span))
+                    .with_message("Try passing a parameter of the following type")
+                  )
+                  .finish()
+                );
+
+                continue;
+              }
             }
           }
-        };
-        
-        // now compare the types from the expected and the supplied
-        // some types are also automatically casted, such as
-        //  int -> float
-        //  name -> string
-        todo!();
+        };        
       }
     }
   }
