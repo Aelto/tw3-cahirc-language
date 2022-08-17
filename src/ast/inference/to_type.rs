@@ -1,8 +1,3 @@
-use std::{rc::Rc, cell::RefCell};
-
-use ariadne::Report;
-
-use crate::ast::{Context, codegen::type_inference::TypeInferenceMap, SpanManager};
 
 #[derive(Debug, Clone)]
 pub enum Type {

@@ -266,11 +266,7 @@ fn compile_source_directory(config: &Config) -> std::io::Result<()> {
     );
 
     parsed_file.ast.accept(&mut functions_inference_visitor);
-
-    let file = preprocessed_content.source_files_content.get(&parsed_file.filename);
-    if let Some(file) = file {
-      report_manager.consume_multiple_sources(&mut sources_span_manager, &preprocessed_content);
-    }
+    report_manager.consume_multiple_sources(&mut sources_span_manager, &preprocessed_content);
 
     let mut function_call_checker_visitor = FunctionsCallsCheckerVisitor::new(
       global_context.clone(),
@@ -280,11 +276,7 @@ fn compile_source_directory(config: &Config) -> std::io::Result<()> {
     );
 
     parsed_file.ast.accept(&mut function_call_checker_visitor);
-
-    let file = preprocessed_content.source_files_content.get(&parsed_file.filename);
-    if let Some(file) = file {
-      report_manager.consume_multiple_sources(&mut sources_span_manager, &preprocessed_content);
-    }
+    report_manager.consume_multiple_sources(&mut sources_span_manager, &preprocessed_content);
   }
 
   // 3.

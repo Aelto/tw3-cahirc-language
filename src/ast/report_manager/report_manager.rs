@@ -30,7 +30,7 @@ impl ReportManager {
   }
 
   pub fn consume(&mut self, content: &str) {
-    for (report, span) in &self.reports {
+    for (report, _) in &self.reports {
       if let Err(err) = report.print(Source::from(&content)) {
         panic!("{}", err);
       }

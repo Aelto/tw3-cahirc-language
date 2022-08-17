@@ -369,14 +369,6 @@ impl<'a> FunctionsCallsCheckerVisitor<'a> {
       span_manager
     }
   }
-
-  pub fn can_auto_cast(origin: &str, target: &str) -> bool {
-    match (origin, target) {
-      ("int", "float") => true,
-      ("name", "string") => true,
-      _ => false
-    }
-  }
 }
 
 impl super::Visitor for FunctionsCallsCheckerVisitor<'_> {
