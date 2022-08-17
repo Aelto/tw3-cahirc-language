@@ -441,7 +441,7 @@ impl super::Visitor for FunctionsCallsCheckerVisitor<'_> {
                   .with_message("Try passing a parameter of the following type")
                 )
                 .finish(),
-                node.accessor.span
+                expected.span
               );
 
               continue;
