@@ -33,7 +33,7 @@ impl Expression {
     inference_map: &TypeInferenceMap,
     global_inference_map: &TypeInferenceMap,
     span_manager: &SpanManager
-  ) -> Result<(), Vec<Report>> {
+  ) -> Result<(), Vec<(Report, Span)>> {
     {
       let self_infered_type_name: &Type = &self.infered_type_name.borrow();
       if let Type::Unknown = self_infered_type_name {} else {
@@ -77,15 +77,16 @@ impl Expression {
               }
             },
             Err(message) => {
-              return Err(vec![
+              return Err(vec![(
                 Report::build(ariadne::ReportKind::Error, (), span_manager.get_left(identifier.span))
                   .with_message(&"Could not infer type for `this`")
                   .with_label(
                     Label::new(span_manager.get_range(identifier.span))
                     .with_message(&message)
                   )
-                  .finish()
-              ]);
+                  .finish(),
+                  identifier.span
+              )]);
             }
           }
         }
@@ -98,15 +99,16 @@ impl Expression {
               }
             },
             Err(message) => {
-              return Err(vec![
+              return Err(vec![(
                 Report::build(ariadne::ReportKind::Error, (), span_manager.get_left(identifier.span))
                   .with_message(&"Could not infer type for `parent`")
                   .with_label(
                     Label::new(span_manager.get_range(identifier.span))
                     .with_message(&message)
                   )
-                  .finish()
-              ]);
+                  .finish(),
+                  identifier.span
+              )]);
             }
           }
         }
@@ -120,15 +122,16 @@ impl Expression {
               }
             },
             None => {
-              return Err(vec![
+              return Err(vec![(
                 Report::build(ariadne::ReportKind::Error, (), span_manager.get_left(identifier.span))
                   .with_message(&"Unknown local variable")
                   .with_label(
                     Label::new(span_manager.get_range(identifier.span))
                     .with_message(&"No variable or property exists with such name")
                   )
-                  .finish()
-              ]);
+                  .finish(),
+                  identifier.span
+              )]);
             }
           }
         }
@@ -154,27 +157,29 @@ impl Expression {
                 }
               },
               _ => {
-                return Err(vec![
+                return Err(vec![(
                   Report::build(ariadne::ReportKind::Error, (), span_manager.get_left(function.accessor.span))
                     .with_message(&"Invalid function call")
                     .with_label(
                       Label::new(span_manager.get_range(function.accessor.span))
                       .with_message(&format!("{} is not a function.", &function.accessor.text))
                     )
-                    .finish()
-                ]);
+                    .finish(),
+                    function.accessor.span
+                )]);
               },
             },
             None => {
-              return Err(vec![
+              return Err(vec![(
                 Report::build(ariadne::ReportKind::Warning, (), span_manager.get_left(function.accessor.span))
                   .with_message(&"Call to unknown function")
                   .with_label(
                     Label::new(span_manager.get_range(function.accessor.span))
                     .with_message(&format!("{} is not a known function.", &function.accessor.text))
                   )
-                  .finish()
-              ]);
+                  .finish(),
+                  function.accessor.span
+              )]);
             },
         };
       },
@@ -216,15 +221,16 @@ impl Expression {
                   _ => {
                     let span = left.body.get_span();
 
-                    return Err(vec![
+                    return Err(vec![(
                       Report::build(ariadne::ReportKind::Warning, (), span_manager.get_left(span))
                         .with_message(&"Invalid nesting")
                         .with_label(
                           Label::new(span_manager.get_range(span))
                           .with_message(&"Nesting but left side expression does not result in a compound type.")
                         )
-                        .finish()
-                    ]);
+                        .finish(),
+                        span
+                    )]);
                   }
                 };
 
@@ -234,15 +240,16 @@ impl Expression {
                   _ => {
                     let span = left.body.get_span();
 
-                    return Err(vec![
+                    return Err(vec![(
                       Report::build(ariadne::ReportKind::Warning, (), span_manager.get_left(span))
                         .with_message(&"Invalid nesting")
                         .with_label(
                           Label::new(span_manager.get_range(span))
                           .with_message(&"Nesting but left side expression is not an identifier.")
                         )
-                        .finish()
-                    ]);
+                        .finish(),
+                        span
+                    )]);
                   }
                 };
 
@@ -290,15 +297,16 @@ impl Expression {
           None => {
             let span = expr.body.get_span();
 
-            return Err(vec![
+            return Err(vec![(
               Report::build(ariadne::ReportKind::Warning, (), span_manager.get_left(span))
                 .with_message(&"Cast to unknown type")
                 .with_label(
                   Label::new(span_manager.get_range(span))
                   .with_message(&format!("{} is not a known type.", &type_name))
                 )
-                .finish()
-            ]);
+                .finish(),
+                span
+            )]);
           }
         };
       },

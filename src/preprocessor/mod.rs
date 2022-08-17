@@ -8,7 +8,7 @@ use regex::RegexBuilder;
 mod conditionals;
 mod expand_macros;
 mod pragma_replace;
-mod types;
+pub mod types;
 
 use crate::utils::convert_line_endings;
 

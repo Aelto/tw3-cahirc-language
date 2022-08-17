@@ -57,7 +57,8 @@ impl super::Visitor for CompoundTypesVisitor<'_> {
           Label::new(self.span_manager.get_range(span))
           .with_message(reason)
         )
-        .finish()
+        .finish(),
+        span
       );
     }
 
@@ -114,7 +115,8 @@ impl super::Visitor for CompoundTypesVisitor<'_> {
                 Label::new(self.span_manager.get_range(span))
                 .with_message(reason)
               )
-              .finish()
+              .finish(),
+              span
             );
           }
         }
@@ -140,7 +142,8 @@ impl super::Visitor for CompoundTypesVisitor<'_> {
               Label::new(self.span_manager.get_range(span))
               .with_message(reason)
             )
-            .finish()
+            .finish(),
+            span
           );
         }
       },
@@ -161,7 +164,8 @@ impl super::Visitor for CompoundTypesVisitor<'_> {
           Label::new(self.span_manager.get_range(span))
           .with_message(reason)
         )
-        .finish()
+        .finish(),
+        span
       );
     }
 
@@ -291,7 +295,8 @@ impl super::Visitor for FunctionsInferenceVisitor<'_> {
                   Label::new(self.span_manager.get_range(span))
                   .with_message(&"Implicit variable declaration but resulting type is void")
                 )
-                .finish()
+                .finish(),
+                span
               );
 
               return;
@@ -307,7 +312,8 @@ impl super::Visitor for FunctionsInferenceVisitor<'_> {
                   .with_message(&"Implicit variable declaration but resulting type is unknown at the time")
                 )
                 .with_help(&"Prefer an explicit type annotation here")
-                .finish()
+                .finish(),
+                span
               );
 
               return;
@@ -424,7 +430,8 @@ impl super::Visitor for FunctionsCallsCheckerVisitor<'_> {
                   Label::new(self.span_manager.get_range(node.accessor.span))
                   .with_message(&format!("Parameter n° {count} is required but is missing from function call"))
                 )
-                .finish()
+                .finish(),
+                node.accessor.span
               );
 
               self.report_manager.push(
@@ -433,7 +440,8 @@ impl super::Visitor for FunctionsCallsCheckerVisitor<'_> {
                   Label::new(self.span_manager.get_range(expected.span))
                   .with_message("Try passing a parameter of the following type")
                 )
-                .finish()
+                .finish(),
+                node.accessor.span
               );
 
               continue;
@@ -455,7 +463,8 @@ impl super::Visitor for FunctionsCallsCheckerVisitor<'_> {
                     Label::new(self.span_manager.get_range(span))
                     .with_message(&format!("Parameter n°{count} is expected to be a {} but a {} was passed", &expected.infered_type, supplied_type.to_string()))
                   )
-                  .finish()
+                  .finish(),
+                  span
                 );
 
                 self.report_manager.push(
@@ -464,7 +473,8 @@ impl super::Visitor for FunctionsCallsCheckerVisitor<'_> {
                     Label::new(self.span_manager.get_range(expected.span))
                     .with_message("Try passing a parameter of the following type")
                   )
-                  .finish()
+                  .finish(),
+                  expected.span
                 );
 
                 continue;

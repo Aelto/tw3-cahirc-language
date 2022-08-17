@@ -269,7 +269,7 @@ fn compile_source_directory(config: &Config) -> std::io::Result<()> {
 
     let file = preprocessed_content.source_files_content.get(&parsed_file.filename);
     if let Some(file) = file {
-      report_manager.consume(&file.content.borrow());
+      report_manager.consume_multiple_sources(&mut sources_span_manager, &preprocessed_content);
     }
 
     let mut function_call_checker_visitor = FunctionsCallsCheckerVisitor::new(
@@ -283,7 +283,7 @@ fn compile_source_directory(config: &Config) -> std::io::Result<()> {
 
     let file = preprocessed_content.source_files_content.get(&parsed_file.filename);
     if let Some(file) = file {
-      report_manager.consume(&file.content.borrow());
+      report_manager.consume_multiple_sources(&mut sources_span_manager, &preprocessed_content);
     }
   }
 

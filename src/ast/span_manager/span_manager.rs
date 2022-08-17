@@ -4,7 +4,7 @@ use super::SpanMaker;
 
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
-pub struct Span(usize);
+pub struct Span(pub usize);
 
 pub type FilePath = String;
 pub type FilePathRef = usize;
@@ -79,5 +79,11 @@ impl SpanManager {
 
   pub fn get_range(&self, source_ref: Span) -> Range<usize> {
     self.get_left(source_ref)..self.get_right(source_ref)
+  }
+
+  pub fn get_source(&self, source_ref: &Span) -> &FilePath {
+    let span = &self.spans[source_ref.0];
+
+    &self.paths[span.source_ref]
   }
 }

@@ -2,8 +2,10 @@ use core::panic;
 
 use ariadne::{Report, Source};
 
+use crate::{ast::{Span, SpanManager}, preprocessor::types::PreprocessorOutput};
+
 pub struct ReportManager {
-  reports: Vec<Report>
+  reports: Vec<(Report, Span)>
 }
 
 impl ReportManager {
@@ -13,13 +15,13 @@ impl ReportManager {
     }
   }
 
-  pub fn push(&mut self, report: Report) {
-    self.reports.push(report);
+  pub fn push(&mut self, report: Report, span: Span) {
+    self.reports.push((report, span));
   }
 
-  pub fn push_many(&mut self, reports: Vec<Report>) {
-    for report in reports {
-      self.push(report)
+  pub fn push_many(&mut self, reports: Vec<(Report, Span)>) {
+    for pair in reports {
+      self.push(pair.0, pair.1);
     }
   }
 
@@ -28,7 +30,7 @@ impl ReportManager {
   }
 
   pub fn consume(&mut self, content: &str) {
-    for report in &self.reports {
+    for (report, span) in &self.reports {
       if let Err(err) = report.print(Source::from(&content)) {
         panic!("{}", err);
       }
@@ -37,13 +39,28 @@ impl ReportManager {
     self.flush_reports();
   }
 
-  pub fn consume_multiple_sources(&mut self) {
-    for report in &self.reports {
-      // todo: get the corresponding source from the span
-      // todo: give the span with the reports.
-      let source: String = todo!();
+  pub fn consume_multiple_sources<'a>(&mut self, span_manager: &'a mut SpanManager, preprocessor_output: &PreprocessorOutput) {
+    for (report, span) in &self.reports {
+      let source: &String = span_manager.get_source(span);
+      let source_content = if let Some(s) = preprocessor_output.source_files_content.get(source) {
+        s.content.borrow()
+      } else {
+        let mut output = None;
 
-      if let Err(err) = report.print(Source::from(&source)) {
+        for (_name, value) in preprocessor_output.dependencies_files_content.iter() {
+          if let Some(s) = value.get(source) {
+
+            output = Some(s.content.borrow())
+          }
+        }
+
+        match output {
+          Some(s) => s,
+          None => panic!("attempt at reporting error but source {source} from span {} does not exist in neither the dependencies and the sources", span.0)
+        }
+      };
+
+      if let Err(err) = report.print(Source::from(source_content.as_str())) {
         panic!("{}", err);
       }
     }
