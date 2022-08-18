@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 
 #[derive(Debug, Clone)]
 pub enum Type {
@@ -11,18 +13,33 @@ pub enum Type {
   Unknown
 }
 
-impl ToString for Type {
-    fn to_string(&self) -> String {
-      match self {
-        Type::String => "string".to_string(),
-        Type::Name => "name".to_string(),
-        Type::Bool => "bool".to_string(),
-        Type::Int => "int".to_string(),
-        Type::Float => "float".to_string(),
-        Type::Identifier(s) => s.clone(),
-        Type::Void => "void".to_string(),
-        Type::Unknown => "unknown".to_string(),
-    }
+// impl ToString for Type {
+//     fn to_string(&self) -> String {
+//       match self {
+//         Type::String => "string".to_string(),
+//         Type::Name => "name".to_string(),
+//         Type::Bool => "bool".to_string(),
+//         Type::Int => "int".to_string(),
+//         Type::Float => "float".to_string(),
+//         Type::Identifier(s) => s.clone(),
+//         Type::Void => "void".to_string(),
+//         Type::Unknown => "unknown".to_string(),
+//     }
+//   }
+// }
+
+impl Display for Type {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    write!(f, "{}", match self {
+      Type::String => "string",
+      Type::Name => "name",
+      Type::Bool => "bool",
+      Type::Int => "int",
+      Type::Float => "float",
+      Type::Identifier(x) => x,
+      Type::Void => "void",
+      Type::Unknown => "Unknown",
+    })
   }
 }
 

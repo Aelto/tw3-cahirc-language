@@ -305,7 +305,7 @@ fn compile_source_directory(config: &Config) -> std::io::Result<()> {
       .expect("failed to emit code");
 
     std::fs::create_dir_all(&new_path.parent().unwrap())
-      .expect("failed to recursively make the outoput directories");
+      .expect("failed to recursively make the output directories");
 
     match std::str::from_utf8(&output_code) {
       Ok(s) => {

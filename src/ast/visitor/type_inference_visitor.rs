@@ -17,6 +17,8 @@ use crate::ast::codegen::type_inference::FunctionInferedParameterType;
 use crate::ast::codegen::type_inference::TypeInferenceStore;
 use crate::ast::inference::Type;
 
+use super::lambda_declaration_visitor::ClosureVisitor;
+
 /// 1.
 /// Registers all the compound types from the program
 pub struct CompoundTypesVisitor<'a> {
@@ -223,56 +225,12 @@ impl super::Visitor for ExpressionTypeInferenceVisitor<'_> {
       self.report_manager.push_many(errors);
     }
   }
-}
-
-
-/// Does type inference for the local variables in the functions
-pub struct FunctionsInferenceVisitor<'a> {
-  pub current_context: Rc<RefCell<Context>>,
-  pub inference_store: &'a mut TypeInferenceStore,
-  pub report_manager: &'a mut ReportManager,
-  pub span_manager: &'a mut SpanManager
-}
-
-impl<'a> FunctionsInferenceVisitor<'a> {
-  pub fn new(current_context: Rc<RefCell<Context>>, inference_store: &'a mut TypeInferenceStore,
-  report_manager: &'a mut ReportManager, span_manager: &'a mut SpanManager) -> Self {
-    Self {
-      current_context,
-      inference_store,
-      report_manager,
-      span_manager
-    }
-  }
-}
-
-impl super::Visitor for FunctionsInferenceVisitor<'_> {
-  fn visitor_type(&self) -> super::VisitorType {
-    super::VisitorType::TypeInferenceVisitor
-  }
-
-  /// Update the current context with the latest context met in the AST
-  fn visit_class_declaration(&mut self, node: &crate::ast::ClassDeclaration) {
-    self.current_context = node.context.clone();
-  }
-
-  /// Update the current context with the latest context met in the AST
-  fn visit_function_declaration(&mut self, node: &crate::ast::FunctionDeclaration) {
-    self.current_context = node.context.clone();
-  }
-
-  /// Update the current context with the latest context met in the AST
-  fn visit_struct_declaration(&mut self, node: &crate::ast::StructDeclaration) {
-    self.current_context = node.context.clone();
-  }
 
   fn visit_variable_declaration(&mut self, node: &crate::ast::VariableDeclaration) {
     match &node {
         crate::ast::VariableDeclaration::Explicit { declaration, following_expression: _ } => {
           for variable_name in &declaration.names {
             let type_declaration_string = declaration.type_declaration.to_string();
-      
-            println!("registering local variable {variable_name}: {type_declaration_string}");
       
             self.current_context.borrow_mut().local_variables_inference.insert(
               variable_name.clone(),
@@ -282,6 +240,13 @@ impl super::Visitor for FunctionsInferenceVisitor<'_> {
         },
         crate::ast::VariableDeclaration::Implicit { names, following_expression } => {
           let expression: &Expression = &following_expression.borrow();
+
+          let result = expression.deduce_type(&self.current_context, &self.inference_store.types, &self.inference_store.types, self.span_manager);
+
+          if let Err(errors) = result {
+            self.report_manager.push_many(errors);
+          }
+
           let the_type: &Type = &expression.infered_type_name.borrow();
 
           match the_type {
@@ -349,6 +314,72 @@ impl super::Visitor for FunctionsInferenceVisitor<'_> {
       .variable_declarations
       .push(declaration);
   }
+
+  fn visit_lambda(&mut self, node: &crate::ast::Lambda) {
+    use super::Visited;
+
+    let mut visitor = ClosureVisitor::new(self.current_context.clone(), self.inference_store, self.report_manager, self.span_manager);
+
+    node.body_statements.accept(&mut visitor);
+
+    // exclude the parameters from the captured variables
+    let current_context = self.current_context.borrow_mut();
+    let filtered_captured_variables: Vec<(String, Type)> = visitor.captured_variables.into_iter()
+      .filter(|(variable_name, _)| {
+        variable_name == "this"
+        || (
+          !node.parameters.iter().any(|param| param.typed_identifier.names.contains(variable_name))
+          && current_context.local_parameters_inference.contains_key(variable_name)
+          || current_context.local_variables_inference.contains_key(variable_name)  
+        )
+      })
+      .collect();
+
+    node.captured_variables.replace(filtered_captured_variables);
+  }
+}
+
+
+/// Does type inference for the local variables in the functions
+pub struct FunctionsInferenceVisitor<'a> {
+  pub current_context: Rc<RefCell<Context>>,
+  pub inference_store: &'a mut TypeInferenceStore,
+  pub report_manager: &'a mut ReportManager,
+  pub span_manager: &'a mut SpanManager
+}
+
+impl<'a> FunctionsInferenceVisitor<'a> {
+  pub fn new(current_context: Rc<RefCell<Context>>, inference_store: &'a mut TypeInferenceStore,
+  report_manager: &'a mut ReportManager, span_manager: &'a mut SpanManager) -> Self {
+    Self {
+      current_context,
+      inference_store,
+      report_manager,
+      span_manager
+    }
+  }
+}
+
+impl super::Visitor for FunctionsInferenceVisitor<'_> {
+  fn visitor_type(&self) -> super::VisitorType {
+    super::VisitorType::TypeInferenceVisitor
+  }
+
+  /// Update the current context with the latest context met in the AST
+  fn visit_class_declaration(&mut self, node: &crate::ast::ClassDeclaration) {
+    self.current_context = node.context.clone();
+  }
+
+  /// Update the current context with the latest context met in the AST
+  fn visit_function_declaration(&mut self, node: &crate::ast::FunctionDeclaration) {
+    self.current_context = node.context.clone();
+  }
+
+  /// Update the current context with the latest context met in the AST
+  fn visit_struct_declaration(&mut self, node: &crate::ast::StructDeclaration) {
+    self.current_context = node.context.clone();
+  }
+
 }
 
 /// Typechecks the function calls
@@ -393,8 +424,6 @@ impl super::Visitor for FunctionsCallsCheckerVisitor<'_> {
 
   fn visit_function_call(&mut self, node: &crate::ast::FunctionCall) {
     let some_infered_function_type = &*node.infered_function_type.borrow();
-
-    println!("function call checker");
 
     if let Some(infered_function_type) = some_infered_function_type {
       let infered_function_type = &*infered_function_type;

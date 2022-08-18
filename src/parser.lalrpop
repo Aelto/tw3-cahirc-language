@@ -272,14 +272,16 @@ Lambda: Lambda = {
         parameters,
         body_statements,
         span: span_maker.span(l, r, "lambda"),
-        mangled_accessor: RefCell::new(None)
+        mangled_accessor: RefCell::new(None),
+        captured_variables: RefCell::new(Vec::new())
     },
     <l: @L> "|" <parameters:TrailingComma<FunctionDeclarationParameter>> "|" <body_statement:(<FunctionBodyStatement>)> <r: @R> => Lambda {
         lambda_type: LambdaType::SingleLine,
         parameters,
         body_statements: vec![body_statement],
         span: span_maker.span(l, r, "lambda"),
-        mangled_accessor: RefCell::new(None)
+        mangled_accessor: RefCell::new(None),
+        captured_variables: RefCell::new(Vec::new())
     }
 }
 

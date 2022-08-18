@@ -57,6 +57,13 @@ impl super::Visitor for VariableDeclarationVisitor<'_> {
   }
 
   fn register_variable_declaration(&mut self, declaration: Rc<TypedIdentifier>) {
+    for variable_name in &declaration.names {
+      self.current_context.borrow_mut().local_variables_inference.insert(
+        variable_name.clone(),
+        declaration.type_declaration.to_string()
+      );
+    }
+
     self
       .current_context
       .borrow_mut()

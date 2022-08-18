@@ -23,7 +23,14 @@ impl Codegen for IdentifierTerm {
   fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
     use std::io::Write as IoWrite;
 
-    write!(f, "{}", self.text)?;
+    if self.text == "this" {
+      match context.replace_this_with_self.borrow().as_ref() {
+        Some(replacer) => write!(f, "{}", replacer)?,
+        None => write!(f, "{}", self.text)?
+      };
+    } else {
+      write!(f, "{}", self.text)?;
+    }
 
     for indexing in &self.indexing {
       write!(f, "[")?;

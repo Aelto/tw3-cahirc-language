@@ -2,7 +2,7 @@ use std::{rc::Rc, borrow::Borrow};
 
 use ariadne::{Report, Label};
 
-use super::{*, inference::{Type}, codegen::type_inference::{InferedType, TypeInferenceMap}};
+use super::{*, inference::{Type}, codegen::type_inference::{InferedType, TypeInferenceMap}, visitor::VisitorType};
 
 #[derive(Debug)]
 pub struct Expression {

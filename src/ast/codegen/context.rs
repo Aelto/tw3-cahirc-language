@@ -41,6 +41,14 @@ pub struct Context {
   pub local_variables_inference: HashMap<String, String>,
 
   pub local_parameters_inference: HashMap<String, String>,
+
+  /// A bool flag that will be used by identifiers matching with "this", so
+  /// they know it should be replaced by the given string, it is used by the
+  /// lambda expression to capture "this" expressions.
+  /// 
+  /// If something better is implemented for replacing identifiers, remember
+  /// to add this solution in it as this is a performant but temporary solution.
+  pub replace_this_with_self: RefCell<Option<String>>
 }
 
 impl Context {
@@ -58,7 +66,8 @@ impl Context {
       mangled_accessor: None,
       variable_declarations: Vec::new(),
       local_variables_inference: HashMap::new(),
-      local_parameters_inference: HashMap::new()
+      local_parameters_inference: HashMap::new(),
+      replace_this_with_self: RefCell::new(None)
     }
   }
 

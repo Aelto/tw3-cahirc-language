@@ -2,8 +2,14 @@ use std::cell::RefCell;
 use std::collections::HashSet;
 use std::rc::Rc;
 
+use crate::ast::ExpressionBody;
+use crate::ast::ReportManager;
+use crate::ast::SpanManager;
 use crate::ast::codegen::context::Context;
 use crate::ast::codegen::context::ContextType;
+use crate::ast::codegen::type_inference::TypeInferenceStore;
+use crate::ast::inference::Type;
+
 
 /// Looks for generic calls and register them to the GenericCallRegister
 pub struct LambdaDeclarationVisitor<'a> {
@@ -70,6 +76,50 @@ impl super::Visitor for LambdaDeclarationVisitor<'_> {
         self.current_context.borrow().name,
         err
       );
+    }
+  }
+}
+
+/// Visits the expressions of a lambda to find the capture parameters.
+pub struct ClosureVisitor<'a> {
+  pub captured_variables: Vec<(String, Type)>,
+
+  pub current_context: Rc<RefCell<Context>>,
+  pub inference_store: &'a mut TypeInferenceStore,
+  pub report_manager: &'a mut ReportManager,
+  pub span_manager: &'a mut SpanManager
+}
+
+impl<'a> ClosureVisitor<'a> {
+  pub fn new(current_context: Rc<RefCell<Context>>, inference_store: &'a mut TypeInferenceStore,
+  report_manager: &'a mut ReportManager, span_manager: &'a mut SpanManager) -> Self {
+    Self {
+      captured_variables: Vec::new(),
+      current_context,
+      inference_store,
+      report_manager,
+      span_manager
+    }
+  }
+}
+
+impl<'a> super::Visitor for ClosureVisitor<'a> {
+  fn visitor_type(&self) -> super::VisitorType {
+    super::VisitorType::ClosureExpressionVisitor
+  }
+
+  fn visit_expression(&mut self, node: &crate::ast::Expression) {
+    if let ExpressionBody::Identifier(identifier) = &node.body {
+      let result = node.deduce_type(&self.current_context, &self.inference_store.types, &self.inference_store.types, self.span_manager);
+
+      if let Err(errors) = result {
+        self.report_manager.push_many(errors);
+      }
+      
+      self.captured_variables.push((
+        identifier.text.clone(),
+        node.infered_type_name.borrow().clone()
+      ));
     }
   }
 }

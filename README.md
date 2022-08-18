@@ -11,9 +11,9 @@ This allows the use of new features available to `wss` that get converted to val
  - [x] For..in loops
  - [x] Constant primitive variables in the global scope (macro constants)
  - [x] Lambdas, can be achieved with & without macros. Lambdas can be stored in variables as well
- - [ ] Closures
+ - [x] Closures
  - [x] Variable declarations anywhere in function bodies
- - [ ] some forms of static analysis, or at least syntax validation
+ - [x] some forms of static analysis, or at least syntax validation
  - [ ] namespaces and import statements
 
 # Using it
