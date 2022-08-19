@@ -82,13 +82,9 @@ pub enum InferedType {
   /// The TypeInferenceMap it holds is for its methods
   Compound(RefCell<TypeInferenceMap>),
 
-  /// The vector of string it holds is for the parameters
-  /// of the function. It is the string representation of
-  /// the types. Can be obtained using
-  /// ```
-  /// TypedDeclaration::to_string()
-  /// ```
   Function(Rc<FunctionInferedType>),
+
+  Lambda(Rc<FunctionInferedType>),
 
   /// For unknown types, coming from a different source,
   /// such as the game sources.
@@ -105,6 +101,11 @@ pub struct FunctionInferedType {
 #[derive(Debug)]
 pub struct FunctionInferedParameterType {
   pub parameter_type: ParameterType,
+
+  /// Obtained using
+  /// ```
+  /// TypeDeclaration::to_string()
+  /// ```
   pub infered_type: String,
   pub span: Span
 }

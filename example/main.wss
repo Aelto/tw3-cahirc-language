@@ -1,42 +1,16 @@
-
-#define function FOREACH(list, code) {
-  for (i = 0; i < list.Size(); i += 1) {
-    code
+class Example {
+  function add(a: int, b: int): int {
+    return a + b;
   }
-};
+    
+  function main() {
+    var add_five: fn(x: int): int;
+    var y = 5;
 
-#define function MAP(list, type_input, type_output, predicate) {
-    var output: array<type_output>;
-
-    output.Grow(list.Size());
-
-    #define function INDEXOR_REPLACE_X(x) {
-      predicate
+    add_five = |x: int| {
+      return this.add(x, y) as int;
     };
 
-    FOREACH!(list, {{
-      output[i] = INDEXOR_REPLACE_X!(list[i]);
-    }})
-
-    $output;
-};
-
-enum Test {
-  OK = 1,
-  Err
-}
-
-function main(a: int, b: string): int {
-  var new_my_list: array<string>;
-  var my_list: array<int>;
-
-  my_list.PushBack(5);
-  my_list.PushBack(10);
-  my_list.PushBack(15);
-
-  a = -15.03;
-
-  new_my_list = MAP!(my_list, int, string, "The number is: " + x)
-
-  foo = thePlayer(a, 5 + 3 * thePlayer.foo(5));
+    var fifteen: int = add_five.call(10);
+  }
 }

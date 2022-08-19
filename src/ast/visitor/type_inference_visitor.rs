@@ -231,6 +231,10 @@ impl super::Visitor for ExpressionTypeInferenceVisitor<'_> {
         crate::ast::VariableDeclaration::Explicit { declaration, following_expression: _ } => {
           for variable_name in &declaration.names {
             let type_declaration_string = declaration.type_declaration.to_string();
+
+            dbg!(&type_declaration_string);
+            // TODO: in case of a lambda (which requires explicit declaration), register
+            // the type in the store.
       
             self.current_context.borrow_mut().local_variables_inference.insert(
               variable_name.clone(),

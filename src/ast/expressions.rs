@@ -2,7 +2,7 @@ use std::{rc::Rc, borrow::Borrow};
 
 use ariadne::{Report, Label};
 
-use super::{*, inference::{Type}, codegen::type_inference::{InferedType, TypeInferenceMap}, visitor::VisitorType};
+use super::{*, inference::{Type}, codegen::type_inference::{InferedType, TypeInferenceMap}};
 
 #[derive(Debug)]
 pub struct Expression {
@@ -215,6 +215,7 @@ impl Expression {
               OperationCode::Nesting => {
                 left.deduce_type(current_context, inference_map, inference_map, span_manager)?;
 
+                dbg!(&left);
                 let left_infered_type = left.infered_type.borrow();
                 let left_compound_type_inference_map = match &**left_infered_type {
                   InferedType::Compound(inference_map) => inference_map,
