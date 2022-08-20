@@ -2,6 +2,7 @@ use std::collections::HashSet;
 use std::rc::Rc;
 
 use super::codegen::context::Context;
+use super::codegen::type_inference::FunctionInferedParameterType;
 use super::visitor::Visited;
 use super::*;
 
@@ -156,6 +157,34 @@ pub enum FunctionBodyStatement {
   Delete(Rc<Expression>),
 }
 
+impl FunctionBodyStatement {
+  /// Todo:
+  /// Could be improved to use the deduce_type function rather than force a cast.
+  /// 
+  /// When None is returned it implies a Void type.
+  pub fn get_return_type_from_last_statement(statements: &Vec<Self>) -> Option<&String> {
+    match statements.last().unwrap() {
+      FunctionBodyStatement::Expression(expression) => {
+        let body = &expression.body;
+  
+        match body {
+          ExpressionBody::Cast(cast_type, _) => Some(cast_type),
+          _ => None,
+        }
+      },
+      FunctionBodyStatement::Return(x) => match x {
+        Some(expression) => match &expression.body {
+          ExpressionBody::Cast(cast_type, _) => Some(cast_type),
+          _ => None,
+        },
+        None => None,
+      }
+  
+      _ => None,
+    }
+  }
+}
+
 impl visitor::Visited for FunctionBodyStatement {
   fn accept<T: visitor::Visitor>(&self, visitor: &mut T) {
     match &self {
@@ -261,6 +290,40 @@ pub struct FunctionDeclarationParameter {
   pub parameter_type: ParameterType,
   pub typed_identifier: TypedIdentifier,
   pub span: Span,
+}
+
+impl FunctionDeclarationParameter {
+  pub fn flat_type_names<'a>(parameters: &'a Vec<Self>) -> Vec<&'a str> {
+    let mut output = vec![];
+
+    for param in parameters {
+      let subtypes = match &param.typed_identifier.type_declaration {
+        TypeDeclaration::Regular {
+          type_name,
+          generic_type_assignment,
+          mangled_accessor: _,
+        } => TypeDeclaration::flat_type_names(&type_name, &generic_type_assignment),
+        TypeDeclaration::Lambda(x) => Self::flat_type_names(&x.parameters),
+      };
+
+      for t in subtypes {
+        output.push(t);
+      }
+    }
+
+    output
+  }
+
+  pub fn to_function_infered_parameter_types(parameters: &Vec<Self>) -> Vec<FunctionInferedParameterType> {
+    parameters
+      .iter()
+      .map(|param| FunctionInferedParameterType {
+        infered_type: param.typed_identifier.type_declaration.to_string(),
+        parameter_type: param.parameter_type,
+        span: param.span
+      })
+      .collect()
+  }
 }
 
 impl Codegen for FunctionDeclarationParameter {

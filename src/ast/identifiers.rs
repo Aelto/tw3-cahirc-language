@@ -174,15 +174,10 @@ impl TypeDeclaration {
           type_name.clone()
         }
       }
-      TypeDeclaration::Lambda(lambda) => {
-        let flattened_types = lambda.flat_type_names().join(",");
-        let return_type = match &lambda.type_declaration {
-            Some(decl) => Some(decl.to_string()),
-            None => None,
-        };
-
-        format!("fn({flattened_types}): {:?}", return_type)
-      },
+      TypeDeclaration::Lambda(lambda) => LambdaDeclaration::stringified_type_representation(
+        &lambda.parameters,
+        &lambda.type_declaration.as_ref().and_then(|t| Some(t.to_string())).as_ref()
+      ),
     }
   }
 
@@ -201,7 +196,7 @@ impl TypeDeclaration {
             generic_type_assignment,
             mangled_accessor: _,
           } => Self::flat_type_names(&type_name, &generic_type_assignment),
-          TypeDeclaration::Lambda(lambda) => lambda.flat_type_names(),
+          TypeDeclaration::Lambda(lambda) => FunctionDeclarationParameter::flat_type_names(&lambda.parameters),
         };
 
         for t in subtypes {

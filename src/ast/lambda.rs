@@ -14,25 +14,15 @@ pub struct LambdaDeclaration {
 }
 
 impl LambdaDeclaration {
-  pub fn flat_type_names<'a>(&'a self) -> Vec<&'a str> {
-    let mut output = vec![];
+  /// Returns the stringified representation for the given lambda.
+  /// 
+  /// A type representation is meant to act as a unique identifier.
+  /// A way to differentiate different lambdas if their definitions
+  /// differ.
+  pub fn stringified_type_representation<'a>(parameters: &'a Vec<FunctionDeclarationParameter>, return_type: &'a Option<&'a String>) -> String {
+    let flattened_types = FunctionDeclarationParameter::flat_type_names(&parameters).join(",");
 
-    for param in &self.parameters {
-      let subtypes = match &param.typed_identifier.type_declaration {
-        TypeDeclaration::Regular {
-          type_name,
-          generic_type_assignment,
-          mangled_accessor: _,
-        } => TypeDeclaration::flat_type_names(&type_name, &generic_type_assignment),
-        TypeDeclaration::Lambda(x) => x.flat_type_names(),
-      };
-
-      for t in subtypes {
-        output.push(t);
-      }
-    }
-
-    output
+    format!("fn({flattened_types}): {:?}", return_type)
   }
 
   /// emits the base abstract class the lambdas will extend to finally implement
@@ -240,25 +230,7 @@ fn emit_lambda(
 
   // get the return type from the last body statement, if it is a type cast then
   // we use it as the return type, otherwise it defaults to void (None).
-  let return_type = match this.body_statements.last().unwrap() {
-    FunctionBodyStatement::Expression(expression) => {
-      let body = &expression.body;
-
-      match body {
-        ExpressionBody::Cast(cast_type, _) => Some(cast_type),
-        _ => None,
-      }
-    },
-    FunctionBodyStatement::Return(x) => match x {
-      Some(expression) => match &expression.body {
-        ExpressionBody::Cast(cast_type, _) => Some(cast_type),
-        _ => None,
-      },
-      None => None,
-    }
-
-    _ => None,
-  };
+  let return_type = FunctionBodyStatement::get_return_type_from_last_statement(&this.body_statements);
 
   let return_type_suffix = if let Some(returntype) = return_type {
     returntype
@@ -355,6 +327,7 @@ fn emit_lambda(
 impl Visited for Lambda {
   fn accept<T: visitor::Visitor>(&self, visitor: &mut T) {
     visitor.visit_lambda(self);
+    self.parameters.accept(visitor);
     self.body_statements.accept(visitor);
   }
 }

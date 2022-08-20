@@ -2,7 +2,7 @@ use std::{rc::Rc, borrow::Borrow};
 
 use ariadne::{Report, Label};
 
-use super::{*, inference::{Type}, codegen::type_inference::{InferedType, TypeInferenceMap}};
+use super::{*, inference::{Type}, codegen::type_inference::{InferedType, TypeInferenceMap, FunctionInferedType}};
 
 #[derive(Debug)]
 pub struct Expression {
@@ -22,7 +22,9 @@ impl Expression {
     }
   }
 
-  pub fn set_infered_type(&self,  name: Type, t: Rc<InferedType>) {
+  pub fn set_infered_type(&self, name: Type, t: Rc<InferedType>) {
+    // println!("set infered_type type={:?}, infered_type={:?}", name, t);
+
     self.infered_type_name.replace(name);
     self.infered_type.replace(t);
   }
@@ -188,8 +190,23 @@ impl Expression {
           self.set_infered_type(Type::Identifier(instantiation.class_name.clone()), infered_type.clone());
         }
       },
-      ExpressionBody::Lambda(_) => {
-        // todo: type inference for lambda
+      ExpressionBody::Lambda(lambda) => {
+        let return_type = FunctionBodyStatement::get_return_type_from_last_statement(&lambda.body_statements);
+        let the_type: Type = Type::Identifier(LambdaDeclaration::stringified_type_representation(&lambda.parameters, &return_type));
+        let infered_type: Rc<InferedType> = Rc::new(
+          InferedType::Lambda(Rc::new(
+            FunctionInferedType {
+              parameters: FunctionDeclarationParameter::to_function_infered_parameter_types(&lambda.parameters),
+              return_type: return_type.and_then(|t| Some(t.clone())),
+              span: lambda.span
+            }
+          ))
+        );
+
+        self.set_infered_type(
+          the_type, 
+          infered_type
+        );
       },
       ExpressionBody::Operation(left, operation, right) => {
         match &left.body.borrow() {
@@ -215,7 +232,57 @@ impl Expression {
               OperationCode::Nesting => {
                 left.deduce_type(current_context, inference_map, inference_map, span_manager)?;
 
-                dbg!(&left);
+                // special check for lambda calls:
+                {
+                  let left_infered_type = left.as_ref().infered_type.borrow();
+                  let left_type = left_infered_type.as_ref();
+                  let right_type = &right.as_ref().body;
+
+                  match (left_type, &right_type) {
+                    (InferedType::Lambda(lambda), ExpressionBody::FunctionCall(_)) => {
+                      match lambda.return_type.as_ref() {
+                        Some(t) => {
+                          let lambda_return_type = global_inference_map.get(t);
+  
+                          if let Some(return_type) = lambda_return_type {
+                            self.set_infered_type(
+                              Type::Identifier(t.clone()),
+                              return_type.clone()
+                            );
+
+                            // set a blank type on the right so it is not scanned
+                            right.set_infered_type(
+                              self.infered_type_name.borrow().clone(), 
+                              self.infered_type.borrow().clone()
+                            );
+
+                            return Ok(());
+                          } else {
+                            let span = lambda.span;
+
+                            return Err(vec![(
+                              Report::build(ariadne::ReportKind::Warning, (), span_manager.get_left(span))
+                                .with_message(&"Unknown return type in lambda")
+                                .with_label(
+                                  Label::new(span_manager.get_range(span))
+                                  .with_message(&format!("The returned type \"{t}\" is not a known type"))
+                                )
+                                .finish(),
+                                span
+                            )]);
+                          }
+                        },
+                        None => {}
+                      };
+
+                      // leave no matter what, we don't want warnings/errors from nested calls
+                      // from lambdas
+                      return Ok(());
+                    },
+                    _ => {}
+                  };
+                }
+
                 let left_infered_type = left.infered_type.borrow();
                 let left_compound_type_inference_map = match &**left_infered_type {
                   InferedType::Compound(inference_map) => inference_map,

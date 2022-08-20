@@ -7,13 +7,14 @@ use ariadne::Report;
 use ariadne::ReportKind;
 
 use crate::ast::Expression;
+use crate::ast::FunctionDeclarationParameter;
 use crate::ast::ReportManager;
 use crate::ast::SpanManager;
 use crate::ast::TypeDeclaration;
 use crate::ast::TypedIdentifier;
 use crate::ast::codegen::context::Context;
 use crate::ast::codegen::context::ContextType;
-use crate::ast::codegen::type_inference::FunctionInferedParameterType;
+use crate::ast::codegen::type_inference::InferedType;
 use crate::ast::codegen::type_inference::TypeInferenceStore;
 use crate::ast::inference::Type;
 
@@ -79,14 +80,7 @@ impl super::Visitor for CompoundTypesVisitor<'_> {
       ContextType::Global
     };
 
-    let parameters: Vec<FunctionInferedParameterType> = node.parameters
-      .iter()
-      .map(|param| FunctionInferedParameterType {
-        infered_type: param.typed_identifier.type_declaration.to_string(),
-        parameter_type: param.parameter_type,
-        span: param.span
-      })
-      .collect();
+    let parameters = FunctionDeclarationParameter::to_function_infered_parameter_types(&node.parameters);
 
     // we try to see if the function is inside a struct or class or if
     // it is a global function.
@@ -221,6 +215,13 @@ impl super::Visitor for ExpressionTypeInferenceVisitor<'_> {
   fn visit_expression(&mut self, node: &Expression) {
     let result = node.deduce_type(&self.current_context, &self.inference_store.types, &self.inference_store.types, self.span_manager);
 
+    if let InferedType::Lambda(_) = node.infered_type.borrow().as_ref() {
+      self.inference_store.types.insert(
+        node.infered_type_name.borrow().to_string(),
+        node.infered_type.borrow().clone()
+      );
+    }
+
     if let Err(errors) = result {
       self.report_manager.push_many(errors);
     }
@@ -231,10 +232,6 @@ impl super::Visitor for ExpressionTypeInferenceVisitor<'_> {
         crate::ast::VariableDeclaration::Explicit { declaration, following_expression: _ } => {
           for variable_name in &declaration.names {
             let type_declaration_string = declaration.type_declaration.to_string();
-
-            dbg!(&type_declaration_string);
-            // TODO: in case of a lambda (which requires explicit declaration), register
-            // the type in the store.
       
             self.current_context.borrow_mut().local_variables_inference.insert(
               variable_name.clone(),
