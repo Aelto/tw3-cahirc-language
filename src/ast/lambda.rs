@@ -20,9 +20,11 @@ impl LambdaDeclaration {
   /// A way to differentiate different lambdas if their definitions
   /// differ.
   pub fn stringified_type_representation<'a>(parameters: &'a Vec<FunctionDeclarationParameter>, return_type: &'a Option<&'a String>) -> String {
-    let flattened_types = FunctionDeclarationParameter::flat_type_names(&parameters).join(",");
+    let flattened_types = FunctionDeclarationParameter::flat_type_names(&parameters).join("_");
+    let void = String::from("_void");
+    let return_type_suffix = return_type.unwrap_or_else(|| &void);
 
-    format!("fn({flattened_types}): {:?}", return_type)
+    format!("lambda__{flattened_types}_rt__{return_type_suffix}")
   }
 
   /// emits the base abstract class the lambdas will extend to finally implement
