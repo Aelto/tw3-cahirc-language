@@ -50,7 +50,9 @@ impl super::Visitor for CompoundTypesVisitor<'_> {
 
   /// Update the current context with the latest context met in the AST
   fn visit_class_declaration(&mut self, node: &crate::ast::ClassDeclaration) {
-    let result = self.inference_store.register_compound(node.name.clone());
+    let result = self
+      .inference_store
+      .register_compound(node.name.clone(), node.extended_class_name.clone());
 
     if let Err(reason) = result {
       let span = node.span_name;
@@ -145,7 +147,9 @@ impl super::Visitor for CompoundTypesVisitor<'_> {
 
   /// Update the current context with the latest context met in the AST
   fn visit_struct_declaration(&mut self, node: &crate::ast::StructDeclaration) {
-    let result = self.inference_store.register_compound(node.name.clone());
+    let result = self
+      .inference_store
+      .register_compound(node.name.clone(), None);
 
     if let Err(reason) = result {
       let span = node.span_name;

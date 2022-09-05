@@ -308,26 +308,30 @@ impl Expression {
                 }
 
                 let left_infered_type = left.infered_type.borrow();
-                let left_compound_type_inference_map = match &**left_infered_type {
-                  InferedType::Compound(inference_map) => inference_map,
-                  _ => {
-                    let span = left.body.get_span();
+                let (left_compound_type_inference_map, left_extended_type) =
+                  match &**left_infered_type {
+                    InferedType::Compound {
+                      type_inference_map,
+                      extends,
+                    } => (type_inference_map, extends),
+                    _ => {
+                      let span = left.body.get_span();
 
-                    return Err(vec![(
-                      Report::build(
-                        ariadne::ReportKind::Warning,
-                        (),
-                        span_manager.get_left(span),
-                      )
-                      .with_message(&"Invalid nesting")
-                      .with_label(Label::new(span_manager.get_range(span)).with_message(
-                        &"Nesting but left side expression does not result in a compound type.",
-                      ))
-                      .finish(),
-                      span,
-                    )]);
-                  }
-                };
+                      return Err(vec![(
+                        Report::build(
+                          ariadne::ReportKind::Warning,
+                          (),
+                          span_manager.get_left(span),
+                        )
+                        .with_message(&"Invalid nesting")
+                        .with_label(Label::new(span_manager.get_range(span)).with_message(
+                          &"Nesting but left side expression does not result in a compound type.",
+                        ))
+                        .finish(),
+                        span,
+                      )]);
+                    }
+                  };
 
                 let left_type_name: &Type = &left.infered_type_name.borrow();
                 let left_type_identifier = match left_type_name {
@@ -364,12 +368,48 @@ impl Expression {
                     match context.get_compound_name() {
                       Some(compound_name) => {
                         if &compound_name == left_type_identifier {
-                          right.deduce_type(
-                            &global_type_context,
-                            &left_compound_type_inference_map.borrow(),
-                            inference_map,
-                            span_manager,
-                          )?;
+                          // we need to handle class inheritance for nesting
+                          // on compound types.
+                          let mut used_type_inference_map = left_compound_type_inference_map;
+                          let mut used_extend = left_extended_type;
+
+                          loop {
+                            let result = right.deduce_type(
+                              &global_type_context,
+                              &used_type_inference_map.borrow(),
+                              inference_map,
+                              span_manager,
+                            );
+
+                            if result.is_ok() {
+                              break;
+                            }
+
+                            match used_extend {
+                              // there is still a type in the inheritance tree
+                              Some(extend_type_identifier) => {
+                                dbg!(&extend_type_identifier);
+                                match global_inference_map.get(extend_type_identifier) {
+                                  Some(base_type) => {
+                                    match base_type.borrow() {
+                                      InferedType::Compound {
+                                        type_inference_map,
+                                        extends,
+                                      } => {
+                                        used_type_inference_map = type_inference_map;
+                                        used_extend = extends;
+                                      }
+                                      _ => {
+                                        return result;
+                                      }
+                                    };
+                                  }
+                                  None => return result,
+                                };
+                              }
+                              None => return result,
+                            }
+                          }
 
                           self.set_infered_type(
                             right.infered_type_name.borrow().clone(),

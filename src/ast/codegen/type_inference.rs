@@ -23,12 +23,16 @@ impl TypeInferenceStore {
     Self { types: map }
   }
 
-  pub fn register_compound(&mut self, name: String) -> Result<(), String> {
+  pub fn register_compound(&mut self, name: String, extends: Option<String>) -> Result<(), String> {
     if self.types.contains_key(&name) {
       return Err(format!("compound type {} was registered twice", &name));
     }
 
-    let compound = Rc::new(InferedType::Compound(RefCell::new(HashMap::new())));
+    let compound = Rc::new(InferedType::Compound {
+      type_inference_map: RefCell::new(HashMap::new()),
+      extends,
+    });
+
     self.types.insert(name, compound.clone());
 
     Ok(())
@@ -63,8 +67,11 @@ impl TypeInferenceStore {
       .entry(parent_compound_name)
       .and_modify(|class_type| {
         match &**class_type {
-          InferedType::Compound(class) => {
-            let mut class = class.borrow_mut();
+          InferedType::Compound {
+            type_inference_map,
+            extends: _,
+          } => {
+            let mut class = type_inference_map.borrow_mut();
 
             if class.contains_key(&name) {
               result = Err(format!("method {name} was registered twice"));
@@ -95,7 +102,13 @@ pub enum InferedType {
   /// Structs, classes, types that hold multiple values
   ///
   /// The TypeInferenceMap it holds is for its methods
-  Compound(RefCell<TypeInferenceMap>),
+  Compound {
+    type_inference_map: RefCell<TypeInferenceMap>,
+
+    /// In case the compound type extend another type, this value is set to
+    /// `Some(base_type_identifier)`
+    extends: Option<String>,
+  },
 
   Function(Rc<FunctionInferedType>),
 
