@@ -15,11 +15,13 @@ pub struct LambdaDeclaration {
 
 impl LambdaDeclaration {
   /// Returns the stringified representation for the given lambda.
-  /// 
+  ///
   /// A type representation is meant to act as a unique identifier.
   /// A way to differentiate different lambdas if their definitions
   /// differ.
-  pub fn stringified_type_representation<'a>(parameters: &'a Vec<FunctionDeclarationParameter>, return_type: &'a Option<&'a String>) -> String {
+  pub fn stringified_type_representation<'a>(
+    parameters: &'a Vec<FunctionDeclarationParameter>, return_type: &'a Option<&'a String>,
+  ) -> String {
     let flattened_types = FunctionDeclarationParameter::flat_type_names(&parameters).join("_");
     let void = String::from("_void");
     let return_type_suffix = return_type.unwrap_or_else(|| &void);
@@ -145,10 +147,9 @@ impl Codegen for LambdaDeclaration {
 
     let return_type_suffix = if let Some(returntype) = &self.type_declaration {
       let returntype: &TypeDeclaration = &returntype.borrow();
-      GenericContext::generic_variant_suffix_from_types(&TypeDeclaration::stringified_generic_types(
-        &vec![returntype],
-        &context,
-      ))
+      GenericContext::generic_variant_suffix_from_types(
+        &TypeDeclaration::stringified_generic_types(&vec![returntype], &context),
+      )
     } else {
       String::from("_void")
     };
@@ -167,7 +168,7 @@ pub struct Lambda {
   pub span: Span,
 
   pub mangled_accessor: RefCell<Option<String>>,
-  pub captured_variables: RefCell<Vec<(String, Type)>>
+  pub captured_variables: RefCell<Vec<(String, Type)>>,
 }
 
 #[derive(Debug)]
@@ -232,7 +233,8 @@ fn emit_lambda(
 
   // get the return type from the last body statement, if it is a type cast then
   // we use it as the return type, otherwise it defaults to void (None).
-  let return_type = FunctionBodyStatement::get_return_type_from_last_statement(&this.body_statements);
+  let return_type =
+    FunctionBodyStatement::get_return_type_from_last_statement(&this.body_statements);
 
   let return_type_suffix = if let Some(returntype) = return_type {
     returntype
@@ -254,12 +256,11 @@ fn emit_lambda(
       write!(f, ": {returntype}")?;
     }
 
-
     // before emitting the body of the lambda/closure, make sure to replace all
     // occurences of "this" with the new generated identifier:
-    context.replace_this_with_self.replace(
-      Some(uuid::Uuid::new_v4().to_string().replace("-", ""))
-    );
+    context
+      .replace_this_with_self
+      .replace(Some(uuid::Uuid::new_v4().to_string().replace("-", "")));
 
     writeln!(f, " {{")?;
     match this.lambda_type {
@@ -271,7 +272,8 @@ fn emit_lambda(
     };
     writeln!(f, "}}")?;
 
-    { // the capture method
+    {
+      // the capture method
       let captured_variables = this.captured_variables.borrow();
       let captured_variables: &Vec<(String, Type)> = &captured_variables.as_ref();
 
@@ -280,11 +282,7 @@ fn emit_lambda(
       let replacer = context.replace_this_with_self.borrow();
       let replacer = replacer.as_ref().unwrap();
       for var in captured_variables {
-        let var_name = if &var.0 == "this" {
-          &replacer
-        } else {
-          &var.0
-        };
+        let var_name = if &var.0 == "this" { &replacer } else { &var.0 };
         let var_type = &var.1;
         writeln!(f, "var {var_name}: {var_type};")?;
       }
@@ -293,11 +291,7 @@ fn emit_lambda(
 
       // emit the parameters:
       for var in captured_variables {
-        let var_name = if &var.0 == "this" {
-          &replacer
-        } else {
-          &var.0
-        };
+        let var_name = if &var.0 == "this" { &replacer } else { &var.0 };
         let var_type = &var.1;
         write!(f, "out {var_name}: {var_type},")?;
       }
@@ -306,14 +300,10 @@ fn emit_lambda(
 
       // emit the variable assignments:
       for var in captured_variables {
-        let var_name = if &var.0 == "this" {
-          &replacer
-        } else {
-          &var.0
-        };
+        let var_name = if &var.0 == "this" { &replacer } else { &var.0 };
         writeln!(f, "this.{var_name} = {var_name};")?;
       }
-  
+
       writeln!(f, "return this;")?;
       writeln!(f, "}}")?;
     }

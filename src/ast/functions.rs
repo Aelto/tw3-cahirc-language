@@ -160,26 +160,26 @@ pub enum FunctionBodyStatement {
 impl FunctionBodyStatement {
   /// Todo:
   /// Could be improved to use the deduce_type function rather than force a cast.
-  /// 
+  ///
   /// When None is returned it implies a Void type.
   pub fn get_return_type_from_last_statement(statements: &Vec<Self>) -> Option<&String> {
     match statements.last().unwrap() {
       FunctionBodyStatement::Expression(expression) => {
         let body = &expression.body;
-  
+
         match body {
           ExpressionBody::Cast(cast_type, _) => Some(cast_type),
           _ => None,
         }
-      },
+      }
       FunctionBodyStatement::Return(x) => match x {
         Some(expression) => match &expression.body {
           ExpressionBody::Cast(cast_type, _) => Some(cast_type),
           _ => None,
         },
         None => None,
-      }
-  
+      },
+
       _ => None,
     }
   }
@@ -314,13 +314,15 @@ impl FunctionDeclarationParameter {
     output
   }
 
-  pub fn to_function_infered_parameter_types(parameters: &Vec<Self>) -> Vec<FunctionInferedParameterType> {
+  pub fn to_function_infered_parameter_types(
+    parameters: &Vec<Self>,
+  ) -> Vec<FunctionInferedParameterType> {
     parameters
       .iter()
       .map(|param| FunctionInferedParameterType {
         infered_type: param.typed_identifier.type_declaration.to_string(),
         parameter_type: param.parameter_type,
-        span: param.span
+        span: param.span,
       })
       .collect()
   }

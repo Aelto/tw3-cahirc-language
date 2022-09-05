@@ -1,11 +1,7 @@
 pub fn strip_pragmas(input: &String) -> String {
   input
     .lines()
-    .map(|line| if contains_pragma(line) {
-      "" 
-    } else {
-      line
-    })
+    .map(|line| if contains_pragma(line) { "" } else { line })
     .collect::<Vec<&str>>()
     .join("\n")
 }

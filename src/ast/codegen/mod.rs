@@ -1,7 +1,7 @@
-use std::{ops::Deref};
+use std::ops::Deref;
 
-pub mod type_inference;
 pub mod context;
+pub mod type_inference;
 
 pub trait Codegen {
   fn emit(&self, _: &context::Context, output: &mut Vec<u8>) -> Result<(), std::io::Error> {
@@ -81,8 +81,7 @@ where
   }
 }
 
-impl Codegen for String
-{
+impl Codegen for String {
   fn emit(&self, _: &context::Context, output: &mut Vec<u8>) -> Result<(), std::io::Error> {
     use std::io::Write as IoWrite;
 

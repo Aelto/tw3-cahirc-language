@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
-use crate::ast::ProgramInformation;
 use crate::ast::span_manager::SpanManager;
+use crate::ast::ProgramInformation;
 use crate::preprocessor::MacroConstant;
 
 use super::pragma_replace::get_pragma_replace_directives;
@@ -144,8 +144,11 @@ fn expand_macro_call(
           let mut span_manager = SpanManager::new();
           let mut span_maker = span_manager.add_fake_source();
 
-          let parsing_result =
-            crate::parser::ExpressionParser::new().parse(&program_information, &mut span_maker, &slice);
+          let parsing_result = crate::parser::ExpressionParser::new().parse(
+            &program_information,
+            &mut span_maker,
+            &slice,
+          );
 
           let parameter_slice = match parsing_result {
             Ok(_) => unreachable!(),

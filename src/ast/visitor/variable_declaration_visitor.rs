@@ -48,20 +48,30 @@ impl super::Visitor for VariableDeclarationVisitor<'_> {
 
   fn visit_variable_declaration(&mut self, node: &crate::ast::VariableDeclaration) {
     match &node {
-        crate::ast::VariableDeclaration::Explicit { declaration, following_expression: _ } => {
-          self.register_variable_declaration(declaration.clone());
-        },
-        // implicit variables are registered by the type inference visitor
-        crate::ast::VariableDeclaration::Implicit { names: _, following_expression: _ } => {},
+      crate::ast::VariableDeclaration::Explicit {
+        declaration,
+        following_expression: _,
+      } => {
+        self.register_variable_declaration(declaration.clone());
+      }
+      // implicit variables are registered by the type inference visitor
+      crate::ast::VariableDeclaration::Implicit {
+        names: _,
+        following_expression: _,
+      } => {}
     };
   }
 
   fn register_variable_declaration(&mut self, declaration: Rc<TypedIdentifier>) {
     for variable_name in &declaration.names {
-      self.current_context.borrow_mut().local_variables_inference.insert(
-        variable_name.clone(),
-        declaration.type_declaration.to_string()
-      );
+      self
+        .current_context
+        .borrow_mut()
+        .local_variables_inference
+        .insert(
+          variable_name.clone(),
+          declaration.type_declaration.to_string(),
+        );
     }
 
     self

@@ -156,11 +156,9 @@ fn get_wss_files_content_for_directory(
 
   let mut output = Vec::new();
   for filename in files {
-    let content = RefCell::new(convert_line_endings(
-      std::fs::read_to_string(
-        filename.path(),
-      )?
-    ));
+    let content = RefCell::new(convert_line_endings(std::fs::read_to_string(
+      filename.path(),
+    )?));
 
     output.push((
       filename.path().to_str().unwrap().to_string(),

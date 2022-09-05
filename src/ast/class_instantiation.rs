@@ -10,7 +10,7 @@ pub struct ClassInstantiation {
   pub class_name: String,
   pub generic_type_assignment: Option<Vec<TypeDeclaration>>,
   pub lifetime: String,
-  pub span: Span
+  pub span: Span,
 }
 
 impl ClassInstantiation {

@@ -2,14 +2,13 @@ use std::cell::RefCell;
 use std::collections::HashSet;
 use std::rc::Rc;
 
-use crate::ast::ExpressionBody;
-use crate::ast::ReportManager;
-use crate::ast::SpanManager;
 use crate::ast::codegen::context::Context;
 use crate::ast::codegen::context::ContextType;
 use crate::ast::codegen::type_inference::TypeInferenceStore;
 use crate::ast::inference::Type;
-
+use crate::ast::ExpressionBody;
+use crate::ast::ReportManager;
+use crate::ast::SpanManager;
 
 /// Looks for generic calls and register them to the GenericCallRegister
 pub struct LambdaDeclarationVisitor<'a> {
@@ -87,18 +86,20 @@ pub struct ClosureVisitor<'a> {
   pub current_context: Rc<RefCell<Context>>,
   pub inference_store: &'a mut TypeInferenceStore,
   pub report_manager: &'a mut ReportManager,
-  pub span_manager: &'a mut SpanManager
+  pub span_manager: &'a mut SpanManager,
 }
 
 impl<'a> ClosureVisitor<'a> {
-  pub fn new(current_context: Rc<RefCell<Context>>, inference_store: &'a mut TypeInferenceStore,
-  report_manager: &'a mut ReportManager, span_manager: &'a mut SpanManager) -> Self {
+  pub fn new(
+    current_context: Rc<RefCell<Context>>, inference_store: &'a mut TypeInferenceStore,
+    report_manager: &'a mut ReportManager, span_manager: &'a mut SpanManager,
+  ) -> Self {
     Self {
       captured_variables: Vec::new(),
       current_context,
       inference_store,
       report_manager,
-      span_manager
+      span_manager,
     }
   }
 }
@@ -110,15 +111,20 @@ impl<'a> super::Visitor for ClosureVisitor<'a> {
 
   fn visit_expression(&mut self, node: &crate::ast::Expression) {
     if let ExpressionBody::Identifier(identifier) = &node.body {
-      let result = node.deduce_type(&self.current_context, &self.inference_store.types, &self.inference_store.types, self.span_manager);
+      let result = node.deduce_type(
+        &self.current_context,
+        &self.inference_store.types,
+        &self.inference_store.types,
+        self.span_manager,
+      );
 
       if let Err(errors) = result {
         self.report_manager.push_many(errors);
       }
-      
+
       self.captured_variables.push((
         identifier.text.clone(),
-        node.infered_type_name.borrow().clone()
+        node.infered_type_name.borrow().clone(),
       ));
     }
   }

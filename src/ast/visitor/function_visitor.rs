@@ -3,9 +3,9 @@ use std::rc::Rc;
 
 use generic_call_visitor::GenericCallsVisitor;
 
-use crate::ast::Context;
 use crate::ast::visitor::generic_call_visitor;
 use crate::ast::visitor::Visited;
+use crate::ast::Context;
 use crate::ast::ProgramInformation;
 
 pub struct FunctionVisitor<'a> {
@@ -26,14 +26,18 @@ impl super::Visitor for FunctionVisitor<'_> {
     super::VisitorType::FunctionDeclarationVisitor
   }
 
-  fn visit_function_declaration_parameter(&mut self, node: &crate::ast::FunctionDeclarationParameter) {
+  fn visit_function_declaration_parameter(
+    &mut self, node: &crate::ast::FunctionDeclarationParameter,
+  ) {
     let type_string_representation = node.typed_identifier.type_declaration.to_string();
 
     for parameter_name in &node.typed_identifier.names {
-      self.current_context.as_ref().borrow_mut().local_parameters_inference.insert(
-        parameter_name.clone(),
-        type_string_representation.clone()
-      );
+      self
+        .current_context
+        .as_ref()
+        .borrow_mut()
+        .local_parameters_inference
+        .insert(parameter_name.clone(), type_string_representation.clone());
     }
   }
 }

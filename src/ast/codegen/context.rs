@@ -32,7 +32,7 @@ pub struct Context {
 
   /// Stores for the identifiers (used as the keys) the infered types (used as
   /// values).
-  /// 
+  ///
   /// This map stores the variables used in the local context and their infered
   /// types. For compound types, a lookup into the TypeInferenceStore may be
   /// needed. The key is the name of the variable, the value is the way to
@@ -45,10 +45,10 @@ pub struct Context {
   /// A bool flag that will be used by identifiers matching with "this", so
   /// they know it should be replaced by the given string, it is used by the
   /// lambda expression to capture "this" expressions.
-  /// 
+  ///
   /// If something better is implemented for replacing identifiers, remember
   /// to add this solution in it as this is a performant but temporary solution.
-  pub replace_this_with_self: RefCell<Option<String>>
+  pub replace_this_with_self: RefCell<Option<String>>,
 }
 
 impl Context {
@@ -67,7 +67,7 @@ impl Context {
       variable_declarations: Vec::new(),
       local_variables_inference: HashMap::new(),
       local_parameters_inference: HashMap::new(),
-      replace_this_with_self: RefCell::new(None)
+      replace_this_with_self: RefCell::new(None),
     }
   }
 
@@ -82,8 +82,7 @@ impl Context {
   pub fn get_class_name(&self) -> Option<String> {
     if self.name.starts_with("class: ") {
       Some(self.name.replacen("class: ", "", 1))
-    }
-    else {
+    } else {
       None
     }
   }
@@ -91,8 +90,7 @@ impl Context {
   pub fn get_struct_name(&self) -> Option<String> {
     if self.name.starts_with("struct: ") {
       Some(self.name.replacen("struct: ", "", 1))
-    }
-    else {
+    } else {
       None
     }
   }
@@ -102,7 +100,10 @@ impl Context {
   }
 
   pub fn get_variable_type_string(&self, variable_name: &str) -> Option<&String> {
-    self.local_parameters_inference.get(variable_name).or_else(|| self.local_variables_inference.get(variable_name))
+    self
+      .local_parameters_inference
+      .get(variable_name)
+      .or_else(|| self.local_variables_inference.get(variable_name))
   }
 
   pub fn set_parent_context(this: &Rc<RefCell<Context>>, parent: &Rc<RefCell<Context>>) {
@@ -228,8 +229,7 @@ impl Context {
     }
 
     match &self.parent_context {
-      Some(parent) => Self::get_ref(parent)
-        .transform_if_generic_type(f, identifier)?,
+      Some(parent) => Self::get_ref(parent).transform_if_generic_type(f, identifier)?,
       None => {
         write!(f, "{identifier}")?;
       }
@@ -257,9 +257,7 @@ impl Context {
 pub enum ContextType {
   Global,
   ClassOrStruct,
-  State {
-    parent_class_name: String
-  },
+  State { parent_class_name: String },
   Function,
 }
 

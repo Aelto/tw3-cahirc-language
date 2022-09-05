@@ -1,6 +1,5 @@
 use std::fmt::Display;
 
-
 #[derive(Debug, Clone)]
 pub enum Type {
   String,
@@ -10,7 +9,7 @@ pub enum Type {
   Float,
   Identifier(String),
   Void,
-  Unknown
+  Unknown,
 }
 
 // impl ToString for Type {
@@ -30,16 +29,20 @@ pub enum Type {
 
 impl Display for Type {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-    write!(f, "{}", match self {
-      Type::String => "string",
-      Type::Name => "name",
-      Type::Bool => "bool",
-      Type::Int => "int",
-      Type::Float => "float",
-      Type::Identifier(x) => x,
-      Type::Void => "void",
-      Type::Unknown => "Unknown",
-    })
+    write!(
+      f,
+      "{}",
+      match self {
+        Type::String => "string",
+        Type::Name => "name",
+        Type::Bool => "bool",
+        Type::Int => "int",
+        Type::Float => "float",
+        Type::Identifier(x) => x,
+        Type::Void => "void",
+        Type::Unknown => "Unknown",
+      }
+    )
   }
 }
 
@@ -62,7 +65,7 @@ impl Type {
       (Type::Name, "string") => true,
       (Type::Float, "int") => true,
       (Type::Int, "float") => true,
-      _ => false
+      _ => false,
     }
   }
 }

@@ -1,16 +1,20 @@
-use std::{rc::Rc, borrow::Borrow};
+use std::{borrow::Borrow, rc::Rc};
 
-use ariadne::{Report, Label};
+use ariadne::{Label, Report};
 
-use super::{*, inference::{Type}, codegen::type_inference::{InferedType, TypeInferenceMap, FunctionInferedType}};
+use super::{
+  codegen::type_inference::{FunctionInferedType, InferedType, TypeInferenceMap},
+  inference::Type,
+  *,
+};
 
 #[derive(Debug)]
 pub struct Expression {
-  /// 
+  ///
   pub infered_type: RefCell<Rc<InferedType>>,
   pub infered_type_name: RefCell<Type>,
 
-  pub body: ExpressionBody
+  pub body: ExpressionBody,
 }
 
 impl Expression {
@@ -18,7 +22,7 @@ impl Expression {
     Self {
       infered_type: RefCell::new(Rc::new(InferedType::Unknown)),
       infered_type_name: RefCell::new(Type::Unknown),
-      body
+      body,
     }
   }
 
@@ -30,15 +34,13 @@ impl Expression {
   }
 
   pub fn deduce_type(
-    &self,
-    current_context: &Rc<RefCell<Context>>,
-    inference_map: &TypeInferenceMap,
-    global_inference_map: &TypeInferenceMap,
-    span_manager: &SpanManager
+    &self, current_context: &Rc<RefCell<Context>>, inference_map: &TypeInferenceMap,
+    global_inference_map: &TypeInferenceMap, span_manager: &SpanManager,
   ) -> Result<(), Vec<(Report, Span)>> {
     {
       let self_infered_type_name: &Type = &self.infered_type_name.borrow();
-      if let Type::Unknown = self_infered_type_name {} else {
+      if let Type::Unknown = self_infered_type_name {
+      } else {
         // Since sometimes the deduce_type function may be called early
         // due to expressions nesting or operations, there is no need
         // to deduce the type again if it's already been deduced.
@@ -51,22 +53,22 @@ impl Expression {
         if let Some(infered_type) = inference_map.get("int") {
           self.set_infered_type(Type::Int, infered_type.clone());
         };
-      },
+      }
       ExpressionBody::Float(_) => {
         if let Some(infered_type) = inference_map.get("float") {
           self.set_infered_type(Type::Float, infered_type.clone());
         }
-      },
+      }
       ExpressionBody::String(_) => {
         if let Some(infered_type) = inference_map.get("string") {
           self.set_infered_type(Type::String, infered_type.clone());
         }
-      },
+      }
       ExpressionBody::Name(_) => {
         if let Some(infered_type) = inference_map.get("name") {
           self.set_infered_type(Type::Name, infered_type.clone());
         }
-      },
+      }
       ExpressionBody::Identifier(identifier) => {
         let a: &IdentifierTerm = &identifier.borrow();
 
@@ -77,44 +79,48 @@ impl Expression {
               if let Some(infered_type) = inference_map.get(&t.to_string()) {
                 self.set_infered_type(t, infered_type.clone());
               }
-            },
+            }
             Err(message) => {
               return Err(vec![(
-                Report::build(ariadne::ReportKind::Error, (), span_manager.get_left(identifier.span))
-                  .with_message(&"Could not infer type for `this`")
-                  .with_label(
-                    Label::new(span_manager.get_range(identifier.span))
-                    .with_message(&message)
-                  )
-                  .finish(),
-                  identifier.span
+                Report::build(
+                  ariadne::ReportKind::Error,
+                  (),
+                  span_manager.get_left(identifier.span),
+                )
+                .with_message(&"Could not infer type for `this`")
+                .with_label(
+                  Label::new(span_manager.get_range(identifier.span)).with_message(&message),
+                )
+                .finish(),
+                identifier.span,
               )]);
             }
           }
-        }
-        else if a.text == "parent" {
+        } else if a.text == "parent" {
           let result = ExpressionBody::get_type_for_parent(current_context, inference_map);
           match result {
             Ok(t) => {
               if let Some(infered_type) = inference_map.get(&t.to_string()) {
                 self.set_infered_type(t, infered_type.clone());
               }
-            },
+            }
             Err(message) => {
               return Err(vec![(
-                Report::build(ariadne::ReportKind::Error, (), span_manager.get_left(identifier.span))
-                  .with_message(&"Could not infer type for `parent`")
-                  .with_label(
-                    Label::new(span_manager.get_range(identifier.span))
-                    .with_message(&message)
-                  )
-                  .finish(),
-                  identifier.span
+                Report::build(
+                  ariadne::ReportKind::Error,
+                  (),
+                  span_manager.get_left(identifier.span),
+                )
+                .with_message(&"Could not infer type for `parent`")
+                .with_label(
+                  Label::new(span_manager.get_range(identifier.span)).with_message(&message),
+                )
+                .finish(),
+                identifier.span,
               )]);
             }
           }
-        }
-        else {
+        } else {
           let a: &RefCell<Context> = current_context.borrow();
 
           match a.borrow().get_variable_type_string(&identifier.text) {
@@ -122,92 +128,110 @@ impl Expression {
               if let Some(infered_type) = inference_map.get(t) {
                 self.set_infered_type(Type::Identifier(t.clone()), infered_type.clone());
               }
-            },
+            }
             None => {
               return Err(vec![(
-                Report::build(ariadne::ReportKind::Error, (), span_manager.get_left(identifier.span))
-                  .with_message(&"Unknown local variable")
-                  .with_label(
-                    Label::new(span_manager.get_range(identifier.span))
-                    .with_message(&"No variable or property exists with such name")
-                  )
-                  .finish(),
-                  identifier.span
+                Report::build(
+                  ariadne::ReportKind::Error,
+                  (),
+                  span_manager.get_left(identifier.span),
+                )
+                .with_message(&"Unknown local variable")
+                .with_label(
+                  Label::new(span_manager.get_range(identifier.span))
+                    .with_message(&"No variable or property exists with such name"),
+                )
+                .finish(),
+                identifier.span,
               )]);
             }
           }
         }
-      },
+      }
       ExpressionBody::FunctionCall(function) => {
         match inference_map.get(&function.accessor.text) {
-            Some(infered_type) => match infered_type.as_ref() {
-              crate::ast::codegen::type_inference::InferedType::Function(rc_function) => {
-                function.infered_function_type.replace(Some(rc_function.clone()));
+          Some(infered_type) => match infered_type.as_ref() {
+            crate::ast::codegen::type_inference::InferedType::Function(rc_function) => {
+              function
+                .infered_function_type
+                .replace(Some(rc_function.clone()));
 
-                match &(*rc_function).return_type {
-                  Some(s) => {
-                    if let Some(infered_type) = global_inference_map.get(s) {
-                      self.set_infered_type(Type::Identifier(s.clone()), infered_type.clone());
-                    }
-                    else {
-                      // todo: handle unknown return type
-                    }
-                  },
-                  None => {
-                    self.set_infered_type(Type::Void, Rc::new(InferedType::Unknown));
+              match &(*rc_function).return_type {
+                Some(s) => {
+                  if let Some(infered_type) = global_inference_map.get(s) {
+                    self.set_infered_type(Type::Identifier(s.clone()), infered_type.clone());
+                  } else {
+                    // todo: handle unknown return type
                   }
                 }
-              },
-              _ => {
-                return Err(vec![(
-                  Report::build(ariadne::ReportKind::Error, (), span_manager.get_left(function.accessor.span))
-                    .with_message(&"Invalid function call")
-                    .with_label(
-                      Label::new(span_manager.get_range(function.accessor.span))
-                      .with_message(&format!("{} is not a function.", &function.accessor.text))
-                    )
-                    .finish(),
-                    function.accessor.span
-                )]);
-              },
-            },
-            None => {
+                None => {
+                  self.set_infered_type(Type::Void, Rc::new(InferedType::Unknown));
+                }
+              }
+            }
+            _ => {
               return Err(vec![(
-                Report::build(ariadne::ReportKind::Warning, (), span_manager.get_left(function.accessor.span))
-                  .with_message(&"Call to unknown function")
-                  .with_label(
-                    Label::new(span_manager.get_range(function.accessor.span))
-                    .with_message(&format!("{} is not a known function.", &function.accessor.text))
-                  )
-                  .finish(),
-                  function.accessor.span
+                Report::build(
+                  ariadne::ReportKind::Error,
+                  (),
+                  span_manager.get_left(function.accessor.span),
+                )
+                .with_message(&"Invalid function call")
+                .with_label(
+                  Label::new(span_manager.get_range(function.accessor.span))
+                    .with_message(&format!("{} is not a function.", &function.accessor.text)),
+                )
+                .finish(),
+                function.accessor.span,
               )]);
-            },
+            }
+          },
+          None => {
+            return Err(vec![(
+              Report::build(
+                ariadne::ReportKind::Warning,
+                (),
+                span_manager.get_left(function.accessor.span),
+              )
+              .with_message(&"Call to unknown function")
+              .with_label(
+                Label::new(span_manager.get_range(function.accessor.span)).with_message(&format!(
+                  "{} is not a known function.",
+                  &function.accessor.text
+                )),
+              )
+              .finish(),
+              function.accessor.span,
+            )]);
+          }
         };
-      },
+      }
       ExpressionBody::ClassInstantiation(instantiation) => {
         if let Some(infered_type) = inference_map.get(&instantiation.class_name) {
-          self.set_infered_type(Type::Identifier(instantiation.class_name.clone()), infered_type.clone());
+          self.set_infered_type(
+            Type::Identifier(instantiation.class_name.clone()),
+            infered_type.clone(),
+          );
         }
-      },
+      }
       ExpressionBody::Lambda(lambda) => {
-        let return_type = FunctionBodyStatement::get_return_type_from_last_statement(&lambda.body_statements);
-        let the_type: Type = Type::Identifier(LambdaDeclaration::stringified_type_representation(&lambda.parameters, &return_type));
-        let infered_type: Rc<InferedType> = Rc::new(
-          InferedType::Lambda(Rc::new(
-            FunctionInferedType {
-              parameters: FunctionDeclarationParameter::to_function_infered_parameter_types(&lambda.parameters),
-              return_type: return_type.and_then(|t| Some(t.clone())),
-              span: lambda.span
-            }
-          ))
-        );
+        let return_type =
+          FunctionBodyStatement::get_return_type_from_last_statement(&lambda.body_statements);
+        let the_type: Type = Type::Identifier(LambdaDeclaration::stringified_type_representation(
+          &lambda.parameters,
+          &return_type,
+        ));
+        let infered_type: Rc<InferedType> =
+          Rc::new(InferedType::Lambda(Rc::new(FunctionInferedType {
+            parameters: FunctionDeclarationParameter::to_function_infered_parameter_types(
+              &lambda.parameters,
+            ),
+            return_type: return_type.and_then(|t| Some(t.clone())),
+            span: lambda.span,
+          })));
 
-        self.set_infered_type(
-          the_type, 
-          infered_type
-        );
-      },
+        self.set_infered_type(the_type, infered_type);
+      }
       ExpressionBody::Operation(left, operation, right) => {
         match &left.body.borrow() {
           // when it starts with a string, it can only be a string
@@ -216,17 +240,17 @@ impl Expression {
             if let Some(infered_type) = inference_map.get("string") {
               self.set_infered_type(Type::String, infered_type.clone());
             }
-          },
+          }
           ExpressionBody::Float(_) => {
             if let Some(infered_type) = inference_map.get("float") {
               self.set_infered_type(Type::Float, infered_type.clone());
             }
-          },
+          }
           ExpressionBody::Integer(_) => {
             if let Some(infered_type) = inference_map.get("int") {
               self.set_infered_type(Type::Int, infered_type.clone());
             }
-          },
+          }
           _ => {
             match &operation {
               OperationCode::Nesting => {
@@ -243,17 +267,14 @@ impl Expression {
                       match lambda.return_type.as_ref() {
                         Some(t) => {
                           let lambda_return_type = global_inference_map.get(t);
-  
+
                           if let Some(return_type) = lambda_return_type {
-                            self.set_infered_type(
-                              Type::Identifier(t.clone()),
-                              return_type.clone()
-                            );
+                            self.set_infered_type(Type::Identifier(t.clone()), return_type.clone());
 
                             // set a blank type on the right so it is not scanned
                             right.set_infered_type(
-                              self.infered_type_name.borrow().clone(), 
-                              self.infered_type.borrow().clone()
+                              self.infered_type_name.borrow().clone(),
+                              self.infered_type.borrow().clone(),
                             );
 
                             return Ok(());
@@ -261,24 +282,27 @@ impl Expression {
                             let span = lambda.span;
 
                             return Err(vec![(
-                              Report::build(ariadne::ReportKind::Warning, (), span_manager.get_left(span))
-                                .with_message(&"Unknown return type in lambda")
-                                .with_label(
-                                  Label::new(span_manager.get_range(span))
-                                  .with_message(&format!("The returned type \"{t}\" is not a known type"))
-                                )
-                                .finish(),
-                                span
+                              Report::build(
+                                ariadne::ReportKind::Warning,
+                                (),
+                                span_manager.get_left(span),
+                              )
+                              .with_message(&"Unknown return type in lambda")
+                              .with_label(Label::new(span_manager.get_range(span)).with_message(
+                                &format!("The returned type \"{t}\" is not a known type"),
+                              ))
+                              .finish(),
+                              span,
                             )]);
                           }
-                        },
+                        }
                         None => {}
                       };
 
                       // leave no matter what, we don't want warnings/errors from nested calls
                       // from lambdas
                       return Ok(());
-                    },
+                    }
                     _ => {}
                   };
                 }
@@ -290,14 +314,17 @@ impl Expression {
                     let span = left.body.get_span();
 
                     return Err(vec![(
-                      Report::build(ariadne::ReportKind::Warning, (), span_manager.get_left(span))
-                        .with_message(&"Invalid nesting")
-                        .with_label(
-                          Label::new(span_manager.get_range(span))
-                          .with_message(&"Nesting but left side expression does not result in a compound type.")
-                        )
-                        .finish(),
-                        span
+                      Report::build(
+                        ariadne::ReportKind::Warning,
+                        (),
+                        span_manager.get_left(span),
+                      )
+                      .with_message(&"Invalid nesting")
+                      .with_label(Label::new(span_manager.get_range(span)).with_message(
+                        &"Nesting but left side expression does not result in a compound type.",
+                      ))
+                      .finish(),
+                      span,
                     )]);
                   }
                 };
@@ -309,14 +336,18 @@ impl Expression {
                     let span = left.body.get_span();
 
                     return Err(vec![(
-                      Report::build(ariadne::ReportKind::Warning, (), span_manager.get_left(span))
-                        .with_message(&"Invalid nesting")
-                        .with_label(
-                          Label::new(span_manager.get_range(span))
-                          .with_message(&"Nesting but left side expression is not an identifier.")
-                        )
-                        .finish(),
-                        span
+                      Report::build(
+                        ariadne::ReportKind::Warning,
+                        (),
+                        span_manager.get_left(span),
+                      )
+                      .with_message(&"Invalid nesting")
+                      .with_label(
+                        Label::new(span_manager.get_range(span))
+                          .with_message(&"Nesting but left side expression is not an identifier."),
+                      )
+                      .finish(),
+                      span,
                     )]);
                   }
                 };
@@ -329,62 +360,76 @@ impl Expression {
                 for file_context in &top_most_context.children_contexts {
                   let context = Context::get_ref(&file_context);
                   for global_type_context in &context.children_contexts {
-
                     let context = Context::get_ref(&global_type_context);
                     match context.get_compound_name() {
                       Some(compound_name) => {
                         if &compound_name == left_type_identifier {
-                          right.deduce_type(&global_type_context, &left_compound_type_inference_map.borrow(), inference_map, span_manager)?;
+                          right.deduce_type(
+                            &global_type_context,
+                            &left_compound_type_inference_map.borrow(),
+                            inference_map,
+                            span_manager,
+                          )?;
 
-                          self.set_infered_type(right.infered_type_name.borrow().clone(), right.infered_type.borrow().clone());
+                          self.set_infered_type(
+                            right.infered_type_name.borrow().clone(),
+                            right.infered_type.borrow().clone(),
+                          );
                         }
-                      },
+                      }
                       None => {}
                     };
                   }
-                };
-              },
+                }
+              }
               _ => {
                 // todo: other operation nestings such as +, /, -, *
               }
             };
           }
         }
-      },
+      }
       ExpressionBody::Not(_) => {
         if let Some(infered_type) = inference_map.get("bool") {
           self.set_infered_type(Type::Bool, infered_type.clone());
         }
-      },
+      }
       ExpressionBody::Nesting(_) => unreachable!(),
       ExpressionBody::Cast(type_name, expr) => {
         match inference_map.get(type_name) {
           Some(infered_type) => {
             self.set_infered_type(Type::Identifier(type_name.clone()), infered_type.clone());
-          },
+          }
           None => {
             let span = expr.body.get_span();
 
             return Err(vec![(
-              Report::build(ariadne::ReportKind::Warning, (), span_manager.get_left(span))
-                .with_message(&"Cast to unknown type")
-                .with_label(
-                  Label::new(span_manager.get_range(span))
-                  .with_message(&format!("{} is not a known type.", &type_name))
-                )
-                .finish(),
-                span
+              Report::build(
+                ariadne::ReportKind::Warning,
+                (),
+                span_manager.get_left(span),
+              )
+              .with_message(&"Cast to unknown type")
+              .with_label(
+                Label::new(span_manager.get_range(span))
+                  .with_message(&format!("{} is not a known type.", &type_name)),
+              )
+              .finish(),
+              span,
             )]);
           }
         };
-      },
+      }
       ExpressionBody::Group(expr) => {
         // deduce early the type of the expression:
         expr.deduce_type(current_context, inference_map, inference_map, span_manager)?;
 
-        self.set_infered_type(expr.infered_type_name.borrow().clone(), expr.infered_type.borrow().clone());
-      },
-      ExpressionBody::Error => {},
+        self.set_infered_type(
+          expr.infered_type_name.borrow().clone(),
+          expr.infered_type.borrow().clone(),
+        );
+      }
+      ExpressionBody::Error => {}
     };
 
     Ok(())
@@ -404,7 +449,6 @@ impl Codegen for Expression {
     self.body.emit(context, f)
   }
 }
-
 
 #[derive(Debug)]
 pub enum ExpressionBody {
@@ -436,7 +480,10 @@ pub enum ExpressionBody {
 impl visitor::Visited for ExpressionBody {
   fn accept<T: visitor::Visitor>(&self, visitor: &mut T) {
     match self {
-      ExpressionBody::Integer(_) | ExpressionBody::Float(_) | ExpressionBody::String(_) | ExpressionBody::Name(_) => {}
+      ExpressionBody::Integer(_)
+      | ExpressionBody::Float(_)
+      | ExpressionBody::String(_)
+      | ExpressionBody::Name(_) => {}
       ExpressionBody::Cast(_, x) => x.accept(visitor),
       ExpressionBody::Identifier(x) => x.accept(visitor),
       ExpressionBody::FunctionCall(x) => x.accept(visitor),
@@ -492,7 +539,6 @@ impl Codegen for ExpressionBody {
   }
 }
 
-
 impl ExpressionBody {
   pub fn get_type_for_this(
     current_context: &Rc<RefCell<Context>>,
@@ -507,28 +553,38 @@ impl ExpressionBody {
         let context = &a.borrow();
 
         match &context.context_type {
-          ContextType::ClassOrStruct | ContextType::State { parent_class_name: _ } => {
+          ContextType::ClassOrStruct
+          | ContextType::State {
+            parent_class_name: _,
+          } => {
             let class_name = match context.get_class_name() {
               Some(n) => n,
               None => {
-                return Err(String::from("Cannot use `this` outside of a class or a state"));
+                return Err(String::from(
+                  "Cannot use `this` outside of a class or a state",
+                ));
               }
             };
 
             if inference_map.contains_key(&class_name) {
               return Ok(inference::Type::Identifier(class_name));
+            } else {
+              return Err(format!(
+                "Cannot use `this` as {class_name} is not a known compound type"
+              ));
             }
-            else {
-              return Err(format!("Cannot use `this` as {class_name} is not a known compound type"));
-            }
-          },
+          }
           _ => {
-            return Err(String::from("Cannot use `this` outside of a class or a state"));
+            return Err(String::from(
+              "Cannot use `this` outside of a class or a state",
+            ));
           }
         }
-      },
+      }
       None => {
-        return Err(String::from("Cannot use `this` outside of a class or a state"));
+        return Err(String::from(
+          "Cannot use `this` outside of a class or a state",
+        ));
       }
     };
   }
@@ -537,45 +593,51 @@ impl ExpressionBody {
     current_context: &Rc<RefCell<Context>>,
     inference_map: &codegen::type_inference::TypeInferenceMap,
   ) -> Result<inference::Type, String> {
-
     let context = Context::get_ref(&current_context);
     let parent_context = match &context.parent_context {
       Some(p) => Context::get_ref(p),
-      None => return Err(String::from("Cannot get `parent`'s type as it was used outside a state."))
+      None => {
+        return Err(String::from(
+          "Cannot get `parent`'s type as it was used outside a state.",
+        ))
+      }
     };
 
     match &parent_context.context_type {
-        ContextType::State { parent_class_name } => {
-          if inference_map.contains_key(parent_class_name) {
-            return Ok(inference::Type::Identifier(parent_class_name.clone()));
-          }
-          else {
-            return Err(format!("Cannot use `this` as {parent_class_name} is not a known compound type"));
-          }
-        },
-        _ => {
-          return Err(String::from("Cannot get `parent`'s type as it was used outside a state."));
+      ContextType::State { parent_class_name } => {
+        if inference_map.contains_key(parent_class_name) {
+          return Ok(inference::Type::Identifier(parent_class_name.clone()));
+        } else {
+          return Err(format!(
+            "Cannot use `this` as {parent_class_name} is not a known compound type"
+          ));
         }
+      }
+      _ => {
+        return Err(String::from(
+          "Cannot get `parent`'s type as it was used outside a state.",
+        ));
+      }
     };
   }
 
   pub fn get_span(&self) -> Span {
     match &self {
-        ExpressionBody::Integer(x) => x.span,
-        ExpressionBody::Float(x) => x.span,
-        ExpressionBody::String(x) => x.span,
-        ExpressionBody::Name(x) => x.span,
-        ExpressionBody::Identifier(x) => x.span,
-        ExpressionBody::FunctionCall(x) => x.span,
-        ExpressionBody::ClassInstantiation(x) => x.span,
-        ExpressionBody::Lambda(x) => x.span,
-        ExpressionBody::Operation(_, _, x) => x.body.get_span(),
-        ExpressionBody::Not(x) => x.body.get_span(),
-        ExpressionBody::Nesting(x) => x.last().unwrap().body.get_span(),
-        ExpressionBody::Cast(_, x) => x.body.get_span(),
-        ExpressionBody::Group(x) => x.body.get_span(),
-        ExpressionBody::Error => todo!(),
-    } 
+      ExpressionBody::Integer(x) => x.span,
+      ExpressionBody::Float(x) => x.span,
+      ExpressionBody::String(x) => x.span,
+      ExpressionBody::Name(x) => x.span,
+      ExpressionBody::Identifier(x) => x.span,
+      ExpressionBody::FunctionCall(x) => x.span,
+      ExpressionBody::ClassInstantiation(x) => x.span,
+      ExpressionBody::Lambda(x) => x.span,
+      ExpressionBody::Operation(_, _, x) => x.body.get_span(),
+      ExpressionBody::Not(x) => x.body.get_span(),
+      ExpressionBody::Nesting(x) => x.last().unwrap().body.get_span(),
+      ExpressionBody::Cast(_, x) => x.body.get_span(),
+      ExpressionBody::Group(x) => x.body.get_span(),
+      ExpressionBody::Error => todo!(),
+    }
   }
 }
 

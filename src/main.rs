@@ -12,25 +12,25 @@ mod utils;
 extern crate lalrpop_util;
 
 use ariadne::Source;
-use ast::Program;
-use ast::ProgramInformation;
-use ast::ReportManager;
 use ast::codegen::type_inference::TypeInferenceStore;
 use ast::span_manager::SpanManager;
 use ast::visitor::FunctionsInferenceVisitor;
+use ast::Program;
+use ast::ProgramInformation;
+use ast::ReportManager;
 use config::read_config;
 use config::Config;
 use lalrpop_util::lalrpop_mod;
 
 use crate::ast::codegen::context::Context;
 use crate::ast::codegen::context::ContextType;
+use crate::ast::visitor::CompoundTypesVisitor;
 use crate::ast::visitor::ContextBuildingVisitor;
 use crate::ast::visitor::ExpressionTypeInferenceVisitor;
 use crate::ast::visitor::FunctionVisitor;
 use crate::ast::visitor::FunctionsCallsCheckerVisitor;
 use crate::ast::visitor::LambdaDeclarationVisitor;
 use crate::ast::visitor::LibraryEmitterVisitor;
-use crate::ast::visitor::CompoundTypesVisitor;
 use crate::ast::visitor::VariableDeclarationVisitor;
 use crate::utils::strip_pragmas;
 
@@ -79,7 +79,7 @@ fn compile_source_directory(config: &Config) -> std::io::Result<()> {
       dependency_ast_list.push(ParsedFile {
         ast: expr,
         file_path: file.path.clone(),
-        filename: filename.clone()
+        filename: filename.clone(),
       });
     }
   }
@@ -160,7 +160,7 @@ fn compile_source_directory(config: &Config) -> std::io::Result<()> {
     ast_list.push(ParsedFile {
       ast: expr,
       file_path: file.path.clone(),
-      filename: filename.clone()
+      filename: filename.clone(),
     });
   }
 
@@ -188,7 +188,7 @@ fn compile_source_directory(config: &Config) -> std::io::Result<()> {
 
     let mut function_visitor = FunctionVisitor {
       program_information: &program_information,
-      current_context: file_context.clone()
+      current_context: file_context.clone(),
     };
 
     use ast::visitor::Visited;
@@ -216,14 +216,14 @@ fn compile_source_directory(config: &Config) -> std::io::Result<()> {
 
     let mut function_visitor = FunctionVisitor {
       program_information: &program_information,
-      current_context: file_context.clone()
+      current_context: file_context.clone(),
     };
 
     let mut compound_types_visitor = CompoundTypesVisitor::new(
       file_context.clone(),
       &mut inference_store,
       &mut report_manager,
-      &mut sources_span_manager
+      &mut sources_span_manager,
     );
 
     use ast::visitor::Visited;
@@ -233,7 +233,9 @@ fn compile_source_directory(config: &Config) -> std::io::Result<()> {
     parsed_file.ast.accept(&mut variable_declaration_visitor);
 
     parsed_file.ast.accept(&mut compound_types_visitor);
-    let file = preprocessed_content.source_files_content.get(&parsed_file.filename);
+    let file = preprocessed_content
+      .source_files_content
+      .get(&parsed_file.filename);
     if let Some(file) = file {
       report_manager.consume(&file.content.borrow());
     }
@@ -248,12 +250,14 @@ fn compile_source_directory(config: &Config) -> std::io::Result<()> {
       global_context.clone(),
       &mut inference_store,
       &mut report_manager,
-      &mut sources_span_manager
+      &mut sources_span_manager,
     );
 
     parsed_file.ast.accept(&mut expression_inference_visitor);
 
-    let file = preprocessed_content.source_files_content.get(&parsed_file.filename);
+    let file = preprocessed_content
+      .source_files_content
+      .get(&parsed_file.filename);
     if let Some(file) = file {
       report_manager.consume(&file.content.borrow());
     }
@@ -262,7 +266,7 @@ fn compile_source_directory(config: &Config) -> std::io::Result<()> {
       global_context.clone(),
       &mut inference_store,
       &mut report_manager,
-      &mut sources_span_manager
+      &mut sources_span_manager,
     );
 
     parsed_file.ast.accept(&mut functions_inference_visitor);
@@ -272,7 +276,7 @@ fn compile_source_directory(config: &Config) -> std::io::Result<()> {
       global_context.clone(),
       &mut inference_store,
       &mut report_manager,
-      &mut sources_span_manager
+      &mut sources_span_manager,
     );
 
     parsed_file.ast.accept(&mut function_call_checker_visitor);
@@ -383,5 +387,5 @@ fn format_code(origin: &str) -> String {
 struct ParsedFile {
   file_path: PathBuf,
   ast: Program,
-  filename: String
+  filename: String,
 }

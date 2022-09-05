@@ -13,7 +13,7 @@ pub struct FunctionCall {
   pub span: Span,
 
   pub mangled_accessor: RefCell<Option<String>>,
-  pub infered_function_type: RefCell<Option<Rc<FunctionInferedType>>>
+  pub infered_function_type: RefCell<Option<Rc<FunctionInferedType>>>,
 }
 
 impl FunctionCall {

@@ -5,10 +5,8 @@ use regex::Captures;
 use super::types::*;
 
 pub fn filter_conditionals(
-  registered_macros: &HashMap<String, MacroDefinition>,
-  new_content: &mut String,
-  regex_collection: &RegexCollection,
-  condition_type: ConditionType,
+  registered_macros: &HashMap<String, MacroDefinition>, new_content: &mut String,
+  regex_collection: &RegexCollection, condition_type: ConditionType,
 ) {
   loop {
     let content_copy = new_content.clone();
@@ -37,11 +35,8 @@ pub fn filter_conditionals(
 }
 
 fn filter_conditional(
-  registered_macros: &HashMap<String, MacroDefinition>,
-  new_content: &mut String,
-  regex_collection: &RegexCollection,
-  condition_type: &ConditionType,
-  capture: Captures,
+  registered_macros: &HashMap<String, MacroDefinition>, new_content: &mut String,
+  regex_collection: &RegexCollection, condition_type: &ConditionType, capture: Captures,
   start: usize,
 ) {
   let full_match = &capture[0];

@@ -53,5 +53,5 @@ pub enum VisitorType {
   VariableDeclarationVisitor,
   LambdaDeclarationVisitor,
   ClosureExpressionVisitor,
-  TypeInferenceVisitor
+  TypeInferenceVisitor,
 }

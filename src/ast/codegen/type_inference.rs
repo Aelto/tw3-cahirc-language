@@ -1,4 +1,4 @@
-use std::{collections::{HashMap}, rc::Rc, cell::RefCell};
+use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 use crate::ast::{ParameterType, Span};
 
@@ -20,9 +20,7 @@ impl TypeInferenceStore {
     map.insert("string".to_string(), Rc::new(InferedType::Scalar));
     map.insert("name".to_string(), Rc::new(InferedType::Scalar));
 
-    Self {
-      types: map
-    }
+    Self { types: map }
   }
 
   pub fn register_compound(&mut self, name: String) -> Result<(), String> {
@@ -36,21 +34,34 @@ impl TypeInferenceStore {
     Ok(())
   }
 
-  pub fn register_function(&mut self, name: String, parameters: Vec<FunctionInferedParameterType>, return_type: Option<String>, span: Span) -> Result<(), String> {
+  pub fn register_function(
+    &mut self, name: String, parameters: Vec<FunctionInferedParameterType>,
+    return_type: Option<String>, span: Span,
+  ) -> Result<(), String> {
     if self.types.contains_key(&name) {
       return Err(format!("function {} was registered twice", &name));
     }
 
-    let function = Rc::new(InferedType::Function(Rc::new(FunctionInferedType { parameters, return_type, span })));
+    let function = Rc::new(InferedType::Function(Rc::new(FunctionInferedType {
+      parameters,
+      return_type,
+      span,
+    })));
     self.types.insert(name, function.clone());
 
     Ok(())
   }
 
-  pub fn register_method(&mut self, parent_compound_name: String, name: String, parameters: Vec<FunctionInferedParameterType>, return_type: Option<String>, span: Span) -> Result<(), String> {
+  pub fn register_method(
+    &mut self, parent_compound_name: String, name: String,
+    parameters: Vec<FunctionInferedParameterType>, return_type: Option<String>, span: Span,
+  ) -> Result<(), String> {
     let mut result = Ok(());
 
-    self.types.entry(parent_compound_name).and_modify(|class_type| {
+    self
+      .types
+      .entry(parent_compound_name)
+      .and_modify(|class_type| {
         match &**class_type {
           InferedType::Compound(class) => {
             let mut class = class.borrow_mut();
@@ -58,13 +69,17 @@ impl TypeInferenceStore {
             if class.contains_key(&name) {
               result = Err(format!("method {name} was registered twice"));
             }
-            
-            let method = Rc::new(InferedType::Function(Rc::new(FunctionInferedType { parameters, return_type, span })));
+
+            let method = Rc::new(InferedType::Function(Rc::new(FunctionInferedType {
+              parameters,
+              return_type,
+              span,
+            })));
             class.insert(name, method.clone());
-          },
+          }
           _ => {}
         };
-    });
+      });
 
     result
   }
@@ -78,7 +93,7 @@ pub enum InferedType {
   Scalar,
 
   /// Structs, classes, types that hold multiple values
-  /// 
+  ///
   /// The TypeInferenceMap it holds is for its methods
   Compound(RefCell<TypeInferenceMap>),
 
@@ -107,5 +122,5 @@ pub struct FunctionInferedParameterType {
   /// TypeDeclaration::to_string()
   /// ```
   pub infered_type: String,
-  pub span: Span
+  pub span: Span,
 }

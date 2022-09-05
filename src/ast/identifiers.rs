@@ -10,7 +10,7 @@ use super::*;
 pub struct IdentifierTerm {
   pub text: String,
   pub indexing: Vec<Rc<Expression>>,
-  pub span: Span
+  pub span: Span,
 }
 
 impl Visited for IdentifierTerm {
@@ -26,7 +26,7 @@ impl Codegen for IdentifierTerm {
     if self.text == "this" {
       match context.replace_this_with_self.borrow().as_ref() {
         Some(replacer) => write!(f, "{}", replacer)?,
-        None => write!(f, "{}", self.text)?
+        None => write!(f, "{}", self.text)?,
       };
     } else {
       write!(f, "{}", self.text)?;
@@ -176,7 +176,11 @@ impl TypeDeclaration {
       }
       TypeDeclaration::Lambda(lambda) => LambdaDeclaration::stringified_type_representation(
         &lambda.parameters,
-        &lambda.type_declaration.as_ref().and_then(|t| Some(t.to_string())).as_ref()
+        &lambda
+          .type_declaration
+          .as_ref()
+          .and_then(|t| Some(t.to_string()))
+          .as_ref(),
       ),
     }
   }
@@ -196,7 +200,9 @@ impl TypeDeclaration {
             generic_type_assignment,
             mangled_accessor: _,
           } => Self::flat_type_names(&type_name, &generic_type_assignment),
-          TypeDeclaration::Lambda(lambda) => FunctionDeclarationParameter::flat_type_names(&lambda.parameters),
+          TypeDeclaration::Lambda(lambda) => {
+            FunctionDeclarationParameter::flat_type_names(&lambda.parameters)
+          }
         };
 
         for t in subtypes {
