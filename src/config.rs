@@ -14,12 +14,19 @@ pub struct ConfigPackage {
   pub name: String,
   pub src: String,
   pub dist: String,
+  pub static_analysis: Option<bool>,
 }
 
 pub fn read_config() -> std::io::Result<Config> {
   let default_path = ".".to_string();
   let args: Vec<String> = std::env::args().collect();
-  let cwd = Path::new(args.get(1).unwrap_or(&default_path));
+  let first_arg = args
+    .iter()
+    .skip(1)
+    .find(|arg| !arg.starts_with("-"))
+    .unwrap_or(&default_path);
+
+  let cwd = Path::new(first_arg);
   let config_path = cwd.join("cahirc.toml");
   let content = std::fs::read_to_string(config_path)?;
 

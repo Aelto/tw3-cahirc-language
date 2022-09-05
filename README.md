@@ -13,7 +13,7 @@ This allows the use of new features available to `wss` that get converted to val
  - [x] Lambdas, can be achieved with & without macros. Lambdas can be stored in variables as well
  - [x] Closures
  - [x] Variable declarations anywhere in function bodies
- - [x] some forms of static analysis, or at least syntax validation
+ - [x] some forms of static analysis, or at least syntax validation (experimental through the `static_analysis = true` flag in `cahirc.toml`'s package section)
  - [ ] namespaces and import statements
 
 # Using it

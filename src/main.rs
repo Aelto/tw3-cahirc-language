@@ -219,68 +219,71 @@ fn compile_source_directory(config: &Config) -> std::io::Result<()> {
       current_context: file_context.clone(),
     };
 
-    let mut compound_types_visitor = CompoundTypesVisitor::new(
-      file_context.clone(),
-      &mut inference_store,
-      &mut report_manager,
-      &mut sources_span_manager,
-    );
-
     use ast::visitor::Visited;
 
     parsed_file.ast.accept(&mut context_builder);
     parsed_file.ast.accept(&mut function_visitor);
     parsed_file.ast.accept(&mut variable_declaration_visitor);
 
-    parsed_file.ast.accept(&mut compound_types_visitor);
-    let file = preprocessed_content
-      .source_files_content
-      .get(&parsed_file.filename);
-    if let Some(file) = file {
-      report_manager.consume(&file.content.borrow());
+    if config.package.static_analysis.unwrap_or(false) {
+      let mut compound_types_visitor = CompoundTypesVisitor::new(
+        file_context.clone(),
+        &mut inference_store,
+        &mut report_manager,
+        &mut sources_span_manager,
+      );
+      parsed_file.ast.accept(&mut compound_types_visitor);
+      let file = preprocessed_content
+        .source_files_content
+        .get(&parsed_file.filename);
+      if let Some(file) = file {
+        report_manager.consume(&file.content.borrow());
+      }
     }
   }
 
   // 2.1
   // do a second pass for the type inference
-  for parsed_file in &ast_list {
-    use ast::visitor::Visited;
+  if config.package.static_analysis.unwrap_or(false) {
+    for parsed_file in &ast_list {
+      use ast::visitor::Visited;
 
-    let mut expression_inference_visitor = ExpressionTypeInferenceVisitor::new(
-      global_context.clone(),
-      &mut inference_store,
-      &mut report_manager,
-      &mut sources_span_manager,
-    );
+      let mut expression_inference_visitor = ExpressionTypeInferenceVisitor::new(
+        global_context.clone(),
+        &mut inference_store,
+        &mut report_manager,
+        &mut sources_span_manager,
+      );
 
-    parsed_file.ast.accept(&mut expression_inference_visitor);
+      parsed_file.ast.accept(&mut expression_inference_visitor);
 
-    let file = preprocessed_content
-      .source_files_content
-      .get(&parsed_file.filename);
-    if let Some(file) = file {
-      report_manager.consume(&file.content.borrow());
+      let file = preprocessed_content
+        .source_files_content
+        .get(&parsed_file.filename);
+      if let Some(file) = file {
+        report_manager.consume(&file.content.borrow());
+      }
+
+      let mut functions_inference_visitor = FunctionsInferenceVisitor::new(
+        global_context.clone(),
+        &mut inference_store,
+        &mut report_manager,
+        &mut sources_span_manager,
+      );
+
+      parsed_file.ast.accept(&mut functions_inference_visitor);
+      report_manager.consume_multiple_sources(&mut sources_span_manager, &preprocessed_content);
+
+      let mut function_call_checker_visitor = FunctionsCallsCheckerVisitor::new(
+        global_context.clone(),
+        &mut inference_store,
+        &mut report_manager,
+        &mut sources_span_manager,
+      );
+
+      parsed_file.ast.accept(&mut function_call_checker_visitor);
+      report_manager.consume_multiple_sources(&mut sources_span_manager, &preprocessed_content);
     }
-
-    let mut functions_inference_visitor = FunctionsInferenceVisitor::new(
-      global_context.clone(),
-      &mut inference_store,
-      &mut report_manager,
-      &mut sources_span_manager,
-    );
-
-    parsed_file.ast.accept(&mut functions_inference_visitor);
-    report_manager.consume_multiple_sources(&mut sources_span_manager, &preprocessed_content);
-
-    let mut function_call_checker_visitor = FunctionsCallsCheckerVisitor::new(
-      global_context.clone(),
-      &mut inference_store,
-      &mut report_manager,
-      &mut sources_span_manager,
-    );
-
-    parsed_file.ast.accept(&mut function_call_checker_visitor);
-    report_manager.consume_multiple_sources(&mut sources_span_manager, &preprocessed_content);
   }
 
   // 3.
