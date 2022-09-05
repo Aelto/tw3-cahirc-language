@@ -548,7 +548,7 @@ IdentifierTerm: Box<IdentifierTerm> = {
 // -----------------------------------------------------------------------------
 
 Float: String = {
-    <int:Integer> <n:r"\.[0-9]*f?"> => format!("{int}{n}")
+    <int:Integer> <n:r"\.[0-9]*"> => format!("{int}{n}"),
 };
 
 Integer: String = {
@@ -676,7 +676,7 @@ CharLiteral = {
 match {
     // Ignore C++-style comments
     r"//[^\n\r]*[\n\r]*" => {},
-    r"/\*[^\*/]*[\*/]" => {},
+    r"/\*[^\*]*[^/]*(\*/)[\n\r]*" => {},
 
     // These items have highest precedence.
     r"[0-9]+",

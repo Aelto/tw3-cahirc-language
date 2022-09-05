@@ -11,7 +11,7 @@ This allows the use of new features available to `wss` that get converted to val
  - [x] For..in loops
  - [x] Constant primitive variables in the global scope (macro constants)
  - [x] Lambdas, can be achieved with & without macros. Lambdas can be stored in variables as well
- - [x] Closures
+ - [x] Closures (requires static analysis to be enabled)
  - [x] Variable declarations anywhere in function bodies
  - [x] some forms of static analysis, or at least syntax validation (experimental through the `static_analysis = true` flag in `cahirc.toml`'s package section)
  - [ ] namespaces and import statements
