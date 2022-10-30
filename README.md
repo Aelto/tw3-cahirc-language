@@ -17,7 +17,7 @@ This allows the use of new features available to `wss` that get converted to val
  - [ ] namespaces and import statements
 
 # Using it
-The compiler requires a config fil to be able to compile any project, here is a
+The compiler requires a config file to be able to compile any project, here is a
 basic configuration file: `cahirc.toml`
 ```toml
 [package]
