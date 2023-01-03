@@ -98,9 +98,10 @@ ClassType: ClassType = {
 }
 
 ClassBodyStatement: ClassBodyStatement = {
-    <encapsulation:EncapsulationType?> <property_declaration:VariableDeclaration> ";" => ClassBodyStatement::Property {
+    <encapsulation:EncapsulationType?> <is_saved:KeywordSaved?> <property_declaration:VariableDeclaration> ";" => ClassBodyStatement::Property {
         encapsulation,
-        property_declaration
+        property_declaration,
+        is_saved: is_saved.is_some()
     },
 
     <encapsulation:EncapsulationType?> <function_declaration:MethodDeclaration> => ClassBodyStatement::Method {
@@ -716,6 +717,7 @@ match {
     "exec" => KeywordExec,
     "delete" => KeywordDelete,
     "fn" => KeywordFn,
+    "saved" => KeywordSaved,
 } else {
     // These items have next highest precedence.
 
