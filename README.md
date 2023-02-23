@@ -386,6 +386,41 @@ state Combat in EC_EnragedCombat {
 ```
 </details>
 
+
+<details>
+<summary>
+  Logging regions
+</summary>
+
+```js
+function NLOG(message: string) {
+  LogChannel("MyMod", message);
+}
+
+#define function logregion(segment, log_function, code) {
+  #pragma find log_function("
+  #pragma replace log_function("[segment] - 
+
+code
+};
+```
+```js
+logregion!(GlossaryBuilder, NLOG, {{
+   function foo() {
+     NLOG("Hello world"); // -> [GlossaryBuilder] - Hello world
+   }
+
+   // you can even nest them:
+   logregion!(Bar, NLOG, {{
+     function bar() {
+       NLOG("Lorem ipsum"); // -> "[Bar] - [GlossaryBuilder] - Lorem ipsum"
+     }
+   }});
+}});
+```
+</details>
+
+
 ### Pragma directives
 Give directives to the compiler using pragma calls.
 
