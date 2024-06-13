@@ -22,36 +22,36 @@ pub use span_manager::*;
 pub struct ProgramInformation {}
 
 impl ProgramInformation {
-  pub fn new() -> Self {
-    Self {}
-  }
+    pub fn new() -> Self {
+        Self {}
+    }
 }
 
 // -----------------------------------------------------------------------------
 
 #[derive(Debug)]
 pub struct Program {
-  pub statements: Vec<Statement>,
+    pub statements: Vec<Statement>,
 }
 
 impl visitor::Visited for Program {
-  fn accept<T: visitor::Visitor>(&self, visitor: &mut T) {
-    self.statements.accept(visitor);
-  }
+    fn accept<T: visitor::Visitor>(&self, visitor: &mut T) {
+        self.statements.accept(visitor);
+    }
 }
 
 impl Codegen for Program {
-  fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
-    use std::io::Write as IoWrite;
+    fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
+        use std::io::Write as IoWrite;
 
-    for statement in &self.statements {
-      statement.emit(context, f)?;
-      writeln!(f, "")?;
-      writeln!(f, "")?;
+        for statement in &self.statements {
+            statement.emit(context, f)?;
+            writeln!(f, "")?;
+            writeln!(f, "")?;
+        }
+
+        Ok(())
     }
-
-    Ok(())
-  }
 }
 
 // -----------------------------------------------------------------------------
@@ -83,6 +83,11 @@ pub use structs::StructDeclaration;
 mod enums;
 pub use enums::EnumBodyStatement;
 pub use enums::EnumDeclaration;
+
+// -----------------------------------------------------------------------------
+
+mod annotations;
+pub use annotations::Annotation;
 
 // -----------------------------------------------------------------------------
 

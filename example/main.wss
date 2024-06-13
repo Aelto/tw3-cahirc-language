@@ -14,3 +14,15 @@ class Example {
     var fifteen: int = add_five.call(10);
   }
 }
+
+@addMethod(Example)
+public function add(a: int, b: int): int {
+  var a: int = 5;
+
+  a += 5;
+
+  var b: int = 10;
+}
+
+@addField(Example)
+var a: int;

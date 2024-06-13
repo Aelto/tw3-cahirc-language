@@ -45,7 +45,8 @@ use crate::ast::{
     Lambda,
     LambdaType,
     ForInStatement,
-    ContextType
+    ContextType,
+    Annotation
 };
 
 use crate::ast::codegen::context::Context;
@@ -60,7 +61,8 @@ Statement: Statement = {
     GlobalFunctionDeclaration => Statement::FunctionDeclaration(<>),
     ClassDeclaration => Statement::ClassDeclaration(<>),
     StructDeclaration => Statement::StructDeclaration(<>),
-    EnumDeclaration => Statement::EnumDeclaration(<>)
+    EnumDeclaration => Statement::EnumDeclaration(<>),
+    Annotation => Statement::Annotation(<>)
 };
 
 // -----------------------------------------------------------------------------
@@ -147,6 +149,37 @@ EnumDeclaration: EnumDeclaration = {
 
 EnumBodyStatement: EnumBodyStatement = {
     <name: Identifier> <number:("=" <Integer>)?> => EnumBodyStatement{<>},
+}
+
+// -----------------------------------------------------------------------------
+
+Annotation: Annotation = {
+    "@" KeywordReplaceMethod "(" <target_parent:Identifier?> ")"
+    <encapsulation:EncapsulationType?> <function:GlobalFunctionDeclaration> => Annotation::ReplaceMethod {
+        target_parent,
+        encapsulation,
+        function    
+    },
+
+    "@" KeywordWrapMethod "(" <target_parent:Identifier> ")"
+    <encapsulation:EncapsulationType?> <function:GlobalFunctionDeclaration> => Annotation::WrapMethod {
+        target_parent,
+        encapsulation,
+        function    
+    },
+
+    "@" KeywordAddMethod "(" <target_parent:Identifier> ")"
+    <encapsulation:EncapsulationType?> <function:GlobalFunctionDeclaration> => Annotation::AddMethod {
+        target_parent,
+        encapsulation,
+        function    
+    },
+
+    "@" KeywordAddField "(" <target_parent:Identifier> ")"
+     <declaration:VariableDeclaration> ";" => Annotation::AddField {
+        target_parent,
+        declaration    
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -718,6 +751,10 @@ match {
     "delete" => KeywordDelete,
     "fn" => KeywordFn,
     "saved" => KeywordSaved,
+    "wrapMethod" => KeywordWrapMethod,
+    "replaceMethod" => KeywordReplaceMethod,
+    "addMethod" => KeywordAddMethod,
+    "addField" => KeywordAddField
 } else {
     // These items have next highest precedence.
 
