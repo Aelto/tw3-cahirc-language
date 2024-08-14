@@ -6,13 +6,13 @@ use super::types::*;
 
 pub fn filter_conditionals(
   registered_macros: &HashMap<String, MacroDefinition>, new_content: &mut String,
-  regex_collection: &RegexCollection, condition_type: ConditionType,
+  regex_collection: &RegexCollection, condition_type: ConditionType
 ) {
   loop {
     let content_copy = new_content.clone();
     let regex = match &condition_type {
       ConditionType::IfDefined => &regex_collection.macro_ifdef,
-      ConditionType::IfNotDefined => &regex_collection.macro_ifndef,
+      ConditionType::IfNotDefined => &regex_collection.macro_ifndef
     };
     let cap = regex.captures(&content_copy);
 
@@ -29,7 +29,7 @@ pub fn filter_conditionals(
       regex_collection,
       &condition_type,
       cap,
-      start,
+      start
     );
   }
 }
@@ -37,7 +37,7 @@ pub fn filter_conditionals(
 fn filter_conditional(
   registered_macros: &HashMap<String, MacroDefinition>, new_content: &mut String,
   regex_collection: &RegexCollection, condition_type: &ConditionType, capture: Captures,
-  start: usize,
+  start: usize
 ) {
   let full_match = &capture[0];
 
@@ -49,7 +49,7 @@ fn filter_conditional(
   // doesn't match with itself infinitely.
   let regex = match condition_type {
     ConditionType::IfDefined => &regex_collection.macro_ifdef,
-    ConditionType::IfNotDefined => &regex_collection.macro_ifndef,
+    ConditionType::IfNotDefined => &regex_collection.macro_ifndef
   };
 
   if let Some(sub_capture) = regex.captures(&full_match[1..]) {
@@ -61,7 +61,7 @@ fn filter_conditional(
       regex_collection,
       condition_type,
       sub_capture,
-      start + sub_start,
+      start + sub_start
     );
 
     // we let the next iteration of the pre processor parse the current macro,
@@ -90,11 +90,11 @@ fn filter_conditional(
           body
         }
       }
-    },
+    }
   );
 }
 
 pub enum ConditionType {
   IfDefined,
-  IfNotDefined,
+  IfNotDefined
 }

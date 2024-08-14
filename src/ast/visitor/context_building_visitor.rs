@@ -5,7 +5,7 @@ use crate::ast::codegen::context::Context;
 use crate::ast::visitor::Visited;
 
 pub struct ContextBuildingVisitor {
-  pub current_context: Rc<RefCell<Context>>,
+  pub current_context: Rc<RefCell<Context>>
 }
 
 impl super::Visitor for ContextBuildingVisitor {
@@ -15,7 +15,7 @@ impl super::Visitor for ContextBuildingVisitor {
     // then make a new context building visitor for the context of the
     // FunctionDeclaration node.
     let mut new_context_visitor = Self {
-      current_context: node.context.clone(),
+      current_context: node.context.clone()
     };
 
     node.body_statements.accept(&mut new_context_visitor);
@@ -27,7 +27,7 @@ impl super::Visitor for ContextBuildingVisitor {
     // then make a new context building visitor for the context of the
     // ClassDeclaration node.
     let mut new_context_visitor = Self {
-      current_context: node.context.clone(),
+      current_context: node.context.clone()
     };
 
     node.body_statements.accept(&mut new_context_visitor);
@@ -39,7 +39,7 @@ impl super::Visitor for ContextBuildingVisitor {
     // then make a new context building visitor for the context of the
     // StructDeclaration node.
     let mut new_context_visitor = Self {
-      current_context: node.context.clone(),
+      current_context: node.context.clone()
     };
 
     node.body_statements.accept(&mut new_context_visitor);

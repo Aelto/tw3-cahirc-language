@@ -5,7 +5,7 @@ use super::{FilePathRef, Span, SpanManager};
 pub struct SpanMaker<'a> {
   pub parent: &'a mut SpanManager,
   pub source_ref: FilePathRef,
-  pub pool: HashMap<(usize, usize), Span>,
+  pub pool: HashMap<(usize, usize), Span>
 }
 
 impl<'a> SpanMaker<'a> {

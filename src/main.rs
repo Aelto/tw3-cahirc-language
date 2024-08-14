@@ -1,7 +1,6 @@
 use std::cell::RefCell;
 use std::fs;
-use std::path::Path;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::rc::Rc;
 
 mod ast;
@@ -15,23 +14,16 @@ use ariadne::Source;
 use ast::codegen::type_inference::TypeInferenceStore;
 use ast::span_manager::SpanManager;
 use ast::visitor::FunctionsInferenceVisitor;
-use ast::Program;
-use ast::ProgramInformation;
-use ast::ReportManager;
-use config::read_config;
-use config::Config;
+use ast::{Program, ProgramInformation, ReportManager};
+use config::{read_config, Config};
 use lalrpop_util::lalrpop_mod;
 
-use crate::ast::codegen::context::Context;
-use crate::ast::codegen::context::ContextType;
-use crate::ast::visitor::CompoundTypesVisitor;
-use crate::ast::visitor::ContextBuildingVisitor;
-use crate::ast::visitor::ExpressionTypeInferenceVisitor;
-use crate::ast::visitor::FunctionVisitor;
-use crate::ast::visitor::FunctionsCallsCheckerVisitor;
-use crate::ast::visitor::LambdaDeclarationVisitor;
-use crate::ast::visitor::LibraryEmitterVisitor;
-use crate::ast::visitor::VariableDeclarationVisitor;
+use crate::ast::codegen::context::{Context, ContextType};
+use crate::ast::visitor::{
+  CompoundTypesVisitor, ContextBuildingVisitor, ExpressionTypeInferenceVisitor, FunctionVisitor,
+  FunctionsCallsCheckerVisitor, LambdaDeclarationVisitor, LibraryEmitterVisitor,
+  VariableDeclarationVisitor
+};
 use crate::utils::strip_pragmas;
 
 lalrpop_mod!(pub parser);
@@ -49,7 +41,7 @@ fn compile_source_directory(config: &Config) -> std::io::Result<()> {
   let global_context = Rc::new(RefCell::new(Context::new(
     "Program",
     None,
-    ContextType::Global,
+    ContextType::Global
   )));
 
   // 1.
@@ -79,7 +71,7 @@ fn compile_source_directory(config: &Config) -> std::io::Result<()> {
       dependency_ast_list.push(ParsedFile {
         ast: expr,
         file_path: file.path.clone(),
-        filename: filename.clone(),
+        filename: filename.clone()
       });
     }
   }
@@ -117,7 +109,7 @@ fn compile_source_directory(config: &Config) -> std::io::Result<()> {
               .with_label(
                 Label::new(location..location.checked_add(1).unwrap_or(location))
                   .with_message("The invalid token")
-                  .with_color(a),
+                  .with_color(a)
               )
               .finish()
               .print(Source::from(&content))
@@ -125,7 +117,7 @@ fn compile_source_directory(config: &Config) -> std::io::Result<()> {
           }
           lalrpop_util::ParseError::UnrecognizedEOF {
             location: _,
-            expected: _,
+            expected: _
           } => {
             println!("Unrecognized EOF in {}", filename);
           }
@@ -143,14 +135,14 @@ fn compile_source_directory(config: &Config) -> std::io::Result<()> {
               .with_label(
                 Label::new(token.0..token.2)
                   .with_message(format!("Expected {}", expected.join(" | ")))
-                  .with_color(a),
+                  .with_color(a)
               )
               .finish()
               .print(Source::from(&content))
               .unwrap();
           }
           lalrpop_util::ParseError::ExtraToken { token: _ } => todo!(),
-          lalrpop_util::ParseError::User { error: _ } => todo!(),
+          lalrpop_util::ParseError::User { error: _ } => todo!()
         };
 
         continue;
@@ -160,7 +152,7 @@ fn compile_source_directory(config: &Config) -> std::io::Result<()> {
     ast_list.push(ParsedFile {
       ast: expr,
       file_path: file.path.clone(),
-      filename: filename.clone(),
+      filename: filename.clone()
     });
   }
 
@@ -175,7 +167,7 @@ fn compile_source_directory(config: &Config) -> std::io::Result<()> {
     let file_context = Rc::new(RefCell::new(Context::new(
       &format!("file: {:#?}", parsed_file.file_path.file_name().unwrap()),
       None,
-      ContextType::Global,
+      ContextType::Global
     )));
 
     file_context.borrow_mut().set_as_library();
@@ -183,12 +175,12 @@ fn compile_source_directory(config: &Config) -> std::io::Result<()> {
     Context::set_parent_context(&file_context, &global_context);
 
     let mut context_builder = ContextBuildingVisitor {
-      current_context: file_context.clone(),
+      current_context: file_context.clone()
     };
 
     let mut function_visitor = FunctionVisitor {
       program_information: &program_information,
-      current_context: file_context.clone(),
+      current_context: file_context.clone()
     };
 
     use ast::visitor::Visited;
@@ -206,17 +198,17 @@ fn compile_source_directory(config: &Config) -> std::io::Result<()> {
     let file_context = Rc::new(RefCell::new(Context::new(
       &format!("file: {:#?}", parsed_file.file_path.file_name().unwrap()),
       None,
-      ContextType::Global,
+      ContextType::Global
     )));
     Context::set_parent_context(&file_context, &global_context);
 
     let mut context_builder = ContextBuildingVisitor {
-      current_context: file_context.clone(),
+      current_context: file_context.clone()
     };
 
     let mut function_visitor = FunctionVisitor {
       program_information: &program_information,
-      current_context: file_context.clone(),
+      current_context: file_context.clone()
     };
 
     use ast::visitor::Visited;
@@ -230,7 +222,7 @@ fn compile_source_directory(config: &Config) -> std::io::Result<()> {
         file_context.clone(),
         &mut inference_store,
         &mut report_manager,
-        &mut sources_span_manager,
+        &mut sources_span_manager
       );
       parsed_file.ast.accept(&mut compound_types_visitor);
       let file = preprocessed_content
@@ -252,7 +244,7 @@ fn compile_source_directory(config: &Config) -> std::io::Result<()> {
         global_context.clone(),
         &mut inference_store,
         &mut report_manager,
-        &mut sources_span_manager,
+        &mut sources_span_manager
       );
 
       parsed_file.ast.accept(&mut expression_inference_visitor);
@@ -268,7 +260,7 @@ fn compile_source_directory(config: &Config) -> std::io::Result<()> {
         global_context.clone(),
         &mut inference_store,
         &mut report_manager,
-        &mut sources_span_manager,
+        &mut sources_span_manager
       );
 
       parsed_file.ast.accept(&mut functions_inference_visitor);
@@ -278,7 +270,7 @@ fn compile_source_directory(config: &Config) -> std::io::Result<()> {
         global_context.clone(),
         &mut inference_store,
         &mut report_manager,
-        &mut sources_span_manager,
+        &mut sources_span_manager
       );
 
       parsed_file.ast.accept(&mut function_call_checker_visitor);
@@ -320,7 +312,7 @@ fn compile_source_directory(config: &Config) -> std::io::Result<()> {
           fs::write(new_path, format_code(s)).expect("failed to write output file")
         }
       }
-      Err(e) => println!("{}", e),
+      Err(e) => println!("{}", e)
     };
 
     // (*global_context).borrow().print(0);
@@ -360,7 +352,7 @@ fn compile_source_directory(config: &Config) -> std::io::Result<()> {
         fs::write(&generated_code_file, format_code(s)).expect("failed to write output file")
       }
     }
-    Err(e) => println!("{}", e),
+    Err(e) => println!("{}", e)
   };
 
   Ok(())
@@ -390,5 +382,5 @@ fn format_code(origin: &str) -> String {
 struct ParsedFile {
   file_path: PathBuf,
   ast: Program,
-  filename: String,
+  filename: String
 }

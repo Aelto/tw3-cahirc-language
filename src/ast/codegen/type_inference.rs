@@ -1,4 +1,6 @@
-use std::{cell::RefCell, collections::HashMap, rc::Rc};
+use std::cell::RefCell;
+use std::collections::HashMap;
+use std::rc::Rc;
 
 use crate::ast::{ParameterType, Span};
 
@@ -7,7 +9,7 @@ use crate::ast::{ParameterType, Span};
 //&/ references as we know its lifetime is shorter than the AST itself.
 #[derive(Debug)]
 pub struct TypeInferenceStore {
-  pub types: TypeInferenceMap,
+  pub types: TypeInferenceMap
 }
 
 impl TypeInferenceStore {
@@ -30,7 +32,7 @@ impl TypeInferenceStore {
 
     let compound = Rc::new(InferedType::Compound {
       type_inference_map: RefCell::new(HashMap::new()),
-      extends,
+      extends
     });
 
     self.types.insert(name, compound.clone());
@@ -40,7 +42,7 @@ impl TypeInferenceStore {
 
   pub fn register_function(
     &mut self, name: String, parameters: Vec<FunctionInferedParameterType>,
-    return_type: Option<String>, span: Span,
+    return_type: Option<String>, span: Span
   ) -> Result<(), String> {
     if self.types.contains_key(&name) {
       return Err(format!("function {} was registered twice", &name));
@@ -49,7 +51,7 @@ impl TypeInferenceStore {
     let function = Rc::new(InferedType::Function(Rc::new(FunctionInferedType {
       parameters,
       return_type,
-      span,
+      span
     })));
     self.types.insert(name, function.clone());
 
@@ -58,7 +60,7 @@ impl TypeInferenceStore {
 
   pub fn register_method(
     &mut self, parent_compound_name: String, name: String,
-    parameters: Vec<FunctionInferedParameterType>, return_type: Option<String>, span: Span,
+    parameters: Vec<FunctionInferedParameterType>, return_type: Option<String>, span: Span
   ) -> Result<(), String> {
     let mut result = Ok(());
 
@@ -69,7 +71,7 @@ impl TypeInferenceStore {
         match &**class_type {
           InferedType::Compound {
             type_inference_map,
-            extends: _,
+            extends: _
           } => {
             let mut class = type_inference_map.borrow_mut();
 
@@ -80,7 +82,7 @@ impl TypeInferenceStore {
             let method = Rc::new(InferedType::Function(Rc::new(FunctionInferedType {
               parameters,
               return_type,
-              span,
+              span
             })));
             class.insert(name, method.clone());
           }
@@ -107,7 +109,7 @@ pub enum InferedType {
 
     /// In case the compound type extend another type, this value is set to
     /// `Some(base_type_identifier)`
-    extends: Option<String>,
+    extends: Option<String>
   },
 
   Function(Rc<FunctionInferedType>),
@@ -116,14 +118,14 @@ pub enum InferedType {
 
   /// For unknown types, coming from a different source,
   /// such as the game sources.
-  Unknown,
+  Unknown
 }
 
 #[derive(Debug)]
 pub struct FunctionInferedType {
   pub parameters: Vec<FunctionInferedParameterType>,
   pub return_type: Option<String>,
-  pub span: Span,
+  pub span: Span
 }
 
 #[derive(Debug)]
@@ -135,5 +137,5 @@ pub struct FunctionInferedParameterType {
   /// TypeDeclaration::to_string()
   /// ```
   pub infered_type: String,
-  pub span: Span,
+  pub span: Span
 }

@@ -8,7 +8,7 @@ pub struct StructDeclaration {
 
   pub span_name: Span,
 
-  pub context: Rc<RefCell<Context>>,
+  pub context: Rc<RefCell<Context>>
 }
 
 impl Visited for StructDeclaration {
@@ -46,14 +46,14 @@ impl Codegen for StructDeclaration {
 #[derive(Debug)]
 pub enum StructBodyStatement {
   Property(VariableDeclaration),
-  DefaultValue(VariableAssignment),
+  DefaultValue(VariableAssignment)
 }
 
 impl Visited for StructBodyStatement {
   fn accept<T: visitor::Visitor>(&self, visitor: &mut T) {
     match self {
       StructBodyStatement::Property(x) => x.accept(visitor),
-      StructBodyStatement::DefaultValue(x) => x.accept(visitor),
+      StructBodyStatement::DefaultValue(x) => x.accept(visitor)
     }
   }
 }

@@ -2,19 +2,16 @@ use std::cell::RefCell;
 use std::collections::HashSet;
 use std::rc::Rc;
 
-use crate::ast::codegen::context::Context;
-use crate::ast::codegen::context::ContextType;
+use crate::ast::codegen::context::{Context, ContextType};
 use crate::ast::codegen::type_inference::TypeInferenceStore;
 use crate::ast::inference::Type;
-use crate::ast::ExpressionBody;
-use crate::ast::ReportManager;
-use crate::ast::SpanManager;
+use crate::ast::{ExpressionBody, ReportManager, SpanManager};
 
 /// Looks for generic calls and register them to the GenericCallRegister
 pub struct LambdaDeclarationVisitor<'a> {
   pub current_context: Rc<RefCell<Context>>,
   pub emitted_code: &'a mut Vec<u8>,
-  pub emitted_types: HashSet<String>,
+  pub emitted_types: HashSet<String>
 }
 
 impl<'a> LambdaDeclarationVisitor<'a> {
@@ -23,10 +20,10 @@ impl<'a> LambdaDeclarationVisitor<'a> {
       current_context: Rc::new(RefCell::new(Context::new(
         "empty",
         None,
-        ContextType::Global,
+        ContextType::Global
       ))),
       emitted_code,
-      emitted_types: HashSet::new(),
+      emitted_types: HashSet::new()
     }
   }
 }
@@ -55,7 +52,7 @@ impl super::Visitor for LambdaDeclarationVisitor<'_> {
     if let Err(err) = node.emit_base_type(
       &mut self.current_context.borrow_mut(),
       &mut self.emitted_code,
-      &mut self.emitted_types,
+      &mut self.emitted_types
     ) {
       println!(
         "Error while emitting code for {}: {}",
@@ -68,7 +65,7 @@ impl super::Visitor for LambdaDeclarationVisitor<'_> {
   fn visit_lambda(&mut self, node: &crate::ast::Lambda) {
     if let Err(err) = node.emit_base_type(
       &mut self.current_context.borrow_mut(),
-      &mut self.emitted_code,
+      &mut self.emitted_code
     ) {
       println!(
         "Error while emitting code for {}: {}",
@@ -86,20 +83,20 @@ pub struct ClosureVisitor<'a> {
   pub current_context: Rc<RefCell<Context>>,
   pub inference_store: &'a mut TypeInferenceStore,
   pub report_manager: &'a mut ReportManager,
-  pub span_manager: &'a mut SpanManager,
+  pub span_manager: &'a mut SpanManager
 }
 
 impl<'a> ClosureVisitor<'a> {
   pub fn new(
     current_context: Rc<RefCell<Context>>, inference_store: &'a mut TypeInferenceStore,
-    report_manager: &'a mut ReportManager, span_manager: &'a mut SpanManager,
+    report_manager: &'a mut ReportManager, span_manager: &'a mut SpanManager
   ) -> Self {
     Self {
       captured_variables: Vec::new(),
       current_context,
       inference_store,
       report_manager,
-      span_manager,
+      span_manager
     }
   }
 }
@@ -115,7 +112,7 @@ impl<'a> super::Visitor for ClosureVisitor<'a> {
         &self.current_context,
         &self.inference_store.types,
         &self.inference_store.types,
-        self.span_manager,
+        self.span_manager
       );
 
       if let Err(errors) = result {
@@ -124,7 +121,7 @@ impl<'a> super::Visitor for ClosureVisitor<'a> {
 
       self.captured_variables.push((
         identifier.text.clone(),
-        node.infered_type_name.borrow().clone(),
+        node.infered_type_name.borrow().clone()
       ));
     }
   }

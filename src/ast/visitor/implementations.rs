@@ -4,7 +4,7 @@ use super::Visited;
 
 impl<A> Visited for Vec<A>
 where
-  A: Visited,
+  A: Visited
 {
   fn accept<T: super::Visitor>(&self, visitor: &mut T) {
     for child in self {
@@ -15,7 +15,7 @@ where
 
 impl<A> Visited for std::boxed::Box<A>
 where
-  A: Visited,
+  A: Visited
 {
   fn accept<T: super::Visitor>(&self, visitor: &mut T) {
     self.deref().accept(visitor);
@@ -24,7 +24,7 @@ where
 
 impl<A> Visited for std::rc::Rc<A>
 where
-  A: Visited,
+  A: Visited
 {
   fn accept<T: super::Visitor>(&self, visitor: &mut T) {
     self.deref().accept(visitor);
@@ -33,7 +33,7 @@ where
 
 impl<A> Visited for Option<A>
 where
-  A: Visited,
+  A: Visited
 {
   fn accept<T: super::Visitor>(&self, visitor: &mut T) {
     if let Some(child) = self {

@@ -5,7 +5,7 @@ use super::*;
 pub struct VariableAssignment {
   pub variable_name: Rc<Expression>,
   pub assignment_type: AssignmentType,
-  pub following_expression: Rc<Expression>,
+  pub following_expression: Rc<Expression>
 }
 
 impl Visited for VariableAssignment {
@@ -30,14 +30,14 @@ impl Codegen for VariableAssignment {
 #[derive(Debug)]
 pub enum VariableDeclarationOrAssignment {
   Declaration(VariableDeclaration),
-  Assignement(VariableAssignment),
+  Assignement(VariableAssignment)
 }
 
 impl Visited for VariableDeclarationOrAssignment {
   fn accept<T: visitor::Visitor>(&self, visitor: &mut T) {
     match self {
       VariableDeclarationOrAssignment::Declaration(x) => x.accept(visitor),
-      VariableDeclarationOrAssignment::Assignement(x) => x.accept(visitor),
+      VariableDeclarationOrAssignment::Assignement(x) => x.accept(visitor)
     }
   }
 }
@@ -46,7 +46,7 @@ impl Codegen for VariableDeclarationOrAssignment {
   fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
     match self {
       VariableDeclarationOrAssignment::Declaration(x) => x.emit(context, f),
-      VariableDeclarationOrAssignment::Assignement(x) => x.emit(context, f),
+      VariableDeclarationOrAssignment::Assignement(x) => x.emit(context, f)
     }
   }
 }
@@ -55,12 +55,12 @@ impl Codegen for VariableDeclarationOrAssignment {
 pub enum VariableDeclaration {
   Explicit {
     declaration: Rc<TypedIdentifier>,
-    following_expression: Option<Rc<Expression>>,
+    following_expression: Option<Rc<Expression>>
   },
   Implicit {
     names: Vec<String>,
-    following_expression: Rc<Expression>,
-  },
+    following_expression: Rc<Expression>
+  }
 }
 
 impl visitor::Visited for VariableDeclaration {
@@ -70,14 +70,14 @@ impl visitor::Visited for VariableDeclaration {
     match &self {
       VariableDeclaration::Explicit {
         declaration,
-        following_expression,
+        following_expression
       } => {
         declaration.accept(visitor);
         following_expression.accept(visitor);
       }
       VariableDeclaration::Implicit {
         names: _,
-        following_expression,
+        following_expression
       } => {
         following_expression.accept(visitor);
       }
@@ -92,12 +92,12 @@ impl Codegen for VariableDeclaration {
       ContextType::Global
       | ContextType::ClassOrStruct
       | ContextType::State {
-        parent_class_name: _,
+        parent_class_name: _
       } => {
         match &self {
           VariableDeclaration::Explicit {
             declaration,
-            following_expression,
+            following_expression
           } => {
             write!(f, "var ")?;
             declaration.emit(context, f)?;
@@ -115,7 +115,7 @@ impl Codegen for VariableDeclaration {
           }
           VariableDeclaration::Implicit {
             names: _,
-            following_expression: _,
+            following_expression: _
           } => {
             panic!("The compiler does not support implicit types for class attributes, please write the types of your attributes explicitly.");
           }
@@ -129,7 +129,7 @@ impl Codegen for VariableDeclaration {
         match &self {
           VariableDeclaration::Explicit {
             declaration,
-            following_expression,
+            following_expression
           } => {
             if let Some(expr) = &following_expression {
               if let Some(variable_name) = declaration.names.first() {
@@ -143,7 +143,7 @@ impl Codegen for VariableDeclaration {
           }
           VariableDeclaration::Implicit {
             names,
-            following_expression,
+            following_expression
           } => {
             if let Some(variable_name) = names.first() {
               write!(f, "{variable_name}")?;

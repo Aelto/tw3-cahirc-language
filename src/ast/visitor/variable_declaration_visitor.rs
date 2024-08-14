@@ -1,16 +1,14 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use crate::ast::codegen::context::Context;
-use crate::ast::codegen::context::ContextType;
-use crate::ast::ProgramInformation;
-use crate::ast::TypedIdentifier;
+use crate::ast::codegen::context::{Context, ContextType};
+use crate::ast::{ProgramInformation, TypedIdentifier};
 
 /// Looks variable declarations and register them to the context of the current
 /// function. Allows for variable declarations anywhere in function bodies.
 pub struct VariableDeclarationVisitor<'a> {
   pub program_information: &'a ProgramInformation,
-  pub current_context: Rc<RefCell<Context>>,
+  pub current_context: Rc<RefCell<Context>>
 }
 
 impl<'a> VariableDeclarationVisitor<'a> {
@@ -20,8 +18,8 @@ impl<'a> VariableDeclarationVisitor<'a> {
       current_context: Rc::new(RefCell::new(Context::new(
         "empty",
         None,
-        ContextType::Global,
-      ))),
+        ContextType::Global
+      )))
     }
   }
 }
@@ -50,14 +48,14 @@ impl super::Visitor for VariableDeclarationVisitor<'_> {
     match &node {
       crate::ast::VariableDeclaration::Explicit {
         declaration,
-        following_expression: _,
+        following_expression: _
       } => {
         self.register_variable_declaration(declaration.clone());
       }
       // implicit variables are registered by the type inference visitor
       crate::ast::VariableDeclaration::Implicit {
         names: _,
-        following_expression: _,
+        following_expression: _
       } => {}
     };
   }
@@ -70,7 +68,7 @@ impl super::Visitor for VariableDeclarationVisitor<'_> {
         .local_variables_inference
         .insert(
           variable_name.clone(),
-          declaration.type_declaration.to_string(),
+          declaration.type_declaration.to_string()
         );
     }
 

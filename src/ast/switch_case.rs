@@ -4,7 +4,7 @@ use super::*;
 #[derive(Debug)]
 pub struct SwitchStatement {
   pub compared: Rc<Expression>,
-  pub cases: Vec<SwitchCaseStatement>,
+  pub cases: Vec<SwitchCaseStatement>
 }
 
 impl Visited for SwitchStatement {
@@ -29,12 +29,12 @@ impl Codegen for SwitchStatement {
 #[derive(Debug)]
 pub enum SwitchCaseStatement {
   Default {
-    body_statements: Vec<FunctionBodyStatement>,
+    body_statements: Vec<FunctionBodyStatement>
   },
   Case {
     cases: Vec<Rc<Expression>>,
-    body_statements: Vec<FunctionBodyStatement>,
-  },
+    body_statements: Vec<FunctionBodyStatement>
+  }
 }
 
 impl Visited for SwitchCaseStatement {
@@ -45,7 +45,7 @@ impl Visited for SwitchCaseStatement {
       }
       SwitchCaseStatement::Case {
         cases,
-        body_statements,
+        body_statements
       } => {
         cases.accept(visitor);
         body_statements.accept(visitor);
@@ -65,7 +65,7 @@ impl Codegen for SwitchCaseStatement {
       }
       SwitchCaseStatement::Case {
         cases,
-        body_statements,
+        body_statements
       } => {
         for case in cases {
           write!(f, "case ")?;

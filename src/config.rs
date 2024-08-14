@@ -6,7 +6,7 @@ use serde::Deserialize;
 #[derive(Deserialize, Debug)]
 pub struct Config {
   pub package: ConfigPackage,
-  pub dependencies: HashMap<String, String>,
+  pub dependencies: HashMap<String, String>
 }
 
 #[derive(Deserialize, Debug)]
@@ -14,7 +14,7 @@ pub struct ConfigPackage {
   pub name: String,
   pub src: String,
   pub dist: String,
-  pub static_analysis: Option<bool>,
+  pub static_analysis: Option<bool>
 }
 
 pub fn read_config() -> std::io::Result<Config> {
@@ -41,7 +41,7 @@ pub fn read_config() -> std::io::Result<Config> {
 
     config.dependencies.insert(
       dep_name.to_string(),
-      cwd.join(dep_path).to_str().unwrap().to_string(),
+      cwd.join(dep_path).to_str().unwrap().to_string()
     );
   }
 

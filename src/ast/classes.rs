@@ -18,7 +18,7 @@ pub struct ClassDeclaration {
 
   pub span_name: Span,
 
-  pub context: Rc<RefCell<Context>>,
+  pub context: Rc<RefCell<Context>>
 }
 
 impl Visited for ClassDeclaration {
@@ -66,7 +66,7 @@ impl Codegen for ClassDeclaration {
 }
 
 fn emit_class(
-  this: &ClassDeclaration, context: &Context, f: &mut Vec<u8>, generic_variant_suffix: &str,
+  this: &ClassDeclaration, context: &Context, f: &mut Vec<u8>, generic_variant_suffix: &str
 ) -> Result<(), std::io::Error> {
   use std::io::Write as IoWrite;
 
@@ -123,7 +123,7 @@ pub enum ClassType {
   Class,
   StatemachineClass,
   State,
-  Abstract,
+  Abstract
 }
 
 impl Display for ClassType {
@@ -132,7 +132,7 @@ impl Display for ClassType {
       ClassType::Class => write!(f, "class"),
       ClassType::StatemachineClass => write!(f, "statemachine class"),
       ClassType::State => write!(f, "state"),
-      ClassType::Abstract => write!(f, "abstract class"),
+      ClassType::Abstract => write!(f, "abstract class")
     }
   }
 }
@@ -141,14 +141,14 @@ impl Display for ClassType {
 pub enum ClassBodyStatement {
   Method {
     encapsulation: Option<EncapsulationType>,
-    function_declaration: Rc<FunctionDeclaration>,
+    function_declaration: Rc<FunctionDeclaration>
   },
   Property {
     encapsulation: Option<EncapsulationType>,
     property_declaration: VariableDeclaration,
-    is_saved: bool,
+    is_saved: bool
   },
-  DefaultValue(VariableAssignment),
+  DefaultValue(VariableAssignment)
 }
 
 impl Codegen for ClassBodyStatement {
@@ -158,7 +158,7 @@ impl Codegen for ClassBodyStatement {
     match self {
       ClassBodyStatement::Method {
         encapsulation,
-        function_declaration,
+        function_declaration
       } => {
         if let Some(encapsulation) = encapsulation {
           encapsulation.emit(context, f)?;
@@ -170,7 +170,7 @@ impl Codegen for ClassBodyStatement {
       ClassBodyStatement::Property {
         encapsulation,
         property_declaration,
-        is_saved,
+        is_saved
       } => {
         if let Some(encapsulation) = encapsulation {
           encapsulation.emit(context, f)?;
@@ -198,7 +198,7 @@ impl Codegen for ClassBodyStatement {
 pub enum EncapsulationType {
   Private,
   Public,
-  Protected,
+  Protected
 }
 
 impl visitor::Visited for ClassBodyStatement {
@@ -206,12 +206,12 @@ impl visitor::Visited for ClassBodyStatement {
     match self {
       ClassBodyStatement::Method {
         encapsulation: _,
-        function_declaration,
+        function_declaration
       } => function_declaration.accept(visitor),
       ClassBodyStatement::Property {
         encapsulation: _,
         property_declaration,
-        is_saved: _,
+        is_saved: _
       } => property_declaration.accept(visitor),
       ClassBodyStatement::DefaultValue(_) => {}
     }
@@ -225,7 +225,7 @@ impl Codegen for EncapsulationType {
     match self {
       EncapsulationType::Private => write!(f, "private"),
       EncapsulationType::Public => write!(f, "public"),
-      EncapsulationType::Protected => write!(f, "protected"),
+      EncapsulationType::Protected => write!(f, "protected")
     }
   }
 }

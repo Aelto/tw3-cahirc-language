@@ -1,8 +1,6 @@
 use std::borrow::Borrow;
-use std::cell::Ref;
-use std::cell::RefCell;
-use std::collections::HashMap;
-use std::collections::HashSet;
+use std::cell::{Ref, RefCell};
+use std::collections::{HashMap, HashSet};
 use std::rc::Rc;
 
 use crate::ast::TypedIdentifier;
@@ -48,12 +46,12 @@ pub struct Context {
   ///
   /// If something better is implemented for replacing identifiers, remember
   /// to add this solution in it as this is a performant but temporary solution.
-  pub replace_this_with_self: RefCell<Option<String>>,
+  pub replace_this_with_self: RefCell<Option<String>>
 }
 
 impl Context {
   pub fn new(
-    name: &str, generic_types: Option<Vec<GenericType>>, context_type: ContextType,
+    name: &str, generic_types: Option<Vec<GenericType>>, context_type: ContextType
   ) -> Self {
     Self {
       name: name.to_string(),
@@ -67,7 +65,7 @@ impl Context {
       variable_declarations: Vec::new(),
       local_variables_inference: HashMap::new(),
       local_parameters_inference: HashMap::new(),
-      replace_this_with_self: RefCell::new(None),
+      replace_this_with_self: RefCell::new(None)
     }
   }
 
@@ -141,7 +139,7 @@ impl Context {
   }
 
   pub fn find_global_function_declaration(
-    this: &Rc<RefCell<Context>>, name: &str,
+    this: &Rc<RefCell<Context>>, name: &str
   ) -> Option<Rc<RefCell<Context>>> {
     let program = Self::get_top_most_context(this);
     let context_name = format!("function: {}", name);
@@ -162,7 +160,7 @@ impl Context {
   }
 
   pub fn find_global_class_declaration(
-    this: &Rc<RefCell<Context>>, name: &str,
+    this: &Rc<RefCell<Context>>, name: &str
   ) -> Option<Rc<RefCell<Context>>> {
     let program = Self::get_top_most_context(this);
     let context_name = format!("class: {}", name);
@@ -213,7 +211,7 @@ impl Context {
   /// the resolved type in return. If not or if there is no match then return
   /// the unchanged identifier that was passed as a parameter.
   pub fn transform_if_generic_type(
-    &self, f: &mut Vec<u8>, identifier: &str,
+    &self, f: &mut Vec<u8>, identifier: &str
   ) -> Result<(), std::io::Error> {
     use std::io::Write as IoWrite;
 
@@ -258,7 +256,7 @@ pub enum ContextType {
   Global,
   ClassOrStruct,
   State { parent_class_name: String },
-  Function,
+  Function
 }
 
 type GenericType = String;
@@ -274,7 +272,7 @@ pub struct GenericContext {
   pub translation_variants:
     HashMap<GenericVariantIdentifier, HashMap<GenericType, ResolvedGenericType>>,
 
-  pub currently_used_variant: Option<GenericVariantIdentifier>,
+  pub currently_used_variant: Option<GenericVariantIdentifier>
 }
 
 impl GenericContext {
@@ -282,7 +280,7 @@ impl GenericContext {
     Self {
       types,
       translation_variants: HashMap::new(),
-      currently_used_variant: None,
+      currently_used_variant: None
     }
   }
 
@@ -323,7 +321,7 @@ impl GenericContext {
 
 impl<'a> GenericContext {
   pub fn transform_if_generic_type(
-    &'a self, f: &mut Vec<u8>, identifier: &str,
+    &'a self, f: &mut Vec<u8>, identifier: &str
   ) -> Option<Result<(), std::io::Error>> {
     use std::io::Write as IoWrite;
 
@@ -335,7 +333,7 @@ impl<'a> GenericContext {
 
     match some_translation {
       Some(translation) => Some(write!(f, "{translation}")),
-      None => None,
+      None => None
     }
   }
 }

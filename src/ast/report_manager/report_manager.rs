@@ -2,19 +2,17 @@ use core::panic;
 
 use ariadne::{Report, Source};
 
-use crate::{
-  ast::{Span, SpanManager},
-  preprocessor::types::PreprocessorOutput,
-};
+use crate::ast::{Span, SpanManager};
+use crate::preprocessor::types::PreprocessorOutput;
 
 pub struct ReportManager {
-  reports: Vec<(Report, Span)>,
+  reports: Vec<(Report, Span)>
 }
 
 impl ReportManager {
   pub fn new() -> Self {
     Self {
-      reports: Vec::new(),
+      reports: Vec::new()
     }
   }
 
@@ -43,7 +41,7 @@ impl ReportManager {
   }
 
   pub fn consume_multiple_sources<'a>(
-    &mut self, span_manager: &'a mut SpanManager, preprocessor_output: &PreprocessorOutput,
+    &mut self, span_manager: &'a mut SpanManager, preprocessor_output: &PreprocessorOutput
   ) {
     for (report, span) in &self.reports {
       let source: &String = span_manager.get_source(span);

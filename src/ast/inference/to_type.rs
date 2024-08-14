@@ -9,7 +9,7 @@ pub enum Type {
   Float,
   Identifier(String),
   Void,
-  Unknown,
+  Unknown
 }
 
 // impl ToString for Type {
@@ -40,7 +40,7 @@ impl Display for Type {
         Type::Float => "float",
         Type::Identifier(x) => x,
         Type::Void => "void",
-        Type::Unknown => "Unknown",
+        Type::Unknown => "Unknown"
       }
     )
   }
@@ -56,7 +56,7 @@ impl Type {
       Type::Float => other == "float",
       Type::Identifier(x) => x == other,
       Type::Void => other == "void",
-      Type::Unknown => false,
+      Type::Unknown => false
     }
   }
 
@@ -65,7 +65,7 @@ impl Type {
       (Type::Name, "string") => true,
       (Type::Float, "int") => true,
       (Type::Int, "float") => true,
-      _ => false,
+      _ => false
     }
   }
 }

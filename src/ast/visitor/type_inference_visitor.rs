@@ -2,21 +2,15 @@ use std::borrow::Borrow;
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use ariadne::Label;
-use ariadne::Report;
-use ariadne::ReportKind;
+use ariadne::{Label, Report, ReportKind};
 
-use crate::ast::codegen::context::Context;
-use crate::ast::codegen::context::ContextType;
-use crate::ast::codegen::type_inference::InferedType;
-use crate::ast::codegen::type_inference::TypeInferenceStore;
+use crate::ast::codegen::context::{Context, ContextType};
+use crate::ast::codegen::type_inference::{InferedType, TypeInferenceStore};
 use crate::ast::inference::Type;
-use crate::ast::Expression;
-use crate::ast::FunctionDeclarationParameter;
-use crate::ast::ReportManager;
-use crate::ast::SpanManager;
-use crate::ast::TypeDeclaration;
-use crate::ast::TypedIdentifier;
+use crate::ast::{
+  Expression, FunctionDeclarationParameter, ReportManager, SpanManager, TypeDeclaration,
+  TypedIdentifier
+};
 
 use super::lambda_declaration_visitor::ClosureVisitor;
 
@@ -26,19 +20,19 @@ pub struct CompoundTypesVisitor<'a> {
   pub current_context: Rc<RefCell<Context>>,
   pub inference_store: &'a mut TypeInferenceStore,
   pub report_manager: &'a mut ReportManager,
-  pub span_manager: &'a mut SpanManager,
+  pub span_manager: &'a mut SpanManager
 }
 
 impl<'a> CompoundTypesVisitor<'a> {
   pub fn new(
     current_context: Rc<RefCell<Context>>, inference_store: &'a mut TypeInferenceStore,
-    report_manager: &'a mut ReportManager, span_manager: &'a mut SpanManager,
+    report_manager: &'a mut ReportManager, span_manager: &'a mut SpanManager
   ) -> Self {
     Self {
       current_context,
       inference_store,
       report_manager,
-      span_manager,
+      span_manager
     }
   }
 }
@@ -62,7 +56,7 @@ impl super::Visitor for CompoundTypesVisitor<'_> {
           .with_message(&"Invalid class definition")
           .with_label(Label::new(self.span_manager.get_range(span)).with_message(reason))
           .finish(),
-        span,
+        span
       );
     }
 
@@ -88,7 +82,7 @@ impl super::Visitor for CompoundTypesVisitor<'_> {
     match parent_context_type {
       ContextType::ClassOrStruct
       | ContextType::State {
-        parent_class_name: _,
+        parent_class_name: _
       } => {
         if let Some(parent_context) = parent_context {
           let parent_context = Context::get_ref(&parent_context);
@@ -101,9 +95,9 @@ impl super::Visitor for CompoundTypesVisitor<'_> {
             parameters,
             match &node.type_declaration {
               Some(decl) => Some(decl.to_string()),
-              None => None,
+              None => None
             },
-            node.span_name,
+            node.span_name
           );
 
           if let Err(reason) = result {
@@ -114,7 +108,7 @@ impl super::Visitor for CompoundTypesVisitor<'_> {
                 .with_message(&"Invalid method definition")
                 .with_label(Label::new(self.span_manager.get_range(span)).with_message(reason))
                 .finish(),
-              span,
+              span
             );
           }
         }
@@ -125,9 +119,9 @@ impl super::Visitor for CompoundTypesVisitor<'_> {
           parameters,
           match &node.type_declaration {
             Some(decl) => Some(decl.to_string()),
-            None => None,
+            None => None
           },
-          node.span_name,
+          node.span_name
         );
 
         if let Err(reason) = result {
@@ -138,7 +132,7 @@ impl super::Visitor for CompoundTypesVisitor<'_> {
               .with_message(&"Invalid function definition")
               .with_label(Label::new(self.span_manager.get_range(span)).with_message(reason))
               .finish(),
-            span,
+            span
           );
         }
       }
@@ -159,7 +153,7 @@ impl super::Visitor for CompoundTypesVisitor<'_> {
           .with_message(&"Invalid struct definition")
           .with_label(Label::new(self.span_manager.get_range(span)).with_message(reason))
           .finish(),
-        span,
+        span
       );
     }
 
@@ -174,19 +168,19 @@ pub struct ExpressionTypeInferenceVisitor<'a> {
   pub current_context: Rc<RefCell<Context>>,
   pub inference_store: &'a mut TypeInferenceStore,
   pub report_manager: &'a mut ReportManager,
-  pub span_manager: &'a mut SpanManager,
+  pub span_manager: &'a mut SpanManager
 }
 
 impl<'a> ExpressionTypeInferenceVisitor<'a> {
   pub fn new(
     current_context: Rc<RefCell<Context>>, inference_store: &'a mut TypeInferenceStore,
-    report_manager: &'a mut ReportManager, span_manager: &'a mut SpanManager,
+    report_manager: &'a mut ReportManager, span_manager: &'a mut SpanManager
   ) -> Self {
     Self {
       current_context,
       inference_store,
       report_manager,
-      span_manager,
+      span_manager
     }
   }
 }
@@ -216,13 +210,13 @@ impl super::Visitor for ExpressionTypeInferenceVisitor<'_> {
       &self.current_context,
       &self.inference_store.types,
       &self.inference_store.types,
-      self.span_manager,
+      self.span_manager
     );
 
     if let InferedType::Lambda(_) = node.infered_type.borrow().as_ref() {
       self.inference_store.types.insert(
         node.infered_type_name.borrow().to_string(),
-        node.infered_type.borrow().clone(),
+        node.infered_type.borrow().clone()
       );
     }
 
@@ -235,7 +229,7 @@ impl super::Visitor for ExpressionTypeInferenceVisitor<'_> {
     match &node {
       crate::ast::VariableDeclaration::Explicit {
         declaration,
-        following_expression: _,
+        following_expression: _
       } => {
         for variable_name in &declaration.names {
           let type_declaration_string = declaration.type_declaration.to_string();
@@ -249,7 +243,7 @@ impl super::Visitor for ExpressionTypeInferenceVisitor<'_> {
       }
       crate::ast::VariableDeclaration::Implicit {
         names,
-        following_expression,
+        following_expression
       } => {
         let expression: &Expression = &following_expression.borrow();
 
@@ -257,7 +251,7 @@ impl super::Visitor for ExpressionTypeInferenceVisitor<'_> {
           &self.current_context,
           &self.inference_store.types,
           &self.inference_store.types,
-          self.span_manager,
+          self.span_manager
         );
 
         if let Err(errors) = result {
@@ -275,10 +269,10 @@ impl super::Visitor for ExpressionTypeInferenceVisitor<'_> {
                 .with_message(&"Cannot infer variable type")
                 .with_label(
                   Label::new(self.span_manager.get_range(span))
-                    .with_message(&"Implicit variable declaration but resulting type is void"),
+                    .with_message(&"Implicit variable declaration but resulting type is void")
                 )
                 .finish(),
-              span,
+              span
             );
 
             return;
@@ -290,11 +284,11 @@ impl super::Visitor for ExpressionTypeInferenceVisitor<'_> {
               Report::build(ReportKind::Error, (), self.span_manager.get_left(span))
                 .with_message(&"Cannot infer variable type")
                 .with_label(Label::new(self.span_manager.get_range(span)).with_message(
-                  &"Implicit variable declaration but resulting type is unknown at the time",
+                  &"Implicit variable declaration but resulting type is unknown at the time"
                 ))
                 .with_help(&"Prefer an explicit type annotation here")
                 .finish(),
-              span,
+              span
             );
 
             return;
@@ -317,8 +311,8 @@ impl super::Visitor for ExpressionTypeInferenceVisitor<'_> {
           type_declaration: TypeDeclaration::Regular {
             type_name: the_type,
             generic_type_assignment: None,
-            mangled_accessor: RefCell::new(None),
-          },
+            mangled_accessor: RefCell::new(None)
+          }
         }));
       }
     };
@@ -339,7 +333,7 @@ impl super::Visitor for ExpressionTypeInferenceVisitor<'_> {
       self.current_context.clone(),
       self.inference_store,
       self.report_manager,
-      self.span_manager,
+      self.span_manager
     );
 
     node.body_statements.accept(&mut visitor);
@@ -373,19 +367,19 @@ pub struct FunctionsInferenceVisitor<'a> {
   pub current_context: Rc<RefCell<Context>>,
   pub inference_store: &'a mut TypeInferenceStore,
   pub report_manager: &'a mut ReportManager,
-  pub span_manager: &'a mut SpanManager,
+  pub span_manager: &'a mut SpanManager
 }
 
 impl<'a> FunctionsInferenceVisitor<'a> {
   pub fn new(
     current_context: Rc<RefCell<Context>>, inference_store: &'a mut TypeInferenceStore,
-    report_manager: &'a mut ReportManager, span_manager: &'a mut SpanManager,
+    report_manager: &'a mut ReportManager, span_manager: &'a mut SpanManager
   ) -> Self {
     Self {
       current_context,
       inference_store,
       report_manager,
-      span_manager,
+      span_manager
     }
   }
 }
@@ -416,19 +410,19 @@ pub struct FunctionsCallsCheckerVisitor<'a> {
   pub current_context: Rc<RefCell<Context>>,
   pub inference_store: &'a mut TypeInferenceStore,
   pub report_manager: &'a mut ReportManager,
-  pub span_manager: &'a mut SpanManager,
+  pub span_manager: &'a mut SpanManager
 }
 
 impl<'a> FunctionsCallsCheckerVisitor<'a> {
   pub fn new(
     current_context: Rc<RefCell<Context>>, inference_store: &'a mut TypeInferenceStore,
-    report_manager: &'a mut ReportManager, span_manager: &'a mut SpanManager,
+    report_manager: &'a mut ReportManager, span_manager: &'a mut SpanManager
   ) -> Self {
     Self {
       current_context,
       inference_store,
       report_manager,
-      span_manager,
+      span_manager
     }
   }
 }
@@ -482,30 +476,30 @@ impl super::Visitor for FunctionsCallsCheckerVisitor<'_> {
                 Report::build(
                   ariadne::ReportKind::Error,
                   (),
-                  self.span_manager.get_left(node.accessor.span),
+                  self.span_manager.get_left(node.accessor.span)
                 )
                 .with_message(&"Missing required parameter")
                 .with_label(
                   Label::new(self.span_manager.get_range(node.accessor.span)).with_message(
-                    &format!("Parameter n° {count} is required but is missing from function call"),
-                  ),
+                    &format!("Parameter n° {count} is required but is missing from function call")
+                  )
                 )
                 .finish(),
-                node.accessor.span,
+                node.accessor.span
               );
 
               self.report_manager.push(
                 Report::build(
                   ariadne::ReportKind::Advice,
                   (),
-                  self.span_manager.get_left(expected.span),
+                  self.span_manager.get_left(expected.span)
                 )
                 .with_label(
                   Label::new(self.span_manager.get_range(expected.span))
-                    .with_message("Try passing a parameter of the following type"),
+                    .with_message("Try passing a parameter of the following type")
                 )
                 .finish(),
-                expected.span,
+                expected.span
               );
 
               continue;
@@ -526,7 +520,7 @@ impl super::Visitor for FunctionsCallsCheckerVisitor<'_> {
                   Report::build(
                     ariadne::ReportKind::Error,
                     (),
-                    self.span_manager.get_left(span),
+                    self.span_manager.get_left(span)
                   )
                   .with_message(&"Parameter type mismatch")
                   .with_label(
@@ -534,24 +528,24 @@ impl super::Visitor for FunctionsCallsCheckerVisitor<'_> {
                       "Parameter n°{count} is expected to be a {} but a {} was passed",
                       &expected.infered_type,
                       supplied_type.to_string()
-                    )),
+                    ))
                   )
                   .finish(),
-                  span,
+                  span
                 );
 
                 self.report_manager.push(
                   Report::build(
                     ariadne::ReportKind::Advice,
                     (),
-                    self.span_manager.get_left(expected.span),
+                    self.span_manager.get_left(expected.span)
                   )
                   .with_label(
                     Label::new(self.span_manager.get_range(expected.span))
-                      .with_message("Try passing a parameter of the following type"),
+                      .with_message("Try passing a parameter of the following type")
                   )
                   .finish(),
-                  expected.span,
+                  expected.span
                 );
 
                 continue;

@@ -8,7 +8,7 @@ pub struct ForStatement {
   pub initialization: Option<VariableDeclarationOrAssignment>,
   pub condition: Rc<Expression>,
   pub iteration: VariableAssignment,
-  pub body_statements: Vec<FunctionBodyStatement>,
+  pub body_statements: Vec<FunctionBodyStatement>
 }
 
 impl Visited for ForStatement {
@@ -47,7 +47,7 @@ pub struct ForInStatement {
 
   pub body_statements: Vec<FunctionBodyStatement>,
 
-  pub indexor_name: RefCell<String>,
+  pub indexor_name: RefCell<String>
 }
 
 impl Visited for ForInStatement {
@@ -61,8 +61,8 @@ impl Visited for ForInStatement {
           type_declaration: TypeDeclaration::Regular {
             type_name: "int".to_string(),
             generic_type_assignment: None,
-            mangled_accessor: RefCell::new(None),
-          },
+            mangled_accessor: RefCell::new(None)
+          }
         };
 
         visitor.register_variable_declaration(self.child.clone());

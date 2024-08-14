@@ -2,8 +2,7 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use std::path::Path;
 
-use regex::Regex;
-use regex::RegexBuilder;
+use regex::{Regex, RegexBuilder};
 
 mod conditionals;
 mod expand_macros;
@@ -20,11 +19,11 @@ use self::types::*;
 /// names. And returns as output the files content from the source directory
 /// and the files content from the dependencies.
 pub fn preprocess(
-  source_directory: &str, dependencies: &HashMap<String, String>,
+  source_directory: &str, dependencies: &HashMap<String, String>
 ) -> std::io::Result<PreprocessorOutput> {
   let mut output = PreprocessorOutput {
     dependencies_files_content: HashMap::new(),
-    source_files_content: HashMap::new(),
+    source_files_content: HashMap::new()
   };
 
   for (name, content) in get_wss_files_content_for_directory(&Path::new(source_directory))? {
@@ -37,7 +36,7 @@ pub fn preprocess(
     } else {
       output.dependencies_files_content.insert(
         name.to_string(),
-        HashMap::from_iter(get_wss_files_content_for_directory(&Path::new(value))?.into_iter()),
+        HashMap::from_iter(get_wss_files_content_for_directory(&Path::new(value))?.into_iter())
       );
     }
   }
@@ -60,7 +59,7 @@ pub fn preprocess(
       .multi_line(true)
       .dot_matches_new_line(true)
       .build()
-      .unwrap(),
+      .unwrap()
   };
 
   let mut registered_macros = HashMap::new();
@@ -102,14 +101,14 @@ pub fn preprocess(
         &registered_macros,
         &mut new_content,
         &regex_collection,
-        conditionals::ConditionType::IfDefined,
+        conditionals::ConditionType::IfDefined
       );
 
       filter_conditionals(
         &registered_macros,
         &mut new_content,
         &regex_collection,
-        conditionals::ConditionType::IfNotDefined,
+        conditionals::ConditionType::IfNotDefined
       );
 
       content.content.replace(new_content);
@@ -123,14 +122,14 @@ pub fn preprocess(
       &registered_macros,
       &mut new_content,
       &regex_collection,
-      conditionals::ConditionType::IfDefined,
+      conditionals::ConditionType::IfDefined
     );
 
     filter_conditionals(
       &registered_macros,
       &mut new_content,
       &regex_collection,
-      conditionals::ConditionType::IfNotDefined,
+      conditionals::ConditionType::IfNotDefined
     );
 
     content.content.replace(new_content);
@@ -140,7 +139,7 @@ pub fn preprocess(
 }
 
 fn get_wss_files_content_for_directory(
-  dir: &Path,
+  dir: &Path
 ) -> std::io::Result<Vec<(FileName, ProcessedFile)>> {
   let files = walkdir::WalkDir::new(&dir)
     .into_iter()
@@ -157,15 +156,15 @@ fn get_wss_files_content_for_directory(
   let mut output = Vec::new();
   for filename in files {
     let content = RefCell::new(convert_line_endings(std::fs::read_to_string(
-      filename.path(),
+      filename.path()
     )?));
 
     output.push((
       filename.path().to_str().unwrap().to_string(),
       ProcessedFile {
         content,
-        path: filename.path().to_path_buf(),
-      },
+        path: filename.path().to_path_buf()
+      }
     ));
   }
 

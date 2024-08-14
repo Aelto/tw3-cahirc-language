@@ -8,14 +8,14 @@ use crate::ast::codegen::Codegen;
 /// generic types with generic calls.
 pub struct LibraryEmitterVisitor<'a> {
   pub current_context: Rc<RefCell<Context>>,
-  pub emitted_code: &'a mut Vec<u8>,
+  pub emitted_code: &'a mut Vec<u8>
 }
 
 impl<'a> LibraryEmitterVisitor<'a> {
   pub fn new(context: &Rc<RefCell<Context>>, emitted_code: &'a mut Vec<u8>) -> Self {
     Self {
       current_context: context.clone(),
-      emitted_code,
+      emitted_code
     }
   }
 }

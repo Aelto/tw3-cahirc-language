@@ -1,15 +1,13 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use crate::ast::codegen::context::Context;
-use crate::ast::codegen::context::ContextType;
-use crate::ast::ProgramInformation;
-use crate::ast::TypeDeclaration;
+use crate::ast::codegen::context::{Context, ContextType};
+use crate::ast::{ProgramInformation, TypeDeclaration};
 
 /// Looks for generic calls and register them to the GenericCallRegister
 pub struct GenericCallsVisitor<'a> {
   pub program_information: &'a ProgramInformation,
-  pub current_context: Rc<RefCell<Context>>,
+  pub current_context: Rc<RefCell<Context>>
 }
 
 impl<'a> GenericCallsVisitor<'a> {
@@ -19,8 +17,8 @@ impl<'a> GenericCallsVisitor<'a> {
       current_context: Rc::new(RefCell::new(Context::new(
         "empty",
         None,
-        ContextType::Global,
-      ))),
+        ContextType::Global
+      )))
     }
   }
 }
@@ -68,7 +66,7 @@ impl super::Visitor for GenericCallsVisitor<'_> {
       TypeDeclaration::Regular {
         type_name,
         generic_type_assignment,
-        mangled_accessor,
+        mangled_accessor
       } => {
         let class_name = &type_name;
         let class_context =
@@ -90,16 +88,16 @@ impl super::Visitor for GenericCallsVisitor<'_> {
 
                 TypeDeclaration::stringified_generic_types(&types, &class_context.borrow())
               }
-              None => Vec::new(),
+              None => Vec::new()
             };
 
             let still_contains_generic_types = match &self.current_context.borrow().generic_context
             {
               Some(gen) => gen.contains_generic_identifier(&TypeDeclaration::flat_type_names(
                 &type_name,
-                &generic_type_assignment,
+                &generic_type_assignment
               )),
-              None => false,
+              None => false
             };
 
             if still_contains_generic_types {
@@ -116,7 +114,7 @@ impl super::Visitor for GenericCallsVisitor<'_> {
           }
         }
       }
-      TypeDeclaration::Lambda(_) => todo!(),
+      TypeDeclaration::Lambda(_) => todo!()
     }
   }
 
@@ -140,15 +138,15 @@ impl super::Visitor for GenericCallsVisitor<'_> {
 
             TypeDeclaration::stringified_generic_types(&types, &class_context.borrow())
           }
-          None => Vec::new(),
+          None => Vec::new()
         };
 
         let still_contains_generic_types = match &self.current_context.borrow().generic_context {
           Some(gen) => gen.contains_generic_identifier(&TypeDeclaration::flat_type_names(
             &node.class_name,
-            &node.generic_type_assignment,
+            &node.generic_type_assignment
           )),
-          None => false,
+          None => false
         };
 
         if still_contains_generic_types {

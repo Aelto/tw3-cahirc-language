@@ -1,6 +1,5 @@
 use std::cell::RefCell;
-use std::fmt::Debug;
-use std::fmt::Display;
+use std::fmt::{Debug, Display};
 use std::rc::Rc;
 
 use self::codegen::Codegen;
@@ -11,8 +10,7 @@ pub mod report_manager;
 pub mod span_manager;
 pub mod visitor;
 
-pub use codegen::context::Context;
-pub use codegen::context::ContextType;
+pub use codegen::context::{Context, ContextType};
 
 pub use report_manager::*;
 pub use span_manager::*;
@@ -22,36 +20,36 @@ pub use span_manager::*;
 pub struct ProgramInformation {}
 
 impl ProgramInformation {
-    pub fn new() -> Self {
-        Self {}
-    }
+  pub fn new() -> Self {
+    Self {}
+  }
 }
 
 // -----------------------------------------------------------------------------
 
 #[derive(Debug)]
 pub struct Program {
-    pub statements: Vec<Statement>,
+  pub statements: Vec<Statement>
 }
 
 impl visitor::Visited for Program {
-    fn accept<T: visitor::Visitor>(&self, visitor: &mut T) {
-        self.statements.accept(visitor);
-    }
+  fn accept<T: visitor::Visitor>(&self, visitor: &mut T) {
+    self.statements.accept(visitor);
+  }
 }
 
 impl Codegen for Program {
-    fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
-        use std::io::Write as IoWrite;
+  fn emit(&self, context: &Context, f: &mut Vec<u8>) -> Result<(), std::io::Error> {
+    use std::io::Write as IoWrite;
 
-        for statement in &self.statements {
-            statement.emit(context, f)?;
-            writeln!(f, "")?;
-            writeln!(f, "")?;
-        }
-
-        Ok(())
+    for statement in &self.statements {
+      statement.emit(context, f)?;
+      writeln!(f, "")?;
+      writeln!(f, "")?;
     }
+
+    Ok(())
+  }
 }
 
 // -----------------------------------------------------------------------------
@@ -62,10 +60,7 @@ pub use statement::Statement;
 // -----------------------------------------------------------------------------
 
 mod classes;
-pub use classes::ClassBodyStatement;
-pub use classes::ClassDeclaration;
-pub use classes::ClassType;
-pub use classes::EncapsulationType;
+pub use classes::{ClassBodyStatement, ClassDeclaration, ClassType, EncapsulationType};
 
 // -----------------------------------------------------------------------------
 
@@ -75,14 +70,12 @@ pub use class_instantiation::ClassInstantiation;
 // -----------------------------------------------------------------------------
 
 mod structs;
-pub use structs::StructBodyStatement;
-pub use structs::StructDeclaration;
+pub use structs::{StructBodyStatement, StructDeclaration};
 
 // -----------------------------------------------------------------------------
 
 mod enums;
-pub use enums::EnumBodyStatement;
-pub use enums::EnumDeclaration;
+pub use enums::{EnumBodyStatement, EnumDeclaration};
 
 // -----------------------------------------------------------------------------
 
@@ -92,12 +85,10 @@ pub use annotations::Annotation;
 // -----------------------------------------------------------------------------
 
 mod functions;
-pub use functions::FunctionBodyStatement;
-pub use functions::FunctionCallParameters;
-pub use functions::FunctionDeclaration;
-pub use functions::FunctionDeclarationParameter;
-pub use functions::FunctionType;
-pub use functions::ParameterType;
+pub use functions::{
+  FunctionBodyStatement, FunctionCallParameters, FunctionDeclaration, FunctionDeclarationParameter,
+  FunctionType, ParameterType
+};
 
 // -----------------------------------------------------------------------------
 
@@ -107,34 +98,27 @@ pub use ifs::IfStatement;
 // -----------------------------------------------------------------------------
 
 mod variables;
-pub use variables::VariableAssignment;
-pub use variables::VariableDeclaration;
-pub use variables::VariableDeclarationOrAssignment;
+pub use variables::{VariableAssignment, VariableDeclaration, VariableDeclarationOrAssignment};
 
 // -----------------------------------------------------------------------------
 
 mod for_loops;
-pub use for_loops::ForInStatement;
-pub use for_loops::ForStatement;
+pub use for_loops::{ForInStatement, ForStatement};
 
 // -----------------------------------------------------------------------------
 
 mod while_loops;
-pub use while_loops::DoWhileStatement;
-pub use while_loops::WhileStatement;
+pub use while_loops::{DoWhileStatement, WhileStatement};
 
 // -----------------------------------------------------------------------------
 
 mod switch_case;
-pub use switch_case::SwitchCaseStatement;
-pub use switch_case::SwitchStatement;
+pub use switch_case::{SwitchCaseStatement, SwitchStatement};
 
 // -----------------------------------------------------------------------------
 
 mod identifiers;
-pub use identifiers::IdentifierTerm;
-pub use identifiers::TypeDeclaration;
-pub use identifiers::TypedIdentifier;
+pub use identifiers::{IdentifierTerm, TypeDeclaration, TypedIdentifier};
 
 // -----------------------------------------------------------------------------
 
@@ -149,6 +133,9 @@ pub use function_call::FunctionCall;
 // -----------------------------------------------------------------------------
 
 mod lambda;
-pub use lambda::Lambda;
-pub use lambda::LambdaDeclaration;
-pub use lambda::LambdaType;
+pub use lambda::{Lambda, LambdaDeclaration, LambdaType};
+
+// -----------------------------------------------------------------------------
+
+mod register;
+pub use register::Register;

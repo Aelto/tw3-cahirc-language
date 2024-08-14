@@ -10,7 +10,7 @@ pub struct ClassInstantiation {
   pub class_name: String,
   pub generic_type_assignment: Option<Vec<TypeDeclaration>>,
   pub lifetime: String,
-  pub span: Span,
+  pub span: Span
 }
 
 impl ClassInstantiation {
@@ -20,7 +20,7 @@ impl ClassInstantiation {
       Some(generic_types) => generic_types
         .iter()
         .map(|t| t.to_string())
-        .collect::<Vec<String>>(),
+        .collect::<Vec<String>>()
     }
   }
 }
@@ -55,7 +55,7 @@ impl Codegen for ClassInstantiation {
 
         TypeDeclaration::stringified_generic_types(&types, &context)
       }
-      None => Vec::new(),
+      None => Vec::new()
     };
     let generic_variant_suffix =
       GenericContext::generic_variant_suffix_from_types(&stringified_types);

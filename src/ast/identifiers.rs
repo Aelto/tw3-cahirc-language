@@ -10,7 +10,7 @@ use super::*;
 pub struct IdentifierTerm {
   pub text: String,
   pub indexing: Vec<Rc<Expression>>,
-  pub span: Span,
+  pub span: Span
 }
 
 impl Visited for IdentifierTerm {
@@ -26,7 +26,7 @@ impl Codegen for IdentifierTerm {
     if self.text == "this" {
       match context.replace_this_with_self.borrow().as_ref() {
         Some(replacer) => write!(f, "{}", replacer)?,
-        None => write!(f, "{}", self.text)?,
+        None => write!(f, "{}", self.text)?
       };
     } else {
       write!(f, "{}", self.text)?;
@@ -45,7 +45,7 @@ impl Codegen for IdentifierTerm {
 #[derive(Debug)]
 pub struct TypedIdentifier {
   pub names: Vec<String>,
-  pub type_declaration: TypeDeclaration,
+  pub type_declaration: TypeDeclaration
 }
 
 impl Codegen for TypedIdentifier {
@@ -75,9 +75,9 @@ pub enum TypeDeclaration {
     type_name: String,
     generic_type_assignment: Option<Vec<TypeDeclaration>>,
 
-    mangled_accessor: RefCell<Option<String>>,
+    mangled_accessor: RefCell<Option<String>>
   },
-  Lambda(LambdaDeclaration),
+  Lambda(LambdaDeclaration)
 }
 
 impl Visited for TypeDeclaration {
@@ -86,7 +86,7 @@ impl Visited for TypeDeclaration {
       TypeDeclaration::Regular {
         type_name: _,
         generic_type_assignment,
-        mangled_accessor: _,
+        mangled_accessor: _
       } => {
         if let Some(generic_types) = &generic_type_assignment {
           visitor.visit_generic_variable_declaration(self);
@@ -96,7 +96,7 @@ impl Visited for TypeDeclaration {
           }
         }
       }
-      TypeDeclaration::Lambda(x) => x.accept(visitor),
+      TypeDeclaration::Lambda(x) => x.accept(visitor)
     }
   }
 }
@@ -109,7 +109,7 @@ impl Codegen for TypeDeclaration {
       TypeDeclaration::Regular {
         type_name,
         generic_type_assignment,
-        mangled_accessor,
+        mangled_accessor
       } => {
         if let Some(mangled_accessor) = mangled_accessor.borrow().as_deref() {
           write!(f, "{}", mangled_accessor)?;
@@ -138,7 +138,7 @@ impl Codegen for TypeDeclaration {
 
                 TypeDeclaration::stringified_generic_types(&types, &context)
               }
-              None => Vec::new(),
+              None => Vec::new()
             };
             let generic_variant_suffix =
               GenericContext::generic_variant_suffix_from_types(&stringified_types);
@@ -147,7 +147,7 @@ impl Codegen for TypeDeclaration {
           }
         }
       }
-      TypeDeclaration::Lambda(x) => x.emit(context, f)?,
+      TypeDeclaration::Lambda(x) => x.emit(context, f)?
     };
 
     Ok(())
@@ -160,7 +160,7 @@ impl TypeDeclaration {
       TypeDeclaration::Regular {
         type_name,
         generic_type_assignment,
-        mangled_accessor: _,
+        mangled_accessor: _
       } => {
         if let Some(generics) = &generic_type_assignment {
           let mut output = type_name.clone();
@@ -180,15 +180,15 @@ impl TypeDeclaration {
           .type_declaration
           .as_ref()
           .and_then(|t| Some(t.to_string()))
-          .as_ref(),
-      ),
+          .as_ref()
+      )
     }
   }
 
   /// Returns a flattened list of all the type names this type declaration contains.
   /// Mainly used for generic type declarations with nested types.
   pub fn flat_type_names<'a>(
-    type_name: &'a String, generic_type_assignment: &'a Option<Vec<TypeDeclaration>>,
+    type_name: &'a String, generic_type_assignment: &'a Option<Vec<TypeDeclaration>>
   ) -> Vec<&'a str> {
     let mut output = vec![type_name.as_str()];
 
@@ -198,7 +198,7 @@ impl TypeDeclaration {
           TypeDeclaration::Regular {
             type_name,
             generic_type_assignment,
-            mangled_accessor: _,
+            mangled_accessor: _
           } => Self::flat_type_names(&type_name, &generic_type_assignment),
           TypeDeclaration::Lambda(lambda) => {
             FunctionDeclarationParameter::flat_type_names(&lambda.parameters)
@@ -215,7 +215,7 @@ impl TypeDeclaration {
   }
 
   pub fn stringified_generic_types<'a>(
-    generic_types: &Vec<&'a TypeDeclaration>, context: &Context,
+    generic_types: &Vec<&'a TypeDeclaration>, context: &Context
   ) -> Vec<String> {
     generic_types
       .into_iter()
@@ -223,7 +223,7 @@ impl TypeDeclaration {
         TypeDeclaration::Regular {
           type_name: _,
           generic_type_assignment,
-          mangled_accessor: _,
+          mangled_accessor: _
         } => {
           let mut type_name: Vec<u8> = Vec::new();
           let stringified_type = if let Some(subtypes) = generic_type_assignment {
@@ -247,10 +247,10 @@ impl TypeDeclaration {
             Ok(_) => std::str::from_utf8(&type_name)
               .and_then(|s| Ok(s.to_string()))
               .unwrap_or_else(|_| stringified_type),
-            Err(_) => stringified_type,
+            Err(_) => stringified_type
           }
         }
-        TypeDeclaration::Lambda(_) => todo!(),
+        TypeDeclaration::Lambda(_) => todo!()
       })
       .collect::<Vec<String>>()
   }

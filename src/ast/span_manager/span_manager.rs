@@ -1,4 +1,5 @@
-use std::{collections::HashMap, ops::Range};
+use std::collections::HashMap;
+use std::ops::Range;
 
 use super::SpanMaker;
 
@@ -13,21 +14,21 @@ pub struct SpanRange {
   source_ref: FilePathRef,
 
   left: usize,
-  right: usize,
+  right: usize
 }
 
 pub struct SpanManager {
   /// Stores the path for the sources
   pub paths: Vec<FilePath>,
 
-  pub spans: Vec<SpanRange>,
+  pub spans: Vec<SpanRange>
 }
 
 impl SpanManager {
   pub fn new() -> Self {
     Self {
       paths: Vec::new(),
-      spans: Vec::new(),
+      spans: Vec::new()
     }
   }
 
@@ -37,7 +38,7 @@ impl SpanManager {
     self.spans.push(SpanRange {
       source_ref,
       left,
-      right,
+      right
     });
 
     Span(i)
@@ -51,7 +52,7 @@ impl SpanManager {
     SpanMaker {
       parent: self,
       source_ref,
-      pool: HashMap::new(),
+      pool: HashMap::new()
     }
   }
 
@@ -63,7 +64,7 @@ impl SpanManager {
     SpanMaker {
       parent: self,
       source_ref,
-      pool: HashMap::new(),
+      pool: HashMap::new()
     }
   }
 

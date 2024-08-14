@@ -9,7 +9,7 @@ use super::types::*;
 
 pub fn expand_macros(
   registered_macros: &mut HashMap<String, MacroDefinition>, new_content: &mut String,
-  regex_collection: &RegexCollection,
+  regex_collection: &RegexCollection
 ) -> bool {
   loop {
     let cap = regex_collection.macro_function.captures(&new_content);
@@ -35,7 +35,7 @@ pub fn expand_macros(
 
     new_content.replace_range(
       macro_start..macro_end + body_length + closing_bracket_index + 2,
-      "",
+      ""
     );
   }
 
@@ -51,7 +51,7 @@ pub fn expand_macros(
 
     let macro_value = match regex_collection.macro_const_value.captures(&cap[0]) {
       Some(value_capture) => value_capture[1].to_string(),
-      None => String::from("true"),
+      None => String::from("true")
     };
 
     println!("registering macro const: {macro_name} = {macro_value}");
@@ -60,8 +60,8 @@ pub fn expand_macros(
       macro_name.to_string(),
       MacroDefinition::Constant(MacroConstant {
         name: macro_name.to_string(),
-        value: macro_value.to_string(),
-      }),
+        value: macro_value.to_string()
+      })
     );
 
     let macro_start = new_content
@@ -93,7 +93,7 @@ pub fn expand_macros(
 }
 
 fn expand_macro_call(
-  content: &mut String, macro_name: &str, registered_macros: &HashMap<String, MacroDefinition>,
+  content: &mut String, macro_name: &str, registered_macros: &HashMap<String, MacroDefinition>
 ) {
   let macro_call_index = content.find(&format!("{macro_name}!"));
 
@@ -147,7 +147,7 @@ fn expand_macro_call(
           let parsing_result = crate::parser::ExpressionParser::new().parse(
             &program_information,
             &mut span_maker,
-            &slice,
+            &slice
           );
 
           let parameter_slice = match parsing_result {
@@ -164,11 +164,11 @@ fn expand_macro_call(
               lalrpop_util::ParseError::InvalidToken { location: _ } => unreachable!(),
               lalrpop_util::ParseError::UnrecognizedEOF {
                 location: _,
-                expected: _,
+                expected: _
               } => unreachable!(),
               lalrpop_util::ParseError::ExtraToken { token: _ } => unreachable!(),
-              lalrpop_util::ParseError::User { error: _ } => unreachable!(),
-            },
+              lalrpop_util::ParseError::User { error: _ } => unreachable!()
+            }
           };
 
           parameters.push(&parameter_slice);
@@ -267,7 +267,7 @@ fn parse_macro_function(macro_parameters: &str, macro_body: &str) -> MacroFuncti
 
     let macro_end_index = match macro_end_index {
       Some(i) => i,
-      None => slice.len(),
+      None => slice.len()
     };
 
     if define_index.is_none() || macro_end_index < define_index.unwrap() {
@@ -293,6 +293,6 @@ fn parse_macro_function(macro_parameters: &str, macro_body: &str) -> MacroFuncti
 
   MacroFunction {
     parameters,
-    body: macro_body[..end].to_string(),
+    body: macro_body[..end].to_string()
   }
 }

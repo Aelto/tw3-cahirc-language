@@ -18,12 +18,12 @@ pub fn get_pragma_replace_directives(body: &str) -> Vec<PragmaReplace> {
 fn parse_pragma_findreplace(find: &str, replace: &str) -> PragmaReplace {
   PragmaReplace {
     find: find.replacen("#pragma find ", "", 1),
-    replace: replace.replacen("#pragma replace ", "", 1),
+    replace: replace.replacen("#pragma replace ", "", 1)
   }
 }
 
 #[derive(Debug)]
 pub struct PragmaReplace {
   pub find: String,
-  pub replace: String,
+  pub replace: String
 }

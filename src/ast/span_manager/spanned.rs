@@ -1,11 +1,12 @@
-use crate::ast::{codegen::Codegen, Context};
+use crate::ast::codegen::Codegen;
+use crate::ast::Context;
 
 use super::*;
 
 #[derive(Debug)]
 pub struct Spanned<T> {
   pub span: Span,
-  value: T,
+  value: T
 }
 
 impl<T> Spanned<T> {
@@ -16,7 +17,7 @@ impl<T> Spanned<T> {
 
 impl<T> Codegen for Spanned<T>
 where
-  T: Codegen,
+  T: Codegen
 {
   fn emit(&self, context: &Context, output: &mut Vec<u8>) -> Result<(), std::io::Error> {
     self.value.emit(context, output)

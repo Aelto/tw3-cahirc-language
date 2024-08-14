@@ -10,7 +10,7 @@ use super::*;
 #[derive(Debug)]
 pub struct LambdaDeclaration {
   pub parameters: Vec<FunctionDeclarationParameter>,
-  pub type_declaration: Option<Rc<TypeDeclaration>>,
+  pub type_declaration: Option<Rc<TypeDeclaration>>
 }
 
 impl LambdaDeclaration {
@@ -20,7 +20,7 @@ impl LambdaDeclaration {
   /// A way to differentiate different lambdas if their definitions
   /// differ.
   pub fn stringified_type_representation<'a>(
-    parameters: &'a Vec<FunctionDeclarationParameter>, return_type: &'a Option<&'a String>,
+    parameters: &'a Vec<FunctionDeclarationParameter>, return_type: &'a Option<&'a String>
   ) -> String {
     let flattened_types = FunctionDeclarationParameter::flat_type_names(&parameters).join("_");
     let void = String::from("_void");
@@ -32,7 +32,7 @@ impl LambdaDeclaration {
   /// emits the base abstract class the lambdas will extend to finally implement
   /// the run method.
   pub fn emit_base_type(
-    &self, context: &mut Context, f: &mut Vec<u8>, emitted_types: &mut HashSet<String>,
+    &self, context: &mut Context, f: &mut Vec<u8>, emitted_types: &mut HashSet<String>
   ) -> Result<(), std::io::Error> {
     let has_generic_context = context.generic_context.is_some();
     if has_generic_context {
@@ -63,7 +63,7 @@ impl LambdaDeclaration {
 
 fn emit_lambda_declaration(
   this: &LambdaDeclaration, context: &Context, f: &mut Vec<u8>, _generic_variant_suffix: &str,
-  emitted_types: &mut HashSet<String>,
+  emitted_types: &mut HashSet<String>
 ) -> Result<(), std::io::Error> {
   use std::io::Write as IoWrite;
 
@@ -80,14 +80,14 @@ fn emit_lambda_declaration(
   // we generate a more complete generic variant suffix that includes all types
   // and not just the generic ones.
   let mut this_generic_variant_suffix = GenericContext::generic_variant_suffix_from_types(
-    &TypeDeclaration::stringified_generic_types(&parameter_types, &context),
+    &TypeDeclaration::stringified_generic_types(&parameter_types, &context)
   );
 
   let return_type_suffix = if let Some(returntype) = &this.type_declaration {
     let returntype: &TypeDeclaration = &returntype.borrow();
     GenericContext::generic_variant_suffix_from_types(&TypeDeclaration::stringified_generic_types(
       &vec![returntype],
-      &context,
+      &context
     ))
   } else {
     String::from("_void")
@@ -142,13 +142,13 @@ impl Codegen for LambdaDeclaration {
     };
 
     let generic_variant_suffix = GenericContext::generic_variant_suffix_from_types(
-      &TypeDeclaration::stringified_generic_types(&parameter_types, &context),
+      &TypeDeclaration::stringified_generic_types(&parameter_types, &context)
     );
 
     let return_type_suffix = if let Some(returntype) = &self.type_declaration {
       let returntype: &TypeDeclaration = &returntype.borrow();
       GenericContext::generic_variant_suffix_from_types(
-        &TypeDeclaration::stringified_generic_types(&vec![returntype], &context),
+        &TypeDeclaration::stringified_generic_types(&vec![returntype], &context)
       )
     } else {
       String::from("_void")
@@ -168,20 +168,20 @@ pub struct Lambda {
   pub span: Span,
 
   pub mangled_accessor: RefCell<Option<String>>,
-  pub captured_variables: RefCell<Vec<(String, Type)>>,
+  pub captured_variables: RefCell<Vec<(String, Type)>>
 }
 
 #[derive(Debug)]
 pub enum LambdaType {
   SingleLine,
-  MultiLine,
+  MultiLine
 }
 
 impl Lambda {
   /// emits the base abstract class the lambdas will extend to finally implement
   /// the run method.
   pub fn emit_base_type(
-    &self, context: &mut Context, f: &mut Vec<u8>,
+    &self, context: &mut Context, f: &mut Vec<u8>
   ) -> Result<(), std::io::Error> {
     let has_generic_context = context.generic_context.is_some();
     if has_generic_context {
@@ -211,7 +211,7 @@ impl Lambda {
 }
 
 fn emit_lambda(
-  this: &Lambda, context: &Context, f: &mut Vec<u8>, _generic_variant_suffix: &str,
+  this: &Lambda, context: &Context, f: &mut Vec<u8>, _generic_variant_suffix: &str
 ) -> Result<(), std::io::Error> {
   use std::io::Write as IoWrite;
 
@@ -228,7 +228,7 @@ fn emit_lambda(
   // we generate a more complete generic variant suffix that includes all types
   // and not just the generic ones.
   let this_generic_variant_suffix = GenericContext::generic_variant_suffix_from_types(
-    &TypeDeclaration::stringified_generic_types(&parameter_types, &context),
+    &TypeDeclaration::stringified_generic_types(&parameter_types, &context)
   );
 
   // get the return type from the last body statement, if it is a type cast then
@@ -268,7 +268,7 @@ fn emit_lambda(
         write!(f, "return ")?;
         this.body_statements.emit(context, f)?;
       }
-      LambdaType::MultiLine => this.body_statements.emit(context, f)?,
+      LambdaType::MultiLine => this.body_statements.emit(context, f)?
     };
     writeln!(f, "}}")?;
 

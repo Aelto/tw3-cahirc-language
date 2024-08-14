@@ -1,0 +1,5 @@
+hard_tabs = false
+tab_spaces = 2
+fn_params_layout = "Compressed"
+trailing_comma = "Never"
+imports_granularity = "Module"

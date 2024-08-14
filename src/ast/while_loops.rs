@@ -4,7 +4,7 @@ use super::*;
 #[derive(Debug)]
 pub struct WhileStatement {
   pub condition: Rc<Expression>,
-  pub body_statements: Vec<FunctionBodyStatement>,
+  pub body_statements: Vec<FunctionBodyStatement>
 }
 
 impl Visited for WhileStatement {
@@ -31,7 +31,7 @@ impl Codegen for WhileStatement {
 #[derive(Debug)]
 pub struct DoWhileStatement {
   pub condition: Rc<Expression>,
-  pub body_statements: Vec<FunctionBodyStatement>,
+  pub body_statements: Vec<FunctionBodyStatement>
 }
 
 impl Visited for DoWhileStatement {

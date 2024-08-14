@@ -13,7 +13,7 @@ pub trait Codegen {
   }
 
   fn emit_join(
-    &self, _: &context::Context, _: &mut Vec<u8>, _: &'static str,
+    &self, _: &context::Context, _: &mut Vec<u8>, _: &'static str
   ) -> Result<(), std::io::Error> {
     unimplemented!("default emit_join impl called");
   }
@@ -21,7 +21,7 @@ pub trait Codegen {
 
 impl<A> Codegen for Vec<A>
 where
-  A: Codegen,
+  A: Codegen
 {
   fn emit(&self, context: &context::Context, output: &mut Vec<u8>) -> Result<(), std::io::Error> {
     for child in self {
@@ -32,7 +32,7 @@ where
   }
 
   fn emit_join(
-    &self, context: &context::Context, output: &mut Vec<u8>, join_char: &'static str,
+    &self, context: &context::Context, output: &mut Vec<u8>, join_char: &'static str
   ) -> Result<(), std::io::Error> {
     use std::io::Write as IoWrite;
 
@@ -52,7 +52,7 @@ where
 
 impl<A> Codegen for std::boxed::Box<A>
 where
-  A: Codegen,
+  A: Codegen
 {
   fn emit(&self, context: &context::Context, output: &mut Vec<u8>) -> Result<(), std::io::Error> {
     self.deref().emit(context, output)
@@ -61,7 +61,7 @@ where
 
 impl<A> Codegen for std::rc::Rc<A>
 where
-  A: Codegen,
+  A: Codegen
 {
   fn emit(&self, context: &context::Context, output: &mut Vec<u8>) -> Result<(), std::io::Error> {
     self.deref().emit(context, output)
@@ -70,7 +70,7 @@ where
 
 impl<A> Codegen for Option<A>
 where
-  A: Codegen,
+  A: Codegen
 {
   fn emit(&self, context: &context::Context, output: &mut Vec<u8>) -> Result<(), std::io::Error> {
     if let Some(inner) = self {

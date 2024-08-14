@@ -3,14 +3,12 @@ use std::rc::Rc;
 
 use generic_call_visitor::GenericCallsVisitor;
 
-use crate::ast::visitor::generic_call_visitor;
-use crate::ast::visitor::Visited;
-use crate::ast::Context;
-use crate::ast::ProgramInformation;
+use crate::ast::visitor::{generic_call_visitor, Visited};
+use crate::ast::{Context, ProgramInformation};
 
 pub struct FunctionVisitor<'a> {
   pub program_information: &'a ProgramInformation,
-  pub current_context: Rc<RefCell<Context>>,
+  pub current_context: Rc<RefCell<Context>>
 }
 
 impl super::Visitor for FunctionVisitor<'_> {
@@ -27,7 +25,7 @@ impl super::Visitor for FunctionVisitor<'_> {
   }
 
   fn visit_function_declaration_parameter(
-    &mut self, node: &crate::ast::FunctionDeclarationParameter,
+    &mut self, node: &crate::ast::FunctionDeclarationParameter
   ) {
     let type_string_representation = node.typed_identifier.type_declaration.to_string();
 

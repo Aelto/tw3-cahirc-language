@@ -18,7 +18,7 @@ pub struct FunctionDeclaration {
 
   pub span_name: Span,
 
-  pub context: Rc<RefCell<Context>>,
+  pub context: Rc<RefCell<Context>>
 }
 
 impl visitor::Visited for FunctionDeclaration {
@@ -67,7 +67,7 @@ impl Codegen for FunctionDeclaration {
 }
 
 fn emit_function(
-  this: &FunctionDeclaration, context: &Context, f: &mut Vec<u8>, generic_variant_suffix: &str,
+  this: &FunctionDeclaration, context: &Context, f: &mut Vec<u8>, generic_variant_suffix: &str
 ) -> Result<(), std::io::Error> {
   use std::io::Write as IoWrite;
 
@@ -122,7 +122,7 @@ pub enum FunctionType {
   Event,
   Entry,
   Latent,
-  Exec,
+  Exec
 }
 
 impl Codegen for FunctionType {
@@ -135,7 +135,7 @@ impl Codegen for FunctionType {
       FunctionType::Event => write!(f, "event"),
       FunctionType::Entry => write!(f, "entry function"),
       FunctionType::Latent => write!(f, "latent function"),
-      FunctionType::Exec => write!(f, "exec function"),
+      FunctionType::Exec => write!(f, "exec function")
     }
   }
 }
@@ -155,6 +155,7 @@ pub enum FunctionBodyStatement {
   DoWhileStatement(DoWhileStatement),
   SwitchStatement(SwitchStatement),
   Delete(Rc<Expression>),
+  Register(Register)
 }
 
 impl FunctionBodyStatement {
@@ -169,18 +170,18 @@ impl FunctionBodyStatement {
 
         match body {
           ExpressionBody::Cast(cast_type, _) => Some(cast_type),
-          _ => None,
+          _ => None
         }
       }
       FunctionBodyStatement::Return(x) => match x {
         Some(expression) => match &expression.body {
           ExpressionBody::Cast(cast_type, _) => Some(cast_type),
-          _ => None,
+          _ => None
         },
-        None => None,
+        None => None
       },
 
-      _ => None,
+      _ => None
     }
   }
 }
@@ -200,7 +201,7 @@ impl visitor::Visited for FunctionBodyStatement {
       FunctionBodyStatement::Delete(x) => x.accept(visitor),
       FunctionBodyStatement::Break => {}
       FunctionBodyStatement::Continue => {}
-      FunctionBodyStatement::ForInStatement(x) => x.accept(visitor),
+      FunctionBodyStatement::ForInStatement(x) => x.accept(visitor)
     };
   }
 }
@@ -289,7 +290,7 @@ impl Codegen for FunctionCallParameters {
 pub struct FunctionDeclarationParameter {
   pub parameter_type: ParameterType,
   pub typed_identifier: TypedIdentifier,
-  pub span: Span,
+  pub span: Span
 }
 
 impl FunctionDeclarationParameter {
@@ -301,9 +302,9 @@ impl FunctionDeclarationParameter {
         TypeDeclaration::Regular {
           type_name,
           generic_type_assignment,
-          mangled_accessor: _,
+          mangled_accessor: _
         } => TypeDeclaration::flat_type_names(&type_name, &generic_type_assignment),
-        TypeDeclaration::Lambda(x) => Self::flat_type_names(&x.parameters),
+        TypeDeclaration::Lambda(x) => Self::flat_type_names(&x.parameters)
       };
 
       for t in subtypes {
@@ -315,14 +316,14 @@ impl FunctionDeclarationParameter {
   }
 
   pub fn to_function_infered_parameter_types(
-    parameters: &Vec<Self>,
+    parameters: &Vec<Self>
   ) -> Vec<FunctionInferedParameterType> {
     parameters
       .iter()
       .map(|param| FunctionInferedParameterType {
         infered_type: param.typed_identifier.type_declaration.to_string(),
         parameter_type: param.parameter_type,
-        span: param.span,
+        span: param.span
       })
       .collect()
   }
@@ -346,7 +347,7 @@ impl Visited for FunctionDeclarationParameter {
 pub enum ParameterType {
   Copy,
   Optional,
-  Reference,
+  Reference
 }
 
 impl Codegen for ParameterType {
@@ -356,7 +357,7 @@ impl Codegen for ParameterType {
     match self {
       ParameterType::Copy => Ok(()),
       ParameterType::Optional => write!(f, "optional "),
-      ParameterType::Reference => write!(f, "out "),
+      ParameterType::Reference => write!(f, "out ")
     }
   }
 }

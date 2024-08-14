@@ -4,7 +4,7 @@ use super::*;
 #[derive(Debug)]
 pub struct EnumDeclaration {
   pub name: String,
-  pub body_statements: Vec<EnumBodyStatement>,
+  pub body_statements: Vec<EnumBodyStatement>
 }
 
 impl Visited for EnumDeclaration {
@@ -35,7 +35,7 @@ impl Codegen for EnumDeclaration {
 #[derive(Debug)]
 pub struct EnumBodyStatement {
   pub name: String,
-  pub number: Option<String>,
+  pub number: Option<String>
 }
 
 impl Visited for EnumBodyStatement {

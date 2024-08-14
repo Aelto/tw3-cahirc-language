@@ -6,12 +6,12 @@ pub enum IfStatement {
   If {
     condition: Rc<Expression>,
     body_statements: Vec<FunctionBodyStatement>,
-    else_statements: Vec<Box<IfStatement>>,
+    else_statements: Vec<Box<IfStatement>>
   },
   Else {
     condition: Option<Rc<Expression>>,
-    body_statements: Vec<FunctionBodyStatement>,
-  },
+    body_statements: Vec<FunctionBodyStatement>
+  }
 }
 
 impl Visited for IfStatement {
@@ -20,7 +20,7 @@ impl Visited for IfStatement {
       IfStatement::If {
         condition,
         body_statements,
-        else_statements,
+        else_statements
       } => {
         condition.accept(visitor);
         body_statements.accept(visitor);
@@ -28,7 +28,7 @@ impl Visited for IfStatement {
       }
       IfStatement::Else {
         condition,
-        body_statements,
+        body_statements
       } => {
         condition.accept(visitor);
         body_statements.accept(visitor);
@@ -45,7 +45,7 @@ impl Codegen for IfStatement {
       IfStatement::If {
         condition,
         body_statements,
-        else_statements,
+        else_statements
       } => {
         write!(f, "if (")?;
         condition.emit(context, f)?;
@@ -56,7 +56,7 @@ impl Codegen for IfStatement {
       }
       IfStatement::Else {
         condition,
-        body_statements,
+        body_statements
       } => {
         write!(f, "else ")?;
 

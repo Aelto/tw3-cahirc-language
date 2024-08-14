@@ -2,8 +2,7 @@ use super::codegen::type_inference::FunctionInferedType;
 use super::visitor::Visited;
 use super::*;
 
-use super::codegen::context::Context;
-use super::codegen::context::GenericContext;
+use super::codegen::context::{Context, GenericContext};
 
 #[derive(Debug)]
 pub struct FunctionCall {
@@ -13,7 +12,7 @@ pub struct FunctionCall {
   pub span: Span,
 
   pub mangled_accessor: RefCell<Option<String>>,
-  pub infered_function_type: RefCell<Option<Rc<FunctionInferedType>>>,
+  pub infered_function_type: RefCell<Option<Rc<FunctionInferedType>>>
 }
 
 impl FunctionCall {
