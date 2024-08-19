@@ -7,6 +7,7 @@ use regex::{Regex, RegexBuilder};
 mod conditionals;
 mod expand_macros;
 mod pragma_replace;
+mod registry;
 pub mod types;
 
 use crate::utils::convert_line_endings;
@@ -61,6 +62,8 @@ pub fn preprocess(
       .build()
       .unwrap()
   };
+
+  registry::handle_registers(&mut output);
 
   let mut registered_macros = HashMap::new();
   let mut contains_macro_call = true;
