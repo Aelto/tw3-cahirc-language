@@ -1,26 +1,24 @@
 // Provide a way to register pieces of code for them to be emitted elsewhere in
 // the code.
-//
+// Some sort of "compile time registration"
 
 class WMH_HuntManager {
-
-  // can be used in the context of a class, do no need semicolons at the end
+  // can be placed anywhere in the code, in the global scope, in functions ...
   @register('event.onContractCompleted', thePlayer.wmh.hunt)
   function onContractCompleted(origin: WMH_ContractManager) {}
+}
 
-  function compileInjectionExample() {
-    // in the context of a function, it acts as an expression and expect a
-    // semicolon.
-    @register('event.define', function onSomething() {
-      @registry('event.onSomething', REGISTER());
-    });
-  }
+class WMH_HerbalistManager {
+  @register('event.onContractCompleted', thePlayer.wmh.herbalist)
+  function onContractCompleted(origin: WMH_ContractManager) {}
 }
 
 class WMH_Master {
-  @registry('event.define', {
-    REGISTEr
-  });
-
-
+  function onContractCompleted(origin: WMH_ContractManager) {
+    @registry('event.onContractCompleted', {{
+      // REGISTER is replaced by the code provided in the
+      // @register('name', code) or @register('name', {{ multiline code }})
+      REGISTER.onContractCompleted(origin);
+    }})
+  }
 }
