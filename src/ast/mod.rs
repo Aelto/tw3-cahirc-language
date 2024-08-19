@@ -134,8 +134,3 @@ pub use function_call::FunctionCall;
 
 mod lambda;
 pub use lambda::{Lambda, LambdaDeclaration, LambdaType};
-
-// -----------------------------------------------------------------------------
-
-mod register;
-pub use register::Register;

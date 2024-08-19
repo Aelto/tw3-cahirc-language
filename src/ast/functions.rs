@@ -154,8 +154,7 @@ pub enum FunctionBodyStatement {
   WhileStatement(WhileStatement),
   DoWhileStatement(DoWhileStatement),
   SwitchStatement(SwitchStatement),
-  Delete(Rc<Expression>),
-  Register(Register)
+  Delete(Rc<Expression>)
 }
 
 impl FunctionBodyStatement {
