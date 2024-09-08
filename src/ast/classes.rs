@@ -146,9 +146,11 @@ pub enum ClassBodyStatement {
   Property {
     encapsulation: Option<EncapsulationType>,
     property_declaration: VariableDeclaration,
-    is_saved: bool
+    is_saved: bool,
+    is_editable: bool
   },
-  DefaultValue(VariableAssignment)
+  DefaultValue(VariableAssignment),
+  Hint(VariableAssignment)
 }
 
 impl Codegen for ClassBodyStatement {
@@ -170,11 +172,16 @@ impl Codegen for ClassBodyStatement {
       ClassBodyStatement::Property {
         encapsulation,
         property_declaration,
-        is_saved
+        is_saved,
+        is_editable
       } => {
         if let Some(encapsulation) = encapsulation {
           encapsulation.emit(context, f)?;
           write!(f, " ")?;
+        }
+
+        if *is_editable {
+          write!(f, "editable ")?;
         }
 
         if *is_saved {
@@ -185,6 +192,11 @@ impl Codegen for ClassBodyStatement {
       }
       ClassBodyStatement::DefaultValue(x) => {
         write!(f, "default ")?;
+        x.emit(context, f)?;
+        writeln!(f, ";")?
+      }
+      ClassBodyStatement::Hint(x) => {
+        write!(f, "hint ")?;
         x.emit(context, f)?;
         writeln!(f, ";")?
       }
@@ -211,9 +223,11 @@ impl visitor::Visited for ClassBodyStatement {
       ClassBodyStatement::Property {
         encapsulation: _,
         property_declaration,
-        is_saved: _
+        is_saved: _,
+        is_editable: _
       } => property_declaration.accept(visitor),
       ClassBodyStatement::DefaultValue(_) => {}
+      ClassBodyStatement::Hint(_) => {}
     }
   }
 }

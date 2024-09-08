@@ -100,10 +100,11 @@ ClassType: ClassType = {
 }
 
 ClassBodyStatement: ClassBodyStatement = {
-    <encapsulation:EncapsulationType?> <is_saved:KeywordSaved?> <property_declaration:VariableDeclaration> ";" => ClassBodyStatement::Property {
+    <encapsulation:EncapsulationType?> <is_editable:KeywordEditable?> <is_saved:KeywordSaved?> <property_declaration:VariableDeclaration> ";" => ClassBodyStatement::Property {
         encapsulation,
         property_declaration,
-        is_saved: is_saved.is_some()
+        is_saved: is_saved.is_some(),
+        is_editable: is_editable.is_some(),
     },
 
     <encapsulation:EncapsulationType?> <function_declaration:MethodDeclaration> => ClassBodyStatement::Method {
@@ -111,7 +112,9 @@ ClassBodyStatement: ClassBodyStatement = {
         function_declaration
     },
 
-    KeywordDefault <VariableAssignment> ";" => ClassBodyStatement::DefaultValue(<>)
+    KeywordDefault <VariableAssignment> ";" => ClassBodyStatement::DefaultValue(<>),
+
+    KeywordHint <VariableAssignment> ";" => ClassBodyStatement::Hint(<>)
 }
 
 EncapsulationType: EncapsulationType = {
@@ -754,7 +757,9 @@ match {
     "wrapMethod" => KeywordWrapMethod,
     "replaceMethod" => KeywordReplaceMethod,
     "addMethod" => KeywordAddMethod,
-    "addField" => KeywordAddField
+    "addField" => KeywordAddField,
+    "editable" => KeywordEditable,
+    "hint" => KeywordHint,
 } else {
     // These items have next highest precedence.
 

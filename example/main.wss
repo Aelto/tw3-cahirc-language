@@ -1,4 +1,7 @@
 class Example {
+  editable var something: name;
+  hint something = "some editor hint";
+
   function add(a: int, b: int): int {
     return a + b;
   }
