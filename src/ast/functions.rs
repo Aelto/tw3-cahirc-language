@@ -73,10 +73,23 @@ fn emit_function(
 
   this.function_type.emit(context, f)?;
 
+  let generic_variant_suffix_prefix = match generic_variant_suffix.is_empty() {
+    true => "",
+    false => "_"
+  };
+
   if let Some(mangled_accessor) = &context.mangled_accessor {
-    write!(f, " {}{}(", mangled_accessor, generic_variant_suffix)?;
+    write!(
+      f,
+      " {}{generic_variant_suffix_prefix}{}(",
+      mangled_accessor, generic_variant_suffix
+    )?;
   } else {
-    write!(f, " {}{}(", this.name, generic_variant_suffix)?;
+    write!(
+      f,
+      " {}{generic_variant_suffix_prefix}{}(",
+      this.name, generic_variant_suffix
+    )?;
   }
 
   this.parameters.emit_join(context, f, ", ")?;
