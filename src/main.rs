@@ -191,12 +191,13 @@ fn compile_source_directory(config: &Config) -> std::io::Result<()> {
   }
 
   let mut report_manager = ReportManager::new();
+  // perform a first pass to build the contexts
   for parsed_file in &ast_list {
-    let mut variable_declaration_visitor = VariableDeclarationVisitor::new(&program_information);
+    let file_context_name = format!("file: {:#?}", parsed_file.file_path.file_name().unwrap());
 
     // create a context for this file, and register it into the global context
     let file_context = Rc::new(RefCell::new(Context::new(
-      &format!("file: {:#?}", parsed_file.file_path.file_name().unwrap()),
+      &file_context_name,
       None,
       ContextType::Global
     )));
@@ -206,6 +207,26 @@ fn compile_source_directory(config: &Config) -> std::io::Result<()> {
       current_context: file_context.clone()
     };
 
+    use ast::visitor::Visited;
+    parsed_file.ast.accept(&mut context_builder);
+  }
+
+  // then perform the pass of visitors
+  for parsed_file in &ast_list {
+    let file_context_name = format!("file: {:#?}", parsed_file.file_path.file_name().unwrap());
+
+    let gc = global_context.borrow();
+
+    let Some(file_context) = gc
+      .children_contexts
+      .iter()
+      .find(|c| c.borrow().name == file_context_name)
+    else {
+      panic!("Missing context in 2nd compilation pass for file {file_context_name}");
+    };
+
+    let mut variable_declaration_visitor = VariableDeclarationVisitor::new(&program_information);
+
     let mut function_visitor = FunctionVisitor {
       program_information: &program_information,
       current_context: file_context.clone()
@@ -213,7 +234,6 @@ fn compile_source_directory(config: &Config) -> std::io::Result<()> {
 
     use ast::visitor::Visited;
 
-    parsed_file.ast.accept(&mut context_builder);
     parsed_file.ast.accept(&mut function_visitor);
     parsed_file.ast.accept(&mut variable_declaration_visitor);
 
