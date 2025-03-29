@@ -135,7 +135,8 @@ pub enum FunctionType {
   Event,
   Entry,
   Latent,
-  Exec
+  Exec,
+  Quest
 }
 
 impl Codegen for FunctionType {
@@ -148,7 +149,8 @@ impl Codegen for FunctionType {
       FunctionType::Event => write!(f, "event"),
       FunctionType::Entry => write!(f, "entry function"),
       FunctionType::Latent => write!(f, "latent function"),
-      FunctionType::Exec => write!(f, "exec function")
+      FunctionType::Exec => write!(f, "exec function"),
+      FunctionType::Quest => write!(f, "quest function")
     }
   }
 }

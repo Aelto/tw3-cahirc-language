@@ -29,3 +29,59 @@ public function add(a: int, b: int): int {
 
 @addField(Example)
 var a: int;
+
+class ListingExample {
+  var a: array<string>;
+
+  default a = {{
+    "hello",
+    "world"
+  }};
+}
+
+
+class WMH_RatiosRollerGen<T> extends WMH_RatiosRoller {
+  private var items: array<T>;
+  private var item: T;
+
+  public function addItem(ratio: float, item: T): WMH_RatiosRollerGen<T> {
+    this.items.PushBack(item);
+    this.addRatio(ratio);
+
+    return this;
+  }
+
+  public function rollItem(seed: int): T {
+    var index: int = this.roll(seed);
+
+    return this.items[index];
+  }
+}
+
+function temp() {
+   var variant: WMH_RatiosRollerGen<string>;
+    
+  variant = (new WMH_RatiosRollerGen<string> in this)
+    .addItem(
+      1.0,
+      "dlc\dlcwild_monster_hunt\data\gameplay\guarded_treasures\gt_boxes.w2ent"
+    )
+  
+    .addItem(
+      1.0,
+      "dlc\dlcwild_monster_hunt\data\gameplay\guarded_treasures\gt_broken_cart.w2ent"
+    )
+    .addItem(
+      1.0,
+      "dlc\dlcwild_monster_hunt\data\gameplay\guarded_treasures\gt_corpse.w2ent"
+    )
+    .addItem(
+      1.0,
+      "dlc\dlcwild_monster_hunt\data\gameplay\guarded_treasures\gt_nest.w2ent"
+    )
+    .addItem(
+      1.0,
+      "dlc\dlcwild_monster_hunt\data\gameplay\guarded_treasures\gt_totem.w2ent"
+    )
+    .rollItem(point_seed);
+}

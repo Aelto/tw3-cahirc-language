@@ -268,7 +268,8 @@ FunctionType: FunctionType = {
 GlobalFunctionType: FunctionType = {
     KeywordLatent KeywordFunction => FunctionType::Latent,
     KeywordFunction => FunctionType::Function,
-    KeywordExec KeywordFunction => FunctionType::Exec
+    KeywordExec KeywordFunction => FunctionType::Exec,
+    KeywordQuest KeywordFunction => FunctionType::Quest
 }
 
 FunctionBodyStatement: FunctionBodyStatement = {
@@ -568,7 +569,14 @@ Term: Rc<Expression> = {
 
             function_call
         },
+
+    ExpressionListing
 };
+
+ExpressionListing: Rc<Expression> = {
+    "{{" <expressions:SeparatedExpressions> "}}" => Rc::new(Expression::new(
+        ExpressionBody::List(expressions)))
+}
 
 Indexing: Rc<Expression> = {
     "[" <Expression> "]" => <>
@@ -740,6 +748,7 @@ match {
     "enum" => KeywordEnum,
     "timer" => KeywordTimer,
     "event" => KeywordEvent,
+    "quest" => KeywordQuest,
     "in" => KeywordIn,
     "entry" => KeywordEntry,
     "new" => KeywordNew,

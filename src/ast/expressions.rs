@@ -433,6 +433,16 @@ impl Expression {
           self.set_infered_type(Type::Bool, infered_type.clone());
         }
       }
+      ExpressionBody::List(x) => {
+        if let Some(first) = x.first() {
+          first.deduce_type(
+            current_context,
+            inference_map,
+            global_inference_map,
+            span_manager
+          )?;
+        }
+      }
       ExpressionBody::Nesting(_) => unreachable!(),
       ExpressionBody::Cast(type_name, expr) => {
         match inference_map.get(type_name) {
@@ -509,6 +519,7 @@ pub enum ExpressionBody {
   Not(Rc<Expression>),
   Nesting(Vec<Expression>),
   Cast(String, Rc<Expression>),
+  List(Vec<Rc<Expression>>),
 
   /// Expressions surrounded by parenthesis
   Group(Rc<Expression>),
@@ -535,6 +546,7 @@ impl visitor::Visited for ExpressionBody {
       ExpressionBody::Group(x) => x.accept(visitor),
       ExpressionBody::ClassInstantiation(x) => x.accept(visitor),
       ExpressionBody::Not(x) => x.accept(visitor),
+      ExpressionBody::List(x) => x.accept(visitor),
       ExpressionBody::Lambda(x) => x.accept(visitor)
     }
   }
@@ -562,6 +574,23 @@ impl Codegen for ExpressionBody {
       }
       ExpressionBody::Error => todo!(),
       ExpressionBody::Nesting(x) => x.emit(context, f),
+      ExpressionBody::List(x) => {
+        writeln!(f, "{{")?;
+
+        let mut items = x.iter().peekable();
+
+        while let Some(item) = items.next() {
+          item.emit(context, f)?;
+
+          if items.peek().is_some() {
+            writeln!(f, ",")?;
+          } else {
+            writeln!(f, "")?;
+          }
+        }
+
+        write!(f, "}}")
+      }
       ExpressionBody::Cast(t, x) => {
         write!(f, "({t})(")?;
         x.emit(context, f)?;
@@ -673,6 +702,7 @@ impl ExpressionBody {
       ExpressionBody::Operation(_, _, x) => x.body.get_span(),
       ExpressionBody::Not(x) => x.body.get_span(),
       ExpressionBody::Nesting(x) => x.last().unwrap().body.get_span(),
+      ExpressionBody::List(x) => x.last().unwrap().body.get_span(),
       ExpressionBody::Cast(_, x) => x.body.get_span(),
       ExpressionBody::Group(x) => x.body.get_span(),
       ExpressionBody::Error => todo!()

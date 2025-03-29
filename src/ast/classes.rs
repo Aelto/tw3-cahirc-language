@@ -70,16 +70,21 @@ fn emit_class(
 ) -> Result<(), std::io::Error> {
   use std::io::Write as IoWrite;
 
+  let generic_variant_suffix_prefix = match generic_variant_suffix.is_empty() {
+    true => "",
+    false => "_"
+  };
+
   if let Some(mangled_accessor) = &context.mangled_accessor {
     write!(
       f,
-      "{} {}{}",
+      "{} {}{generic_variant_suffix_prefix}{}",
       this.class_type, mangled_accessor, generic_variant_suffix
     )?;
   } else {
     write!(
       f,
-      "{} {}{}",
+      "{} {}{generic_variant_suffix_prefix}{}",
       this.class_type, this.name, generic_variant_suffix
     )?;
   }
@@ -94,21 +99,21 @@ fn emit_class(
 
   writeln!(f, " {{")?;
 
-  // the hashset will allow us to emit duplicate variable names once.
-  let mut emitted_variable_names = HashSet::new();
-  for declaration in &context.variable_declarations {
-    'name_emitting: for name in &declaration.names {
-      if emitted_variable_names.contains(name.as_str()) {
-        continue 'name_emitting;
-      }
+  // // the hashset will allow us to emit duplicate variable names once.
+  // let mut emitted_variable_names = HashSet::new();
+  // for declaration in &context.variable_declarations {
+  //   'name_emitting: for name in &declaration.names {
+  //     if emitted_variable_names.contains(name.as_str()) {
+  //       continue 'name_emitting;
+  //     }
 
-      write!(f, "var {name}: ")?;
-      declaration.type_declaration.emit(context, f)?;
-      writeln!(f, ";")?;
+  //     write!(f, "var {name}: ")?;
+  //     declaration.type_declaration.emit(context, f)?;
+  //     writeln!(f, ";")?;
 
-      emitted_variable_names.insert(name.clone());
-    }
-  }
+  //     emitted_variable_names.insert(name.clone());
+  //   }
+  // }
 
   for statement in &this.body_statements {
     statement.emit(context, f)?;
