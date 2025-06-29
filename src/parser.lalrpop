@@ -136,7 +136,11 @@ StructDeclaration: StructDeclaration = {
 }
 
 StructBodyStatement: StructBodyStatement = {
-    <VariableDeclaration> ";" => StructBodyStatement::Property(<>),
+    <is_editable:KeywordEditable?> <is_saved:KeywordSaved?> <property_declaration:VariableDeclaration> ";" => StructBodyStatement::Property {
+        property_declaration,
+        is_saved: is_saved.is_some(),
+        is_editable: is_editable.is_some(),
+    },
     KeywordDefault <VariableAssignment> ";" => StructBodyStatement::DefaultValue(<>)
 }
 

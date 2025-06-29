@@ -45,14 +45,22 @@ impl Codegen for StructDeclaration {
 
 #[derive(Debug)]
 pub enum StructBodyStatement {
-  Property(VariableDeclaration),
+  Property {
+    property_declaration: VariableDeclaration,
+    is_saved: bool,
+    is_editable: bool
+  },
   DefaultValue(VariableAssignment)
 }
 
 impl Visited for StructBodyStatement {
   fn accept<T: visitor::Visitor>(&self, visitor: &mut T) {
     match self {
-      StructBodyStatement::Property(x) => x.accept(visitor),
+      StructBodyStatement::Property {
+        property_declaration,
+        is_saved: _,
+        is_editable: _
+      } => property_declaration.accept(visitor),
       StructBodyStatement::DefaultValue(x) => x.accept(visitor)
     }
   }
@@ -63,8 +71,20 @@ impl Codegen for StructBodyStatement {
     use std::io::Write as IoWrite;
 
     match self {
-      StructBodyStatement::Property(x) => {
-        x.emit(context, f)?;
+      StructBodyStatement::Property {
+        property_declaration,
+        is_saved,
+        is_editable
+      } => {
+        if *is_editable {
+          write!(f, "editable ")?;
+        }
+
+        if *is_saved {
+          write!(f, "saved ")?;
+        }
+
+        property_declaration.emit(context, f)?;
       }
       StructBodyStatement::DefaultValue(x) => {
         write!(f, "default ")?;
