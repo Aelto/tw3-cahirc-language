@@ -85,3 +85,8 @@ function temp() {
     )
     .rollItem(point_seed);
 }
+
+@wrapMethod
+quest function someGlobalFunc() {
+  var a: int = 10;
+}

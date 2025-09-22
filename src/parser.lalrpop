@@ -168,7 +168,7 @@ Annotation: Annotation = {
         function    
     },
 
-    "@" KeywordWrapMethod "(" <target_parent:Identifier> ")"
+    "@" KeywordWrapMethod <target_parent:("(" <Identifier> ")")?>
     <encapsulation:EncapsulationType?> <function:GlobalFunctionDeclaration> => Annotation::WrapMethod {
         target_parent,
         encapsulation,

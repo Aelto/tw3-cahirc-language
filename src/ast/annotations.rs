@@ -10,7 +10,7 @@ pub enum Annotation {
     function: Rc<FunctionDeclaration>
   },
   WrapMethod {
-    target_parent: String,
+    target_parent: Option<String>,
     encapsulation: Option<EncapsulationType>,
     function: Rc<FunctionDeclaration>
   },
@@ -83,7 +83,10 @@ impl Codegen for Annotation {
         encapsulation,
         function
       } => {
-        writeln!(f, "@wrapMethod({target_parent})")?;
+        match target_parent {
+          Some(target_parent) => writeln!(f, "@wrapMethod({target_parent})"),
+          None => writeln!(f, "@wrapMethod")
+        }?;
         if let Some(e) = encapsulation {
           e.emit(context, f)?;
           write!(f, " ")?;
